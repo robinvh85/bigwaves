@@ -31,6 +31,6 @@ export function useAccountAction() {
       }
     },
     onSettled: () => qc.invalidateQueries({ queryKey: accountKeys.all }),
-    meta: { success: 'Đã thực hiện' },
+    meta: { success: 'Done' },
   })
 }

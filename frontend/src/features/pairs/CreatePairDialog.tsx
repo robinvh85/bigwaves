@@ -27,7 +27,7 @@ const schema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z0-9]{2,20}$/, 'Chỉ gồm chữ và số, vd SUNUSDT'),
+    .regex(/^[A-Z0-9]{2,20}$/, 'Letters and digits only, e.g. SUNUSDT'),
   account: z.enum(['CROSS', 'ISOLATED', 'SPOT']),
 })
 type Form = z.input<typeof schema>
@@ -45,7 +45,7 @@ export function CreatePairDialog({ onCreated }: { onCreated?: (p: Pair) => void 
         isSpot: v.account === 'SPOT',
         isIsolated: v.account === 'ISOLATED',
       })
-      toast.success(`Đã thêm ${p.name}`)
+      toast.success(`Added ${p.name}`)
       setOpen(false)
       form.reset()
       onCreated?.(p)
@@ -67,15 +67,15 @@ export function CreatePairDialog({ onCreated }: { onCreated?: (p: Pair) => void 
       <DialogTrigger asChild>
         <Button>
           <PlusIcon />
-          Thêm pair
+          Add pair
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={(e) => void submit(e)} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>Thêm pair</DialogTitle>
+            <DialogTitle>Add pair</DialogTitle>
             <DialogDescription>
-              Nhập symbol Binance. Coin, step size và min notional được lấy tự động từ Binance.
+              Enter the Binance symbol. Coin, step size and min notional are fetched from Binance.
             </DialogDescription>
           </DialogHeader>
           <Field data-invalid={!!form.formState.errors.name}>
@@ -91,7 +91,7 @@ export function CreatePairDialog({ onCreated }: { onCreated?: (p: Pair) => void 
             <FieldError>{form.formState.errors.name?.message}</FieldError>
           </Field>
           <Field>
-            <FieldLabel>Giao dịch trên</FieldLabel>
+            <FieldLabel>Trade on</FieldLabel>
             <Controller
               control={form.control}
               name="account"
@@ -110,15 +110,15 @@ export function CreatePairDialog({ onCreated }: { onCreated?: (p: Pair) => void 
                 </ToggleGroup>
               )}
             />
-            <FieldDescription>EMA1D cần cross margin. DCA dùng được cả spot.</FieldDescription>
+            <FieldDescription>EMA1D needs cross margin. DCA also works on spot.</FieldDescription>
           </Field>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Huỷ
+              Cancel
             </Button>
             <Button type="submit" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting && <Loader2Icon className="animate-spin" />}
-              Thêm
+              Add
             </Button>
           </DialogFooter>
         </form>

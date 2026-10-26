@@ -37,18 +37,18 @@ function PairsPage() {
     <>
       <PageHeader
         title="Pairs"
-        description="Các cặp giao dịch trên Binance. Bấm vào một dòng để xem chi tiết và ghi chú coin."
+        description="Binance trading pairs. Click a row for details and coin notes."
         actions={<CreatePairDialog onCreated={(p) => set({ pair: p.id })} />}
       />
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative sm:w-72">
           <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Tìm pair…"
+            placeholder="Search pairs…"
             className="pl-8"
             value={s.q ?? ''}
             onChange={(e) => set({ q: e.target.value || undefined })}
-            aria-label="Tìm pair"
+            aria-label="Search pairs"
           />
         </div>
         <ToggleGroup
@@ -60,7 +60,7 @@ function PairsPage() {
             if (v) set({ status: v === 'ALL' ? undefined : (v as 'ACTIVE' | 'DISABLED') })
           }}
         >
-          <ToggleGroupItem value="ALL">Tất cả</ToggleGroupItem>
+          <ToggleGroupItem value="ALL">All</ToggleGroupItem>
           <ToggleGroupItem value="ACTIVE">Active</ToggleGroupItem>
           <ToggleGroupItem value="DISABLED">Disabled</ToggleGroupItem>
         </ToggleGroup>
@@ -79,8 +79,8 @@ function PairsPage() {
         empty={
           s.q || s.status ? undefined : (
             <EmptyState
-              title="Chưa có pair nào"
-              description="Thêm pair đầu tiên bằng symbol Binance, vd SUNUSDT."
+              title="No pairs yet"
+              description="Add the first pair by its Binance symbol, e.g. SUNUSDT."
             />
           )
         }

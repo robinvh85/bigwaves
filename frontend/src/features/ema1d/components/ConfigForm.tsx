@@ -11,12 +11,12 @@ import { formatMoney } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
-import { Input } from '@/shared/ui/input'
+import { NumberInput } from '@/shared/components/number-input'
 
 import { configQuery, type Ema1dConfig, type Ema1dConfigEnvelope, statusQuery, useSaveConfig } from '../api'
 
-const dec = z.string().regex(/^\d+(\.\d+)?$/, 'Số không hợp lệ')
-const pct = dec.refine((v) => Number(v) <= 100, 'Tối đa 100%')
+const dec = z.string().regex(/^\d+(\.\d+)?$/, 'Invalid number')
+const pct = dec.refine((v) => Number(v) <= 100, 'At most 100%')
 const schema = z
   .object({
     budgetUsdt: dec,
@@ -29,7 +29,7 @@ const schema = z
     marginLevelAlert: dec,
   })
   .refine((v) => Number(v.marginLevelAlert) <= Number(v.marginLevelWarn), {
-    message: 'Ngưỡng báo động phải ≤ ngưỡng cảnh báo',
+    message: 'Alert level must be ≤ warning level',
     path: ['marginLevelAlert'],
   })
 type FormIn = z.input<typeof schema>
@@ -65,14 +65,14 @@ function toConfig(base: Ema1dConfig, f: Form): Ema1dConfig {
 }
 
 const LABELS: Record<keyof Form, string> = {
-  budgetUsdt: 'Ngân sách',
-  maxEntryAgeDays: 'Tuổi tín hiệu tối đa',
-  coreLong: 'Lõi · LONG',
-  coreShort: 'Lõi · SHORT',
-  sensitiveLong: 'Nhạy · LONG',
-  sensitiveShort: 'Nhạy · SHORT',
-  marginLevelWarn: 'Ngưỡng cảnh báo margin',
-  marginLevelAlert: 'Ngưỡng báo động margin',
+  budgetUsdt: 'Budget',
+  maxEntryAgeDays: 'Max signal age',
+  coreLong: 'Core · LONG',
+  coreShort: 'Core · SHORT',
+  sensitiveLong: 'Sensitive · LONG',
+  sensitiveShort: 'Sensitive · SHORT',
+  marginLevelWarn: 'Margin level warning',
+  marginLevelAlert: 'Margin level alert',
 }
 
 export function ConfigForm() {
@@ -97,7 +97,7 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
     <Field data-invalid={!!form.formState.errors[name]}>
       <FieldLabel htmlFor={name}>{LABELS[name]}</FieldLabel>
       <div className="relative">
-        <Input id={name} inputMode="decimal" className="pr-14" {...form.register(name)} />
+        <NumberInput id={name} className="pr-14" {...form.register(name)} />
         {opts.unit && (
           <span className="absolute top-1/2 right-3 -translate-y-1/2 text-sm text-muted-foreground">
             {opts.unit}
@@ -106,8 +106,8 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
       </div>
       {opts.suggested && (
         <FieldDescription>
-          Backtest dùng {opts.suggested}%. Thấp hơn = chạy thử: lệnh dưới mức tối thiểu của Binance được nâng
-          lên mức tối thiểu.
+          The backtest uses {opts.suggested}%. Lower = trial run: orders below the Binance minimum are raised
+          to the minimum.
         </FieldDescription>
       )}
       {opts.hint && <FieldDescription>{opts.hint}</FieldDescription>}
@@ -126,10 +126,10 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
     <form onSubmit={(e) => void form.handleSubmit((v) => setReview(v))(e)} className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Vốn & khối lượng</CardTitle>
+          <CardTitle className="text-base">Capital & sizing</CardTitle>
           <CardDescription>
-            Khối lượng = % × vốn chiến lược (ngân sách + lãi/lỗ đã chốt, hiện {formatMoney(equity)} USDT).
-            Không dùng số dư thật.
+            Size = % × strategy capital (budget + realized PnL, now {formatMoney(equity)} USDT). The actual
+            balance is not used.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -143,18 +143,18 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Vào lệnh & cảnh báo</CardTitle>
+          <CardTitle className="text-base">Entries & alerts</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           {field('maxEntryAgeDays', {
-            unit: 'ngày',
-            hint: 'Tín hiệu vào cũ hơn số ngày này thì không mở (tín hiệu đóng luôn chạy).',
+            unit: 'days',
+            hint: 'Entry signals older than this are not opened (exit signals always run).',
           })}
           <div />
           {field('marginLevelWarn', {
-            hint: 'Monitor cảnh báo Discord tối đa 1 lần/giờ khi margin level dưới mức này.',
+            hint: 'The monitor warns on Discord at most once an hour while margin level is below this.',
           })}
-          {field('marginLevelAlert', { hint: 'Báo động: rủi ro short squeeze / thanh lý.' })}
+          {field('marginLevelAlert', { hint: 'Alert: short squeeze / liquidation risk.' })}
         </CardContent>
       </Card>
       <div className="flex justify-end gap-2">
@@ -164,10 +164,10 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
           disabled={!form.formState.isDirty}
           onClick={() => form.reset(toForm(env.config))}
         >
-          Hoàn tác
+          Undo
         </Button>
         <Button type="submit" disabled={!form.formState.isDirty}>
-          Xem lại & lưu
+          Review & save
         </Button>
       </div>
 
@@ -175,9 +175,9 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
         <ConfirmDialog
           open
           onOpenChange={(o) => !o && setReview(null)}
-          title="Lưu cấu hình EMA1D?"
-          description="Áp dụng ngay cho lệnh mở tiếp theo. Lệnh đang giữ không đổi."
-          confirmLabel="Lưu"
+          title="Save EMA1D settings?"
+          description="Applies from the next opened trade. Held positions do not change."
+          confirmLabel="Save"
           onConfirm={() => save.mutateAsync({ version: env.version, config: toConfig(env.config, review) })}
         >
           <ul className="space-y-1 text-sm">
@@ -193,7 +193,7 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
                     {isSize && (
                       <span className="ml-2 text-xs text-muted-foreground">
                         ≈ {formatMoney(notional(review.budgetUsdt, before))} →{' '}
-                        {formatMoney(notional(review.budgetUsdt, after))} USDT/lệnh
+                        {formatMoney(notional(review.budgetUsdt, after))} USDT/trade
                       </span>
                     )}
                   </span>

@@ -43,7 +43,7 @@ export function useUpdatePair(id: number) {
       qc.setQueryData(pairKeys.detail(id), p)
       return qc.invalidateQueries({ queryKey: pairKeys.all })
     },
-    meta: { success: 'Đã lưu' },
+    meta: { success: 'Saved' },
   })
 }
 
@@ -52,7 +52,7 @@ export function useDeletePair() {
   return useMutation({
     mutationFn: (id: number) => unwrap(api.DELETE('/pairs/{id}', { params: { path: { id } } })),
     onSuccess: () => qc.invalidateQueries({ queryKey: pairKeys.all }),
-    meta: { success: 'Đã xoá pair' },
+    meta: { success: 'Pair deleted' },
   })
 }
 
@@ -66,6 +66,6 @@ export function useUpdateCoinDescription(pairId: number) {
         qc.invalidateQueries({ queryKey: pairKeys.detail(pairId) }),
         qc.invalidateQueries({ queryKey: pairKeys.all }),
       ]),
-    meta: { success: 'Đã lưu mô tả' },
+    meta: { success: 'Notes saved' },
   })
 }

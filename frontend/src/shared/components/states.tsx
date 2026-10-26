@@ -56,7 +56,7 @@ export function EmptyState({
 
 export function ErrorState({
   error,
-  title = 'Không tải được dữ liệu',
+  title = 'Could not load data',
   onRetry,
 }: {
   error: unknown
@@ -76,7 +76,7 @@ export function ErrorState({
       {onRetry && (
         <Button variant="outline" size="sm" className="mt-4" onClick={onRetry}>
           <RefreshCwIcon />
-          Thử lại
+          Retry
         </Button>
       )}
     </div>
@@ -86,7 +86,7 @@ export function ErrorState({
 /** Placeholder rows shaped like the content that is loading. */
 export function SkeletonRows({ rows = 5, className }: { rows?: number; className?: string }) {
   return (
-    <div className={cn('space-y-2', className)} aria-busy="true" aria-label="Đang tải">
+    <div className={cn('space-y-2', className)} aria-busy="true" aria-label="Loading">
       {Array.from({ length: rows }, (_, i) => (
         <Skeleton key={i} className="h-9 w-full" />
       ))}

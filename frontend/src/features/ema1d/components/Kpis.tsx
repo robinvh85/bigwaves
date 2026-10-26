@@ -12,19 +12,19 @@ export function Ema1dKpis({ status }: { status: Ema1dStatus }) {
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
       <StatCard
-        label="Vốn chiến lược"
+        label="Strategy capital"
         value={<Money value={capital.equityUsdt} />}
         hint={
           <>
-            ngân sách {formatMoney(capital.budgetUsdt)} + đã chốt{' '}
+            budget {formatMoney(capital.budgetUsdt)} + realized{' '}
             <Pnl value={capital.realizedProfitUsdt} unit={null} />
           </>
         }
       />
       <StatCard
-        label="Lãi/lỗ chưa chốt"
+        label="Unrealized PnL"
         value={<Pnl value={capital.unrealizedProfitUsdt} />}
-        hint={`${status.openPositions.length} lệnh đang mở`}
+        hint={`${status.openPositions.length} open positions`}
       />
       <StatCard
         label="Margin level"
@@ -33,17 +33,17 @@ export function Ema1dKpis({ status }: { status: Ema1dStatus }) {
             {formatMoney(marginLevel.value)}
           </span>
         }
-        hint={marginLevel.at ? `đo ${fromNow(marginLevel.at)}` : 'chưa có số đo'}
+        hint={marginLevel.at ? `measured ${fromNow(marginLevel.at)}` : 'not measured yet'}
       />
       <StatCard
         label="LONG"
         value={<Money value={exposure.longUsdt} />}
-        hint={`${exposure.longCount} lệnh · ${formatPct(exposure.longPercent, { sign: false })} vốn`}
+        hint={`${exposure.longCount} positions · ${formatPct(exposure.longPercent, { sign: false })} of capital`}
       />
       <StatCard
         label="SHORT"
         value={<Money value={exposure.shortUsdt} />}
-        hint={`${exposure.shortCount} lệnh · ${formatPct(exposure.shortPercent, { sign: false })} vốn`}
+        hint={`${exposure.shortCount} positions · ${formatPct(exposure.shortPercent, { sign: false })} of capital`}
       />
     </div>
   )

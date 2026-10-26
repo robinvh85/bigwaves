@@ -61,5 +61,5 @@ lịch sử vay, không vay lần hai.
 
 ## Cấu hình
 
-Màn EMA1D → Cấu hình (mọi thay đổi có lịch sử). Thực thi lệnh, tạm dừng mở mới, daily check, ngân sách,
+Màn EMA1D → Settings (mọi thay đổi có lịch sử). Thực thi lệnh, tạm dừng mở mới, daily check, ngân sách,
 % khối lượng, tuổi tín hiệu, ngưỡng margin level.

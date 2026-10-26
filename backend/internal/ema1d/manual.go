@@ -196,7 +196,7 @@ func (s *Service) todoWithCoin(ctx context.Context, id int64) (dbq.Ema1dTodo, st
 	q := dbq.New(s.DB.Read)
 	t, err := q.GetTodo(ctx, id)
 	if isNoRows(err) {
-		return t, "", httpx.NewError(404, "todo_not_found", "không tìm thấy todo")
+		return t, "", httpx.NewError(404, "todo_not_found", "todo not found")
 	}
 	if err != nil {
 		return t, "", err
@@ -212,7 +212,7 @@ func (s *Service) RetryTodo(ctx context.Context, id int64) (TodoRow, error) {
 		return TodoRow{}, err
 	}
 	if t.Status != TodoFailed && t.Status != TodoSkipped {
-		return TodoRow{}, httpx.Conflict("not_retryable", "chỉ retry được todo FAILED hoặc SKIPPED (todo này đang "+t.Status+")")
+		return TodoRow{}, httpx.Conflict("not_retryable", "only FAILED or SKIPPED todos can be retried (this one is "+t.Status+")")
 	}
 	t.Status, t.Attempts, t.RunAfter = TodoPending, 0, nil
 	// Keep first_attempted_at while a borrow may be in flight: the guard searches history from it.
@@ -233,7 +233,7 @@ func (s *Service) CancelTodo(ctx context.Context, id int64) (TodoRow, error) {
 		return TodoRow{}, err
 	}
 	if !cancellable(t) {
-		return TodoRow{}, httpx.Conflict("not_cancellable", fmt.Sprintf("todo #%d có thể đã gửi lên Binance nên không huỷ được", t.ID))
+		return TodoRow{}, httpx.Conflict("not_cancellable", fmt.Sprintf("todo #%d may already be on Binance, so it cannot be cancelled", t.ID))
 	}
 	t.Status, t.LastError = TodoCancelled, "cancelled from the screen"
 	if err := saveTodo(ctx, dbq.New(s.DB.Write), t); err != nil {
@@ -263,7 +263,7 @@ func (s *Service) UpdatePair(ctx context.Context, id int64, in PairUpdate) (Pair
 		q := dbq.New(tx)
 		cur, err := q.GetEma1dPair(ctx, id)
 		if isNoRows(err) {
-			return httpx.NewError(404, "pair_not_found", "không tìm thấy pair EMA1D")
+			return httpx.NewError(404, "pair_not_found", "EMA1D pair not found")
 		}
 		if err != nil {
 			return err

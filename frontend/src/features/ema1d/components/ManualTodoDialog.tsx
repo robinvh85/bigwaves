@@ -7,6 +7,8 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { ApiError, errorMessage } from '@/shared/api/errors'
+import { Combobox } from '@/shared/components/combobox'
+import { NumberInput } from '@/shared/components/number-input'
 import { dayjs } from '@/shared/lib/date'
 import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
@@ -22,7 +24,6 @@ import {
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/toggle-group'
 
 import { pairsQuery, useCreateTodo } from '../api'
@@ -30,18 +31,18 @@ import { pairsQuery, useCreateTodo } from '../api'
 const schema = z
   .object({
     action: z.enum(['OPEN', 'CLOSE']),
-    coin: z.string().min(1, 'Chọn coin'),
+    coin: z.string().min(1, 'Select a coin'),
     side: z.enum(['LONG', 'SHORT']).optional(),
     signalDate: z.string().optional(),
     refPrice: z
       .string()
-      .regex(/^(\d+(\.\d+)?)?$/, 'Giá không hợp lệ')
+      .regex(/^(\d+(\.\d+)?)?$/, 'Invalid price')
       .optional(),
     rule: z.enum(['XO', 'DIV4H']).optional(),
     force: z.boolean(),
   })
   .refine((v) => v.action === 'CLOSE' || (v.side && v.signalDate), {
-    message: 'OPEN cần chiều và ngày tín hiệu',
+    message: 'OPEN needs a side and a signal date',
     path: ['signalDate'],
   })
 type Form = z.infer<typeof schema>
@@ -74,7 +75,9 @@ export function ManualTodoDialog({ coin }: { coin?: string }) {
         rule: v.rule,
         force: v.force,
       })
-      toast.success(res.created ? `Đã tạo todo #${res.todo.id}` : `Todo #${res.todo.id} đã có trong hàng đợi`)
+      toast.success(
+        res.created ? `Created todo #${res.todo.id}` : `Todo #${res.todo.id} is already in the queue`,
+      )
       setOpen(false)
       form.reset()
     } catch (err) {
@@ -88,15 +91,16 @@ export function ManualTodoDialog({ coin }: { coin?: string }) {
       <DialogTrigger asChild>
         <Button variant="outline">
           <PlusIcon />
-          Lệnh tay
+          Manual order
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={(e) => void submit(e)} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>Tạo lệnh tay</DialogTitle>
+            <DialogTitle>Create manual order</DialogTitle>
             <DialogDescription>
-              Dùng khi sync không tự sửa được. Áp dụng cùng các kiểm tra như sync; khối lượng lấy từ cấu hình.
+              For when the sync cannot fix things itself. Same checks as the sync; size comes from the
+              settings.
             </DialogDescription>
           </DialogHeader>
           <Controller
@@ -109,31 +113,33 @@ export function ManualTodoDialog({ coin }: { coin?: string }) {
                 value={field.value}
                 onValueChange={(v) => v && field.onChange(v)}
               >
-                <ToggleGroupItem value="CLOSE">Đóng lệnh đang giữ</ToggleGroupItem>
-                <ToggleGroupItem value="OPEN">Mở lệnh mới</ToggleGroupItem>
+                <ToggleGroupItem value="CLOSE">Close held position</ToggleGroupItem>
+                <ToggleGroupItem value="OPEN">Open new position</ToggleGroupItem>
               </ToggleGroup>
             )}
           />
           <Field data-invalid={!!form.formState.errors.coin}>
-            <FieldLabel>Coin</FieldLabel>
+            <FieldLabel htmlFor="coin">Coin</FieldLabel>
             <Controller
               control={form.control}
               name="coin"
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Chọn coin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {pairs
-                      ?.filter((p) => p.status !== 'DISABLED')
-                      .map((p) => (
-                        <SelectItem key={p.id} value={p.coin}>
-                          {p.coin} {p.position ? `· đang ${p.position.side}` : ''}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  id="coin"
+                  value={field.value}
+                  onChange={field.onChange}
+                  invalid={!!form.formState.errors.coin}
+                  placeholder="Select a coin"
+                  searchPlaceholder="Search coin…"
+                  emptyText="No coin found"
+                  options={(pairs ?? [])
+                    .filter((p) => p.status !== 'DISABLED')
+                    .map((p) => ({
+                      value: p.coin,
+                      label: p.coin,
+                      hint: p.position ? `holding ${p.position.side}` : undefined,
+                    }))}
+                />
               )}
             />
             <FieldError>{form.formState.errors.coin?.message}</FieldError>
@@ -156,7 +162,7 @@ export function ManualTodoDialog({ coin }: { coin?: string }) {
                 )}
               />
               <Field data-invalid={!!form.formState.errors.signalDate}>
-                <FieldLabel htmlFor="signal-date">Ngày tín hiệu (nến 1D, UTC)</FieldLabel>
+                <FieldLabel htmlFor="signal-date">Signal date (1D candle, UTC)</FieldLabel>
                 <Input id="signal-date" type="date" {...form.register('signalDate')} />
                 <FieldError>{form.formState.errors.signalDate?.message}</FieldError>
               </Field>
@@ -172,30 +178,29 @@ export function ManualTodoDialog({ coin }: { coin?: string }) {
                     />
                   )}
                 />
-                <Label htmlFor="force">Bỏ qua giới hạn tuổi tín hiệu (force)</Label>
+                <Label htmlFor="force">Ignore the signal age limit (force)</Label>
               </div>
             </>
           )}
           <Field data-invalid={!!form.formState.errors.refPrice}>
-            <FieldLabel htmlFor="ref-price">Giá tham chiếu (tuỳ chọn)</FieldLabel>
-            <Input
+            <FieldLabel htmlFor="ref-price">Reference price (optional)</FieldLabel>
+            <NumberInput
               id="ref-price"
-              inputMode="decimal"
-              placeholder="giá open của nến tín hiệu"
+              placeholder="open price of the signal candle"
               {...form.register('refPrice')}
             />
-            <FieldDescription>Dùng để đo trượt giá so với chiến lược.</FieldDescription>
+            <FieldDescription>Used to measure slippage against the strategy.</FieldDescription>
           </Field>
           {form.formState.errors.root && (
             <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
           )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Huỷ
+              Cancel
             </Button>
             <Button type="submit" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting && <Loader2Icon className="animate-spin" />}
-              Tạo todo
+              Create todo
             </Button>
           </DialogFooter>
         </form>

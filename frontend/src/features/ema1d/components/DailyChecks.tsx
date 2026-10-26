@@ -12,6 +12,7 @@ import { Button } from '@/shared/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
 
 import { dailyChecksQuery, type Ema1dDailyCheck } from '../api'
+import { engineText } from '../engine-text'
 
 const STATUS: Record<Ema1dDailyCheck['status'], string> = {
   PENDING: 'text-muted-foreground',
@@ -31,15 +32,15 @@ function CheckRow({ c }: { c: Ema1dDailyCheck }) {
           {c.status}
         </Badge>
         <span className="ml-auto text-xs text-muted-foreground">
-          {c.sentAt ? `gửi ${formatDateTime(c.sentAt)}` : c.attempts > 1 ? `${c.attempts} lần chạy` : ''}
+          {c.sentAt ? `sent ${formatDateTime(c.sentAt)}` : c.attempts > 1 ? `${c.attempts} runs` : ''}
         </span>
       </CollapsibleTrigger>
       <CollapsibleContent className="border-t p-3">
-        {c.lastError && <p className="mb-3 text-sm text-destructive">{c.lastError}</p>}
+        {c.lastError && <p className="mb-3 text-sm text-destructive">{engineText(c.lastError)}</p>}
         {c.report ? (
           <Markdown className="prose-p:my-1">{c.report.replaceAll('\n', '  \n')}</Markdown>
         ) : (
-          <p className="text-sm text-muted-foreground">Chưa có báo cáo.</p>
+          <p className="text-sm text-muted-foreground">No report yet.</p>
         )}
       </CollapsibleContent>
     </Collapsible>
@@ -59,7 +60,7 @@ export function DailyChecks() {
           onClick={() => run.mutate('ema1d.daily_check')}
         >
           {run.isPending ? <Loader2Icon className="animate-spin" /> : <PlayIcon />}
-          Chạy daily check ngay
+          Run daily check now
         </Button>
       </div>
       {error ? (
@@ -67,7 +68,10 @@ export function DailyChecks() {
       ) : isLoading || !data ? (
         <SkeletonRows rows={4} />
       ) : data.length === 0 ? (
-        <EmptyState title="Chưa có daily check" description="Bật daily check trong cấu hình hoặc chạy tay." />
+        <EmptyState
+          title="No daily checks yet"
+          description="Turn on the daily check in Settings or run it by hand."
+        />
       ) : (
         data.map((c) => <CheckRow key={c.signalDate} c={c} />)
       )}

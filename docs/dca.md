@@ -20,4 +20,4 @@ Khác bản Rails:
 - Giá kích hoạt (`buyPrice`, `sellPrice`) tách khỏi giá khớp (`openPrice`, `closePrice`).
 - Lãi/lỗ tính cả phí. Phí mua trả bằng coin làm giảm số coin giữ, và lệnh bán chỉ bán đúng số coin đang giữ
   (Rails bán đủ `amount` nên có thể thiếu số dư).
-- Giới hạn vốn tuỳ chọn (Cấu hình DCA): tổng USDT trong các nấc đang giữ, trên mọi ladder. 0 = không giới hạn.
+- Giới hạn vốn tuỳ chọn (DCA → Settings): tổng USDT trong các nấc đang giữ, trên mọi ladder. 0 = không giới hạn.

@@ -34,4 +34,5 @@ Single test: `cd backend && go test ./internal/ema1d/engine -run TestName`;
 - Handlers return `*httpx.Error` for expected failures; anything else becomes a 500.
 - Frontend: server state only in TanStack Query (query key factories per feature), filters in URL
   search params, no `any`. Upstream shadcn code stays in `src/shared/ui`; our components go in
-  `src/shared/components`. UI text is Vietnamese.
+  `src/shared/components`. UI text is English (engine status text stays Vietnamese and is translated on display in
+  `features/ema1d/engine-text.ts`). Numeric fields use `NumberInput`.

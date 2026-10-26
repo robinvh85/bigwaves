@@ -54,7 +54,7 @@ Binance (vị thế, nợ margin) trước khi bật lại thực thi lệnh.
 
 ## Job định kỳ
 
-Màn **Quản trị → Jobs** hiện lần chạy cuối/kế tiếp và cho chạy tay. Dòng lệnh: `sudo bwctl job list`,
+Màn **Admin → Jobs** hiện lần chạy cuối/kế tiếp và cho chạy tay. Dòng lệnh: `sudo bwctl job list`,
 `sudo bwctl job run <tên>`.
 
 | Job | Lịch | Việc |
@@ -77,8 +77,8 @@ job của app mà là `bigwaves-backup.timer` của systemd (xem deploy/README.m
 
 | Hiện tượng | Xử lý |
 |---|---|
-| Todo EMA1D **FAILED** | Đọc `lastError` ở màn Hàng đợi. Lỗi vốn/pair (`insufficient_budget`, `conflict`…) thì sửa nguyên nhân rồi Retry. Lỗi Binance (`-2010` thiếu số dư…) kiểm tra tài khoản trước khi Retry |
+| Todo EMA1D **FAILED** | Đọc `lastError` ở màn EMA1D → Queue. Lỗi vốn/pair (`insufficient_budget`, `conflict`…) thì sửa nguyên nhân rồi Retry. Lỗi Binance (`-2010` thiếu số dư…) kiểm tra tài khoản trước khi Retry |
 | Todo OPEN SHORT FAILED với ghi chú "repay by hand" | Coin đã vay nhưng chưa bán và không trả lại được tự động: trả nợ trên Binance, kiểm tra lại vị thế |
-| "Chưa có sync cho hôm nay" | Màn Equity & báo cáo → Daily check: xem lỗi, bấm "Chạy daily check ngay" |
-| Badge **Chỉ đọc** trên thanh trên cùng | `TRADING_ENABLED=false`: cố ý (chạy song song) hay quên bật |
-| Margin level dưới ngưỡng | Giảm SHORT hoặc chuyển thêm USDT vào cross (Tài khoản → Spot → Cross) |
+| "No sync for today yet" | Màn EMA1D → Equity & reports → Daily check: xem lỗi, bấm "Run daily check now" |
+| Badge **Read-only** trên thanh trên cùng | `TRADING_ENABLED=false`: cố ý (chạy song song) hay quên bật |
+| Margin level dưới ngưỡng | Giảm SHORT hoặc chuyển thêm USDT vào cross (Account → Spot → Cross) |

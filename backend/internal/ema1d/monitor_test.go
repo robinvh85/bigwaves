@@ -212,7 +212,7 @@ func TestRetryAndCancel(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = e.s.RetryTodo(e.ctx, t1.ID)
-	require.ErrorContains(t, err, "FAILED hoặc SKIPPED")
+	require.ErrorContains(t, err, "FAILED or SKIPPED")
 
 	row, err := e.s.CancelTodo(e.ctx, t1.ID)
 	require.NoError(t, err)
@@ -222,7 +222,7 @@ func TestRetryAndCancel(t *testing.T) {
 	require.NoError(t, err)
 	e.exec("UPDATE ema1d_todos SET status = 'FAILED', attempts = 3, step = 'BORROWING', first_attempted_at = '2026-10-10T01:00:00.000Z' WHERE id = ?", t2.ID)
 	_, err = e.s.CancelTodo(e.ctx, t2.ID)
-	require.ErrorContains(t, err, "không huỷ được")
+	require.ErrorContains(t, err, "cannot be cancelled")
 	row, err = e.s.RetryTodo(e.ctx, t2.ID)
 	require.NoError(t, err)
 	require.Equal(t, ema1d.TodoPending, row.Status)

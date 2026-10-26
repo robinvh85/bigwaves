@@ -38,7 +38,7 @@ function Actions({
           onClick={() => onAction('cancel', todo)}
         >
           <XIcon />
-          Huỷ
+          Cancel
         </Button>
       )}
     </div>
@@ -73,7 +73,7 @@ export function TodoTable({
     }),
     col.display({
       id: 'what',
-      header: 'Lệnh',
+      header: 'Order',
       cell: (c) => (
         <span className="inline-flex items-center gap-1.5">
           <span className="text-xs font-semibold">{c.row.original.action}</span>
@@ -83,32 +83,32 @@ export function TodoTable({
       meta: { mobile: 'badge' },
     }),
     col.accessor('status', {
-      header: 'Trạng thái',
+      header: 'Status',
       cell: (c) => <TodoStatusBadge status={c.getValue()} />,
       meta: { mobile: 'primary' },
     }),
-    col.accessor('signalDate', { header: 'Tín hiệu', cell: (c) => formatDate(c.getValue()) }),
+    col.accessor('signalDate', { header: 'Signal', cell: (c) => formatDate(c.getValue()) }),
     col.accessor('refPrice', {
-      header: 'Giá tham chiếu',
+      header: 'Ref. price',
       cell: (c) => <Price value={c.getValue()} />,
       meta: { align: 'right' },
     }),
     col.accessor('attempts', {
-      header: 'Lần thử',
+      header: 'Attempts',
       cell: (c) => {
         const t = c.row.original
         return (
           <span className="num">
             {t.attempts}
             {t.runAfter && t.status === 'PENDING' && (
-              <span className="ml-1 text-xs text-muted-foreground">· thử lại {fromNow(t.runAfter)}</span>
+              <span className="ml-1 text-xs text-muted-foreground">· retry {fromNow(t.runAfter)}</span>
             )}
           </span>
         )
       },
     }),
     col.accessor('lastError', {
-      header: 'Lỗi gần nhất',
+      header: 'Last error',
       enableSorting: false,
       cell: (c) =>
         c.getValue() ? (
@@ -124,7 +124,7 @@ export function TodoTable({
       meta: { className: 'max-w-80' },
     }),
     col.accessor('updatedAt', {
-      header: 'Cập nhật',
+      header: 'Updated',
       cell: (c) => <span title={formatDateTime(c.getValue())}>{fromNow(c.getValue())}</span>,
       meta: { align: 'right', mobile: 'hidden' },
     }),
@@ -134,7 +134,7 @@ export function TodoTable({
       cell: (c) => (
         <Actions todo={c.row.original} onAction={(action, todo) => setPending({ action, todo })} />
       ),
-      meta: { align: 'right', label: 'Thao tác' },
+      meta: { align: 'right', label: 'Actions' },
     }),
   ]
 
@@ -149,7 +149,7 @@ export function TodoTable({
         getRowId={(t) => String(t.id)}
         sorting={[{ id: 'id', desc: true }]}
         rowClassName={(t) => (t.status === 'FAILED' ? 'bg-destructive/5' : undefined)}
-        empty={<EmptyState title="Hàng đợi trống" description="Không có lệnh nào đang chờ hoặc cần xử lý." />}
+        empty={<EmptyState title="Queue is empty" description="Nothing is waiting or needs attention." />}
       />
       {pending && (
         <ConfirmDialog
@@ -159,16 +159,16 @@ export function TodoTable({
           }}
           title={
             pending.action === 'retry'
-              ? `Chạy lại todo #${pending.todo.id}?`
-              : `Huỷ todo #${pending.todo.id}?`
+              ? `Retry todo #${pending.todo.id}?`
+              : `Cancel todo #${pending.todo.id}?`
           }
           description={
             pending.action === 'retry'
-              ? `${pending.todo.action} ${pending.todo.side} ${pending.todo.coin} sẽ quay lại hàng đợi với 10 lần thử mới.`
-              : `${pending.todo.action} ${pending.todo.side} ${pending.todo.coin} chưa từng gửi lên Binance và sẽ bị huỷ.`
+              ? `${pending.todo.action} ${pending.todo.side} ${pending.todo.coin} goes back to the queue with 10 fresh attempts.`
+              : `${pending.todo.action} ${pending.todo.side} ${pending.todo.coin} was never sent to Binance and will be cancelled.`
           }
           destructive={pending.action === 'cancel'}
-          confirmLabel={pending.action === 'retry' ? 'Chạy lại' : 'Huỷ todo'}
+          confirmLabel={pending.action === 'retry' ? 'Retry' : 'Cancel todo'}
           onConfirm={() =>
             pending.action === 'retry'
               ? retry.mutateAsync(pending.todo.id)

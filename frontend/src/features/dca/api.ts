@@ -54,7 +54,7 @@ export function useCreateSetting() {
   return useMutation({
     mutationFn: (body: { pairId: number; note?: string }) => unwrap(api.POST('/dca/settings', { body })),
     onSuccess: invalidate,
-    meta: { success: 'Đã tạo ladder' },
+    meta: { success: 'Ladder created' },
   })
 }
 
@@ -64,7 +64,7 @@ export function useUpdateSetting(id: number) {
     mutationFn: (body: { status?: DcaSetting['status']; note?: string }) =>
       unwrap(api.PATCH('/dca/settings/{id}', { params: { path: { id } }, body })),
     onSuccess: invalidate,
-    meta: { success: 'Đã lưu' },
+    meta: { success: 'Saved' },
   })
 }
 
@@ -73,7 +73,7 @@ export function useDeleteSetting() {
   return useMutation({
     mutationFn: (id: number) => unwrap(api.DELETE('/dca/settings/{id}', { params: { path: { id } } })),
     onSuccess: invalidate,
-    meta: { success: 'Đã xoá ladder' },
+    meta: { success: 'Ladder deleted' },
   })
 }
 
@@ -99,7 +99,7 @@ export function useTradeAction() {
       return unwrap(api.DELETE('/dca/trades/{id}', params))
     },
     onSuccess: invalidate,
-    meta: { success: 'Đã thực hiện' },
+    meta: { success: 'Done' },
   })
 }
 
@@ -108,6 +108,6 @@ export function useSaveDcaConfig() {
   return useMutation({
     mutationFn: (body: { version: number; config: DcaConfig }) => unwrap(api.PATCH('/dca/config', { body })),
     onSuccess: invalidate,
-    meta: { success: 'Đã lưu cấu hình' },
+    meta: { success: 'Settings saved' },
   })
 }

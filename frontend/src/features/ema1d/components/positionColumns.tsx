@@ -17,20 +17,20 @@ const base = [
     meta: { mobile: 'title' },
   }),
   col.accessor('side', {
-    header: 'Chiều',
+    header: 'Side',
     cell: (c) => <Side side={c.getValue()} />,
     meta: { mobile: 'badge' },
   }),
-  col.accessor('signalDate', { header: 'Tín hiệu', cell: (c) => formatDate(c.getValue()) }),
+  col.accessor('signalDate', { header: 'Signal', cell: (c) => formatDate(c.getValue()) }),
   col.accessor((p) => num(p.openPrice), {
     id: 'open',
-    header: 'Giá vào',
+    header: 'Entry price',
     cell: (c) => <Price value={c.row.original.openPrice} />,
     meta: { align: 'right' },
   }),
   col.display({
     id: 'openSlip',
-    header: 'Trượt vào',
+    header: 'Entry slip.',
     cell: (c) => <Slippage value={c.row.original.openSlippagePercent} />,
     meta: { align: 'right', mobile: 'hidden' },
   }),
@@ -40,13 +40,13 @@ export const openPositionColumns = [
   ...base,
   col.accessor((p) => num(p.currentPrice), {
     id: 'current',
-    header: 'Giá hiện tại',
+    header: 'Current price',
     cell: (c) => <Price value={c.row.original.currentPrice} />,
     meta: { align: 'right' },
   }),
   col.accessor((p) => num(p.notionalUsdt), {
     id: 'notional',
-    header: 'Vốn',
+    header: 'Size',
     cell: (c) => (
       <span className="num">
         {formatMoney(c.row.original.notionalUsdt)}{' '}
@@ -57,7 +57,7 @@ export const openPositionColumns = [
   }),
   col.accessor((p) => num(p.profitUsdt), {
     id: 'pnl',
-    header: 'Lãi/lỗ',
+    header: 'PnL',
     cell: (c) => (
       <div className="flex flex-col items-end">
         <Pnl value={c.row.original.profitUsdt} />
@@ -68,7 +68,7 @@ export const openPositionColumns = [
   }),
   col.accessor((p) => p.daysHeld ?? -1, {
     id: 'days',
-    header: 'Ngày giữ',
+    header: 'Days held',
     cell: (c) => <span className="num">{c.row.original.daysHeld ?? '—'}</span>,
     meta: { align: 'right' },
   }),
@@ -78,24 +78,24 @@ export const closedPositionColumns = [
   ...base,
   col.accessor((p) => num(p.closePrice), {
     id: 'close',
-    header: 'Giá ra',
+    header: 'Exit price',
     cell: (c) => <Price value={c.row.original.closePrice} />,
     meta: { align: 'right' },
   }),
   col.display({
     id: 'closeSlip',
-    header: 'Trượt ra',
+    header: 'Exit slip.',
     cell: (c) => <Slippage value={c.row.original.closeSlippagePercent} />,
     meta: { align: 'right', mobile: 'hidden' },
   }),
   col.accessor('amount', {
-    header: 'Khối lượng',
+    header: 'Quantity',
     cell: (c) => <Qty value={c.getValue()} />,
     meta: { align: 'right', mobile: 'hidden' },
   }),
   col.accessor((p) => num(p.feeUsdt) + num(p.interestUsdt), {
     id: 'costs',
-    header: 'Phí + lãi vay',
+    header: 'Fees + interest',
     cell: (c) => (
       <span className="num text-muted-foreground">
         {formatMoney(Number(c.row.original.feeUsdt) + Number(c.row.original.interestUsdt))}
@@ -105,7 +105,7 @@ export const closedPositionColumns = [
   }),
   col.accessor((p) => num(p.profitUsdt), {
     id: 'pnl',
-    header: 'Lãi/lỗ',
+    header: 'PnL',
     cell: (c) => (
       <div className="flex flex-col items-end">
         <Pnl value={c.row.original.profitUsdt} />
@@ -116,7 +116,7 @@ export const closedPositionColumns = [
   }),
   col.accessor((p) => p.closeAt ?? '', {
     id: 'closedAt',
-    header: 'Đóng lúc',
+    header: 'Closed at',
     cell: (c) => formatDate(c.row.original.closeAt),
     meta: { align: 'right' },
   }),

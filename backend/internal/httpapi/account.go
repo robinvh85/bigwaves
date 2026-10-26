@@ -27,7 +27,7 @@ func (s *Server) GetBalances(ctx context.Context, req GetBalancesRequestObject) 
 
 func (s *Server) BorrowUsdt(ctx context.Context, req BorrowUsdtRequestObject) (BorrowUsdtResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	id, err := s.Account.BorrowUSDT(ctx, req.Body.Amount)
 	if err != nil {
@@ -38,7 +38,7 @@ func (s *Server) BorrowUsdt(ctx context.Context, req BorrowUsdtRequestObject) (B
 
 func (s *Server) RepayUsdt(ctx context.Context, req RepayUsdtRequestObject) (RepayUsdtResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	id, err := s.Account.RepayUSDT(ctx, req.Body.Amount)
 	if err != nil {
@@ -49,7 +49,7 @@ func (s *Server) RepayUsdt(ctx context.Context, req RepayUsdtRequestObject) (Rep
 
 func (s *Server) TransferUsdt(ctx context.Context, req TransferUsdtRequestObject) (TransferUsdtResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	dir := binance.SpotToCross
 	if req.Body.Direction == CROSSTOSPOT {

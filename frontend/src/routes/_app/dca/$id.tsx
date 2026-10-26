@@ -58,47 +58,47 @@ function DcaDetail() {
       meta: { mobile: 'title' },
     }),
     col.accessor('status', {
-      header: 'Trạng thái',
+      header: 'Status',
       cell: (c) => <TradeStatusBadge status={c.getValue()} />,
       meta: { mobile: 'badge' },
     }),
     col.accessor((t) => Number(t.buyPrice), {
       id: 'buy',
-      header: 'Mua ≤',
+      header: 'Buy ≤',
       cell: (c) => <Price value={c.row.original.buyPrice} />,
       meta: { align: 'right' },
     }),
     col.accessor((t) => Number(t.sellPrice), {
       id: 'sell',
-      header: 'Bán ≥',
+      header: 'Sell ≥',
       cell: (c) =>
         c.row.original.sellPrice === '0' ? (
-          <span className="text-muted-foreground">giữ</span>
+          <span className="text-muted-foreground">hold</span>
         ) : (
           <Price value={c.row.original.sellPrice} />
         ),
       meta: { align: 'right' },
     }),
     col.accessor('amount', {
-      header: `Khối lượng (${coin})`,
+      header: `Quantity (${coin})`,
       cell: (c) => (
         <Qty value={c.row.original.status === 'OPENING' ? c.getValue() : c.row.original.heldAmount} />
       ),
       meta: { align: 'right' },
     }),
     col.accessor('openPrice', {
-      header: 'Giá khớp mua',
+      header: 'Buy fill',
       cell: (c) => <Price value={c.getValue()} />,
       meta: { align: 'right', mobile: 'hidden' },
     }),
     col.accessor('closePrice', {
-      header: 'Giá khớp bán',
+      header: 'Sell fill',
       cell: (c) => <Price value={c.getValue()} />,
       meta: { align: 'right', mobile: 'hidden' },
     }),
     col.accessor((t) => Number(t.realizedProfit) + Number(t.unrealizedProfit), {
       id: 'pnl',
-      header: 'Lãi/lỗ',
+      header: 'PnL',
       cell: (c) => {
         const t = c.row.original
         if (t.status === 'OPENING') return <span className="text-muted-foreground">—</span>
@@ -107,7 +107,7 @@ function DcaDetail() {
       meta: { align: 'right', mobile: 'primary' },
     }),
     col.accessor('lastError', {
-      header: 'Lỗi',
+      header: 'Error',
       enableSorting: false,
       cell: (c) =>
         c.getValue() ? (
@@ -118,7 +118,7 @@ function DcaDetail() {
     col.display({
       id: 'actions',
       header: '',
-      meta: { align: 'right', label: 'Thao tác' },
+      meta: { align: 'right', label: 'Actions' },
       cell: (c) => {
         const t = c.row.original
         if (t.status === 'CLOSED')
@@ -127,30 +127,30 @@ function DcaDetail() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="ghost">
-                Thao tác
+                Actions
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => setEdit({ rung: t })}>
                 <PencilIcon />
-                {t.status === 'OPEN' ? 'Sửa giá bán' : 'Sửa nấc'}
+                {t.status === 'OPEN' ? 'Edit sell price' : 'Edit rung'}
               </DropdownMenuItem>
               {t.status === 'OPENING' ? (
                 <>
                   <DropdownMenuItem onSelect={() => setPending({ action: 'buy', rung: t })}>
-                    Mua ngay (market)
+                    Buy now (market)
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-destructive"
                     onSelect={() => setPending({ action: 'delete', rung: t })}
                   >
                     <Trash2Icon />
-                    Xoá nấc
+                    Delete rung
                   </DropdownMenuItem>
                 </>
               ) : (
                 <DropdownMenuItem onSelect={() => setPending({ action: 'sell', rung: t })}>
-                  Bán ngay (market)
+                  Sell now (market)
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -166,7 +166,7 @@ function DcaDetail() {
         title={s.pairName}
         description={
           <span className="inline-flex flex-wrap items-center gap-2">
-            <SettingStatusBadge status={s.status} /> {s.account} · giá hiện tại{' '}
+            <SettingStatusBadge status={s.status} /> {s.account} · current price{' '}
             <Price value={s.currentPrice} />
             {s.note && <span>· {s.note}</span>}
           </span>
@@ -176,34 +176,34 @@ function DcaDetail() {
             {s.status === 'ACTIVE' ? (
               <Button variant="outline" onClick={() => update.mutate({ status: 'INACTIVE' })}>
                 <PauseIcon />
-                Tạm dừng
+                Pause
               </Button>
             ) : (
               <Button variant="outline" onClick={() => update.mutate({ status: 'ACTIVE' })}>
                 <PlayIcon />
-                Chạy
+                Resume
               </Button>
             )}
             <Button variant="outline" className="text-destructive" onClick={() => setConfirmDelete(true)}>
               <Trash2Icon />
-              Xoá
+              Delete
             </Button>
             <Button onClick={() => setEdit({})}>
               <PlusIcon />
-              Thêm nấc
+              Add rung
             </Button>
           </>
         }
       />
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
-          label="Đang giữ"
+          label="Holding"
           value={<Qty value={s.heldAmount} />}
-          hint={`${s.holdingCount} nấc · ${s.waitingCount} nấc chờ mua`}
+          hint={`${s.holdingCount} rungs · ${s.waitingCount} waiting to buy`}
         />
-        <StatCard label="Vốn đang giữ" value={<Money value={s.capitalUsdt} />} />
-        <StatCard label="Đã chốt" value={<Pnl value={s.realizedProfit} />} />
-        <StatCard label="Chưa chốt" value={<Pnl value={s.unrealizedProfit} />} />
+        <StatCard label="Capital held" value={<Money value={s.capitalUsdt} />} />
+        <StatCard label="Realized" value={<Pnl value={s.realizedProfit} />} />
+        <StatCard label="Unrealized" value={<Pnl value={s.unrealizedProfit} />} />
       </div>
       <div className="grid gap-6 2xl:grid-cols-3">
         <div className="2xl:col-span-2">
@@ -214,8 +214,8 @@ function DcaDetail() {
             sorting={[{ id: 'buy', desc: true }]}
             empty={
               <EmptyState
-                title="Chưa có nấc nào"
-                description="Thêm nấc đầu tiên: mua ở giá nào, bao nhiêu coin, bán ở giá nào."
+                title="No rungs yet"
+                description="Add the first rung: the buy price, how many coins and the sell price."
               />
             }
           />
@@ -231,17 +231,17 @@ function DcaDetail() {
           destructive={pending.action !== 'buy'}
           title={
             pending.action === 'buy'
-              ? `Mua ngay ${pending.rung.amount} ${coin}?`
+              ? `Buy ${pending.rung.amount} ${coin} now?`
               : pending.action === 'sell'
-                ? `Bán ngay ${pending.rung.heldAmount} ${coin}?`
-                : `Xoá nấc #${pending.rung.id}?`
+                ? `Sell ${pending.rung.heldAmount} ${coin} now?`
+                : `Delete rung #${pending.rung.id}?`
           }
           description={
             pending.action === 'delete'
-              ? 'Nấc chưa mua sẽ bị xoá.'
-              : `Lệnh market gửi thẳng lên Binance ở giá hiện tại (~${s.currentPrice ?? '?'}), không chờ giá kích hoạt.`
+              ? 'The rung has not bought yet and will be deleted.'
+              : `A market order goes straight to Binance at the current price (~${s.currentPrice ?? '?'}), without waiting for the trigger price.`
           }
-          confirmLabel={pending.action === 'buy' ? 'Mua' : pending.action === 'sell' ? 'Bán' : 'Xoá'}
+          confirmLabel={pending.action === 'buy' ? 'Buy' : pending.action === 'sell' ? 'Sell' : 'Delete'}
           onConfirm={() => action.mutateAsync({ id: pending.rung.id, action: pending.action })}
         />
       )}
@@ -249,10 +249,10 @@ function DcaDetail() {
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         destructive
-        title={`Xoá ladder ${s.pairName}?`}
-        description="Mọi nấc (kể cả lịch sử) bị xoá. Không xoá được khi còn nấc đang giữ coin."
+        title={`Delete ladder ${s.pairName}?`}
+        description="All rungs (history included) are deleted. Not possible while a rung still holds coins."
         typeToConfirm={s.pairName}
-        confirmLabel="Xoá ladder"
+        confirmLabel="Delete ladder"
         onConfirm={async () => {
           await del.mutateAsync(id)
           void navigate({ to: '/dca' })

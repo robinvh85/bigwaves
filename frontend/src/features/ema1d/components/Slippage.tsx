@@ -15,7 +15,7 @@ export function Slippage({ value }: { value?: string }) {
           {v.toFixed(2)}%
         </span>
       </TooltipTrigger>
-      <TooltipContent>Trượt giá so với giá chiến lược (dương = bất lợi)</TooltipContent>
+      <TooltipContent>Slippage against the strategy price (positive = unfavorable)</TooltipContent>
     </Tooltip>
   )
 }

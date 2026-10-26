@@ -16,7 +16,7 @@ import { Button } from '@/shared/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip'
 
 export const Route = createFileRoute('/_app/ema1d/pairs')({
-  staticData: { title: 'Rổ coin' },
+  staticData: { title: 'Basket' },
   validateSearch: z.object({ pair: z.number().int().optional() }),
   component: BasketPage,
 })
@@ -31,9 +31,12 @@ const columns = [
         {c.row.original.mismatch && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <AlertTriangleIcon className="size-3.5 text-warning" aria-label="Lệch với chiến lược" />
+              <AlertTriangleIcon
+                className="size-3.5 text-warning"
+                aria-label="Out of line with the strategy"
+              />
             </TooltipTrigger>
-            <TooltipContent>Vị thế lệch với chiến lược, không có todo nào sửa</TooltipContent>
+            <TooltipContent>Position differs from the strategy and no todo is fixing it</TooltipContent>
           </Tooltip>
         )}
       </span>
@@ -41,14 +44,14 @@ const columns = [
     meta: { mobile: 'title' },
   }),
   col.accessor('status', {
-    header: 'Trạng thái',
+    header: 'Status',
     cell: (c) => <BasketStatusBadge status={c.getValue()} />,
     meta: { mobile: 'badge' },
   }),
-  col.accessor('pairGroup', { header: 'Nhóm', cell: (c) => <GroupBadge group={c.getValue()} /> }),
+  col.accessor('pairGroup', { header: 'Group', cell: (c) => <GroupBadge group={c.getValue()} /> }),
   col.display({
     id: 'sides',
-    header: 'Chiều cho phép',
+    header: 'Allowed sides',
     cell: (c) => {
       const p = c.row.original
       return (
@@ -64,12 +67,12 @@ const columns = [
   }),
   col.display({
     id: 'wanted',
-    header: 'Chiến lược',
+    header: 'Strategy',
     cell: (c) => (c.row.original.wanted ? <WantedLabel state={c.row.original.wanted.state} /> : '—'),
   }),
   col.accessor((p) => p.position?.side ?? '', {
     id: 'holding',
-    header: 'Đang giữ',
+    header: 'Holding',
     cell: (c) => {
       const pos = c.row.original.position
       return pos ? (
@@ -84,19 +87,19 @@ const columns = [
   }),
   col.accessor((p) => (p.position?.unrealizedPercent ? Number(p.position.unrealizedPercent) : -Infinity), {
     id: 'pnl',
-    header: 'Lãi/lỗ',
+    header: 'PnL',
     cell: (c) => <Pct value={c.row.original.position?.unrealizedPercent} />,
     meta: { align: 'right', mobile: 'primary' },
   }),
   col.accessor((p) => p.pendingTodos.join(', '), {
     id: 'pending',
-    header: 'Đang chờ',
+    header: 'Pending',
     cell: (c) => <span className="text-xs">{c.getValue() || '—'}</span>,
     meta: { mobile: 'hidden' },
   }),
   col.accessor((p) => (p.currentPrice ? Number(p.currentPrice) : 0), {
     id: 'price',
-    header: 'Giá',
+    header: 'Price',
     cell: (c) => <Price value={c.row.original.currentPrice} />,
     meta: { align: 'right' },
   }),
@@ -111,20 +114,20 @@ function BasketPage() {
   return (
     <>
       <PageHeader
-        title="Rổ coin"
-        description="Mỗi coin: vị thế đang giữ cạnh trạng thái mà sync gần nhất muốn. Dấu ⚠ là lệch mà không có todo nào sửa."
+        title="Basket"
+        description="Each coin: the held position next to what the latest sync wants. ⚠ marks a difference no todo is fixing."
         actions={
           <Button
             variant="outline"
             disabled={check.isPending}
             onClick={() =>
               check.mutate(undefined, {
-                onSuccess: (r) => toast.success(`Đã kiểm tra ${r.items.length} pair trên Binance`),
+                onSuccess: (r) => toast.success(`Checked ${r.items.length} pairs on Binance`),
               })
             }
           >
             {check.isPending ? <Loader2Icon className="animate-spin" /> : <SearchCheckIcon />}
-            Kiểm tra cả rổ
+            Check whole basket
           </Button>
         }
       />

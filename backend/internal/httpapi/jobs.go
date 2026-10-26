@@ -63,9 +63,9 @@ func (s *Server) RunJob(_ context.Context, req RunJobRequestObject) (RunJobRespo
 	err := s.Scheduler.RunNow(req.Name)
 	switch {
 	case errors.Is(err, scheduler.ErrUnknownJob):
-		return nil, httpx.NewError(http.StatusNotFound, "job_not_found", "không có job này")
+		return nil, httpx.NewError(http.StatusNotFound, "job_not_found", "no such job")
 	case errors.Is(err, scheduler.ErrBusy):
-		return nil, httpx.Conflict("job_running", "job đang chạy")
+		return nil, httpx.Conflict("job_running", "job is already running")
 	case err != nil:
 		return nil, err
 	}

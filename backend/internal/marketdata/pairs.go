@@ -33,7 +33,7 @@ func (p Pair) BaseAsset() string { return strings.TrimSuffix(p.Name, p.QuoteAsse
 
 var symbolRe = regexp.MustCompile(`^[A-Z0-9]{2,20}$`)
 
-var errPairNotFound = httpx.NewError(http.StatusNotFound, "pair_not_found", "không tìm thấy pair")
+var errPairNotFound = httpx.NewError(http.StatusNotFound, "pair_not_found", "pair not found")
 
 type ListFilter struct {
 	Status         string // "", ACTIVE, DISABLED
@@ -82,21 +82,21 @@ type CreateInput struct {
 func (s *Service) Create(ctx context.Context, in CreateInput) (Pair, error) {
 	name := strings.ToUpper(strings.TrimSpace(in.Name))
 	if !symbolRe.MatchString(name) {
-		return Pair{}, httpx.Validation("tên pair không hợp lệ", map[string]any{"name": "chỉ gồm chữ in hoa và số, vd SUNUSDT"})
+		return Pair{}, httpx.Validation("invalid pair name", map[string]any{"name": "uppercase letters and digits only, e.g. SUNUSDT"})
 	}
 	infos, err := s.Binance.ExchangeInfo(ctx, name)
 	if binance.HasCode(err, binance.CodeBadSymbol) || (err == nil && len(infos) == 0) {
-		return Pair{}, httpx.Validation("Binance không có symbol này", map[string]any{"name": name})
+		return Pair{}, httpx.Validation("Binance has no such symbol", map[string]any{"name": name})
 	}
 	if err != nil {
 		return Pair{}, upstream(err)
 	}
 	info := infos[0]
 	if in.IsSpot && in.IsIsolated {
-		return Pair{}, httpx.Validation("pair spot không thể là isolated margin", nil)
+		return Pair{}, httpx.Validation("a spot pair cannot be isolated margin", nil)
 	}
 	if !in.IsSpot && !info.IsMarginTradingAllowed {
-		return Pair{}, httpx.Validation("symbol này không giao dịch margin trên Binance; chọn spot", map[string]any{"name": name})
+		return Pair{}, httpx.Validation("this symbol is not margin-tradable on Binance; choose spot", map[string]any{"name": name})
 	}
 
 	var id int64
@@ -109,7 +109,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (Pair, error) {
 		existing, err := q.GetPairByName(ctx, name)
 		switch {
 		case err == nil && existing.DeletedAt == nil:
-			return httpx.Conflict("pair_exists", fmt.Sprintf("pair %s đã có", name))
+			return httpx.Conflict("pair_exists", fmt.Sprintf("pair %s already exists", name))
 		case err == nil:
 			p, err := q.RestorePair(ctx, dbq.RestorePairParams{
 				Status: "ACTIVE", StepSize: &info.StepSize, MinNotional: &info.MinNotional,
@@ -155,7 +155,7 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) (Pair, e
 	status, isSpot, isIsolated := cur.Status, cur.IsSpot, cur.IsIsolated
 	if in.Status != nil {
 		if *in.Status != "ACTIVE" && *in.Status != "DISABLED" {
-			return Pair{}, httpx.Validation("status phải là ACTIVE hoặc DISABLED", nil)
+			return Pair{}, httpx.Validation("status must be ACTIVE or DISABLED", nil)
 		}
 		status = *in.Status
 	}
@@ -166,7 +166,7 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) (Pair, e
 		isIsolated = *in.IsIsolated
 	}
 	if isSpot && isIsolated {
-		return Pair{}, httpx.Validation("pair spot không thể là isolated margin", nil)
+		return Pair{}, httpx.Validation("a spot pair cannot be isolated margin", nil)
 	}
 	if _, err := dbq.New(s.DB.Write).UpdatePair(ctx, dbq.UpdatePairParams{Status: status, IsSpot: isSpot, IsIsolated: isIsolated, ID: id}); err != nil {
 		return Pair{}, err
@@ -188,11 +188,11 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 
 func (s *Service) UpdateCoinDescription(ctx context.Context, coinID int64, description string) (dbq.Coin, error) {
 	if len(description) > 100_000 {
-		return dbq.Coin{}, httpx.Validation("mô tả quá dài", nil)
+		return dbq.Coin{}, httpx.Validation("description is too long", nil)
 	}
 	c, err := dbq.New(s.DB.Write).UpdateCoinDescription(ctx, dbq.UpdateCoinDescriptionParams{Description: description, ID: coinID})
 	if errors.Is(err, sql.ErrNoRows) {
-		return dbq.Coin{}, httpx.NewError(http.StatusNotFound, "coin_not_found", "không tìm thấy coin")
+		return dbq.Coin{}, httpx.NewError(http.StatusNotFound, "coin_not_found", "coin not found")
 	}
 	return c, err
 }
@@ -200,7 +200,7 @@ func (s *Service) UpdateCoinDescription(ctx context.Context, coinID int64, descr
 // upstream wraps an exchange failure as a 502 for the API.
 func upstream(err error) error {
 	if errors.Is(err, binance.ErrNotConfigured) {
-		return &httpx.Error{Status: http.StatusFailedDependency, Code: "exchange_not_configured", Message: "chưa cấu hình API key Binance", Err: err}
+		return &httpx.Error{Status: http.StatusFailedDependency, Code: "exchange_not_configured", Message: "Binance API key is not configured", Err: err}
 	}
-	return &httpx.Error{Status: http.StatusBadGateway, Code: "exchange_error", Message: "lỗi khi gọi Binance: " + err.Error(), Err: err}
+	return &httpx.Error{Status: http.StatusBadGateway, Code: "exchange_error", Message: "Binance call failed: " + err.Error(), Err: err}
 }

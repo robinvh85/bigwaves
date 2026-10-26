@@ -7,20 +7,20 @@ import { PageHeader } from '@/shared/components/states'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 
 export const Route = createFileRoute('/_app/ema1d/config')({
-  staticData: { title: 'Cấu hình' },
+  staticData: { title: 'Settings' },
   component: () => (
     <>
       <PageHeader
-        title="Cấu hình EMA1D"
-        description="Mọi thay đổi được ghi lại kèm người sửa và giá trị cũ."
+        title="EMA1D settings"
+        description="Every change is recorded with who made it and the previous value."
       />
       <div className="mb-4 rounded-lg border p-3">
         <StrategySwitches />
       </div>
       <Tabs defaultValue="form">
         <TabsList>
-          <TabsTrigger value="form">Tham số</TabsTrigger>
-          <TabsTrigger value="history">Lịch sử thay đổi</TabsTrigger>
+          <TabsTrigger value="form">Parameters</TabsTrigger>
+          <TabsTrigger value="history">Change history</TabsTrigger>
         </TabsList>
         <TabsContent value="form" className="max-w-3xl">
           <ConfigForm />

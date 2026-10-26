@@ -9,8 +9,8 @@ export function ComingSoon({ title, phase }: { title: string; phase: string }) {
       <PageHeader title={title} />
       <EmptyState
         icon={ConstructionIcon}
-        title="Đang xây dựng"
-        description={`Màn hình này thuộc pha ${phase}.`}
+        title="Under construction"
+        description={`This screen is part of phase ${phase}.`}
       />
     </>
   )

@@ -20,26 +20,26 @@ export function LastSyncCard({ status }: { status: Ema1dStatus }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Sync gần nhất</CardTitle>
+        <CardTitle className="text-base">Latest sync</CardTitle>
         <CardDescription>
           {s ? (
             <span title={formatDateTime(s.at)}>
-              {s.runId} · nến {s.date} · {fromNow(s.at)}
+              {s.runId} · candle {s.date} · {fromNow(s.at)}
             </span>
           ) : (
-            'Chưa có sync nào'
+            'No sync yet'
           )}
         </CardDescription>
       </CardHeader>
       {s && (
         <CardContent className="space-y-3 text-sm">
           <p>
-            <span className="text-muted-foreground">Todo mới:</span>{' '}
+            <span className="text-muted-foreground">New todos:</span>{' '}
             <span className="num">{s.createdTodos}</span>
           </p>
           {s.skipped.length > 0 && (
             <div>
-              <p className="text-muted-foreground">Bỏ qua ({s.skipped.length})</p>
+              <p className="text-muted-foreground">Skipped ({s.skipped.length})</p>
               <ul className="mt-1 space-y-1">
                 {groupSkipped(s.skipped).map(([reason, coins]) => (
                   <li key={reason}>
@@ -52,7 +52,7 @@ export function LastSyncCard({ status }: { status: Ema1dStatus }) {
           )}
           {s.warnings.length > 0 && (
             <div>
-              <p className="text-muted-foreground">Cảnh báo ({s.warnings.length})</p>
+              <p className="text-muted-foreground">Warnings ({s.warnings.length})</p>
               <ul className="mt-1 list-inside list-disc space-y-0.5 text-warning">
                 {s.warnings.map((w, i) => (
                   <li key={i}>{w}</li>

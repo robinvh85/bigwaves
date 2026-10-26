@@ -16,22 +16,22 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
-import { Input } from '@/shared/ui/input'
+import { NumberInput } from '@/shared/components/number-input'
 
 import { type DcaSetting, type DcaTrade, useSaveTrade } from '../api'
 
-const num = z.string().regex(/^\d+(\.\d+)?$/, 'Số không hợp lệ')
+const num = z.string().regex(/^\d+(\.\d+)?$/, 'Invalid number')
 const schema = z
-  .object({ buyPrice: num, sellPrice: z.string().regex(/^(\d+(\.\d+)?)?$/, 'Số không hợp lệ'), amount: num })
+  .object({ buyPrice: num, sellPrice: z.string().regex(/^(\d+(\.\d+)?)?$/, 'Invalid number'), amount: num })
   .refine((v) => !v.sellPrice || Number(v.sellPrice) === 0 || Number(v.sellPrice) > Number(v.buyPrice), {
-    message: 'Giá bán phải lớn hơn giá mua (hoặc để trống để giữ)',
+    message: 'Sell price must be above the buy price (or empty to hold)',
     path: ['sellPrice'],
   })
 type Form = z.infer<typeof schema>
 
 function distance(price: string, current?: string) {
   if (!current || !price || Number(price) <= 0) return ''
-  return formatPct(((Number(price) - Number(current)) / Number(current)) * 100) + ' so với giá hiện tại'
+  return formatPct(((Number(price) - Number(current)) / Number(current)) * 100) + ' vs current price'
 }
 
 /** Adds or edits a rung. A held rung can only change its sell price. */
@@ -65,7 +65,7 @@ export function RungDialog({
       : { buyPrice: v.buyPrice, sellPrice: v.sellPrice || '0', amount: v.amount }
     try {
       await save.mutateAsync({ id: rung?.id, body })
-      toast.success(rung ? 'Đã lưu nấc' : 'Đã thêm nấc')
+      toast.success(rung ? 'Rung saved' : 'Rung added')
       onOpenChange(false)
     } catch (err) {
       if (err instanceof ApiError && err.status === 400) {
@@ -83,38 +83,37 @@ export function RungDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={(e) => void submit(e)} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>{rung ? `Sửa nấc #${rung.id}` : 'Thêm nấc'}</DialogTitle>
+            <DialogTitle>{rung ? `Edit rung #${rung.id}` : 'Add rung'}</DialogTitle>
             <DialogDescription>
-              {setting.pairName} · giá hiện tại {setting.currentPrice ?? '—'}
-              {setting.stepSize && ` · bước khối lượng ${setting.stepSize}`}
+              {setting.pairName} · current price {setting.currentPrice ?? '—'}
+              {setting.stepSize && ` · quantity step ${setting.stepSize}`}
             </DialogDescription>
           </DialogHeader>
           <Field data-invalid={!!form.formState.errors.buyPrice}>
-            <FieldLabel htmlFor="buy">Mua khi giá ≤</FieldLabel>
-            <Input id="buy" inputMode="decimal" disabled={held} {...form.register('buyPrice')} />
+            <FieldLabel htmlFor="buy">Buy when price ≤</FieldLabel>
+            <NumberInput id="buy" disabled={held} {...form.register('buyPrice')} />
             <FieldDescription>{distance(buy, setting.currentPrice)}</FieldDescription>
             <FieldError>{form.formState.errors.buyPrice?.message}</FieldError>
           </Field>
           <Field data-invalid={!!form.formState.errors.amount}>
-            <FieldLabel htmlFor="amount">Khối lượng ({setting.pairName.replace(/USDT$/, '')})</FieldLabel>
-            <Input id="amount" inputMode="decimal" disabled={held} {...form.register('amount')} />
+            <FieldLabel htmlFor="amount">Quantity ({setting.pairName.replace(/USDT$/, '')})</FieldLabel>
+            <NumberInput id="amount" disabled={held} {...form.register('amount')} />
             <FieldDescription>
               {notional > 0 ? `≈ ${formatMoney(notional)} USDT` : ''}
-              {setting.minNotional && ` · tối thiểu ${setting.minNotional} USDT`}
+              {setting.minNotional && ` · minimum ${setting.minNotional} USDT`}
             </FieldDescription>
             <FieldError>{form.formState.errors.amount?.message}</FieldError>
           </Field>
           <Field data-invalid={!!form.formState.errors.sellPrice}>
-            <FieldLabel htmlFor="sell">Bán khi giá ≥</FieldLabel>
-            <Input
+            <FieldLabel htmlFor="sell">Sell when price ≥</FieldLabel>
+            <NumberInput
               id="sell"
-              inputMode="decimal"
-              placeholder="để trống: giữ, không tự bán"
+              placeholder="empty: hold, never sell automatically"
               {...form.register('sellPrice')}
             />
             <FieldDescription>
               {sell && Number(buy) > 0
-                ? `${formatPct(((Number(sell) - Number(buy)) / Number(buy)) * 100)} so với giá mua`
+                ? `${formatPct(((Number(sell) - Number(buy)) / Number(buy)) * 100)} vs buy price`
                 : ''}
             </FieldDescription>
             <FieldError>{form.formState.errors.sellPrice?.message}</FieldError>
@@ -124,11 +123,11 @@ export function RungDialog({
           )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Huỷ
+              Cancel
             </Button>
             <Button type="submit" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting && <Loader2Icon className="animate-spin" />}
-              {rung ? 'Lưu' : 'Thêm nấc'}
+              {rung ? 'Save' : 'Add rung'}
             </Button>
           </DialogFooter>
         </form>

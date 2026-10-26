@@ -6,9 +6,9 @@ import type { JobRun } from './api'
 
 const STYLE: Record<JobRun['status'], { label: string; className: string }> = {
   OK: { label: 'OK', className: 'border-success/40 text-success' },
-  FAILED: { label: 'Lỗi', className: 'border-destructive/50 text-destructive' },
-  SKIPPED: { label: 'Bỏ qua', className: 'text-muted-foreground' },
-  RUNNING: { label: 'Đang chạy', className: 'border-primary/40' },
+  FAILED: { label: 'Failed', className: 'border-destructive/50 text-destructive' },
+  SKIPPED: { label: 'Skipped', className: 'text-muted-foreground' },
+  RUNNING: { label: 'Running', className: 'border-primary/40' },
 }
 
 export function JobRunStatusBadge({ status }: { status: JobRun['status'] }) {

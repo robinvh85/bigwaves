@@ -13,17 +13,17 @@ export function PriceLadder({ setting }: { setting: DcaSetting }) {
   const levels: Level[] = []
   for (const t of setting.trades ?? []) {
     if (t.status === 'OPENING')
-      levels.push({ price: Number(t.buyPrice), kind: 'buy', label: `mua #${t.id} · ${t.amount}`, rung: t })
+      levels.push({ price: Number(t.buyPrice), kind: 'buy', label: `buy #${t.id} · ${t.amount}`, rung: t })
     if (t.status === 'OPEN' && Number(t.sellPrice) > 0)
       levels.push({
         price: Number(t.sellPrice),
         kind: 'sell',
-        label: `bán #${t.id} · ${t.heldAmount}`,
+        label: `sell #${t.id} · ${t.heldAmount}`,
         rung: t,
       })
   }
   if (setting.currentPrice)
-    levels.push({ price: Number(setting.currentPrice), kind: 'current', label: 'giá hiện tại' })
+    levels.push({ price: Number(setting.currentPrice), kind: 'current', label: 'current price' })
   if (levels.length < 2) return null
   levels.sort((a, b) => b.price - a.price)
   const max = levels[0]!.price
@@ -34,7 +34,7 @@ export function PriceLadder({ setting }: { setting: DcaSetting }) {
     <div
       className="relative h-64 rounded-lg border bg-muted/20 px-3"
       role="img"
-      aria-label="Bậc thang giá DCA"
+      aria-label="DCA price ladder"
     >
       {levels.map((l, i) => {
         const top = ((max - l.price) / span) * 100

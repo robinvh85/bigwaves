@@ -105,7 +105,7 @@ export function useSaveConfig() {
     mutationFn: (body: { version: number; config: Ema1dConfig }) =>
       unwrap(api.PATCH('/ema1d/config', { body })),
     onSuccess: invalidate,
-    meta: { success: 'Đã lưu cấu hình' },
+    meta: { success: 'Settings saved' },
   })
 }
 
@@ -115,7 +115,7 @@ export function useUpdatePair(id: number) {
     mutationFn: (body: Ema1dPairUpdate) =>
       unwrap(api.PATCH('/ema1d/pairs/{id}', { params: { path: { id } }, body })),
     onSuccess: invalidate,
-    meta: { success: 'Đã lưu' },
+    meta: { success: 'Saved' },
   })
 }
 
@@ -141,7 +141,7 @@ export function useRetryTodo() {
   return useMutation({
     mutationFn: (id: number) => unwrap(api.POST('/ema1d/todos/{id}/retry', { params: { path: { id } } })),
     onSuccess: invalidate,
-    meta: { success: 'Đã đưa lại vào hàng đợi' },
+    meta: { success: 'Put back in the queue' },
   })
 }
 
@@ -150,6 +150,6 @@ export function useCancelTodo() {
   return useMutation({
     mutationFn: (id: number) => unwrap(api.POST('/ema1d/todos/{id}/cancel', { params: { path: { id } } })),
     onSuccess: invalidate,
-    meta: { success: 'Đã huỷ' },
+    meta: { success: 'Cancelled' },
   })
 }

@@ -87,7 +87,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 
 func (a *App) maintenanceJob() scheduler.Job {
 	return scheduler.Job{
-		Name: "maintenance.retention", Description: "Xoá session hết hạn và lịch sử job cũ hơn 30 ngày",
+		Name: "maintenance.retention", Description: "Delete expired sessions and job history older than 30 days",
 		Cron: "CRON_TZ=Asia/Ho_Chi_Minh 0 0 3 * * *", Timeout: 5 * time.Minute,
 		Run: func(ctx context.Context) (string, error) {
 			sessions, err := a.Auth.CleanupExpired(ctx)

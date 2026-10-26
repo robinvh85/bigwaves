@@ -18,7 +18,7 @@ function flatten(o: Record<string, unknown>, prefix = ''): Record<string, string
 export function ConfigHistory() {
   const { data, isLoading } = useQuery(configHistoryQuery)
   if (isLoading || !data) return <SkeletonRows rows={3} />
-  if (data.length === 0) return <EmptyState title="Chưa có thay đổi nào" />
+  if (data.length === 0) return <EmptyState title="No changes yet" />
   return (
     <ul className="space-y-3">
       {data.map((c) => {
@@ -28,7 +28,7 @@ export function ConfigHistory() {
         return (
           <li key={c.id} className="rounded-lg border p-3 text-sm">
             <p className="mb-1 text-muted-foreground">
-              {formatDateTime(c.createdAt)} · {c.userEmail || 'hệ thống'}
+              {formatDateTime(c.createdAt)} · {c.userEmail || 'system'}
             </p>
             {keys.map((k) => (
               <p key={k} className="num">

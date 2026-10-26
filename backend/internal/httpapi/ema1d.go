@@ -44,7 +44,7 @@ func (s *Server) ListEma1dPairs(ctx context.Context, _ ListEma1dPairsRequestObje
 
 func (s *Server) UpdateEma1dPair(ctx context.Context, req UpdateEma1dPairRequestObject) (UpdateEma1dPairResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	b := req.Body
 	in := ema1d.PairUpdate{
@@ -92,7 +92,7 @@ func (s *Server) ListEma1dTodos(ctx context.Context, req ListEma1dTodosRequestOb
 
 func (s *Server) CreateEma1dTodo(ctx context.Context, req CreateEma1dTodoRequestObject) (CreateEma1dTodoResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	b := req.Body
 	in := ema1d.ManualTodoRequest{
@@ -193,7 +193,7 @@ func (s *Server) GetEma1dConfig(ctx context.Context, _ GetEma1dConfigRequestObje
 
 func (s *Server) UpdateEma1dConfig(ctx context.Context, req UpdateEma1dConfigRequestObject) (UpdateEma1dConfigResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	c, err := convert[ema1d.Config](req.Body.Config)
 	if err != nil {
@@ -202,7 +202,7 @@ func (s *Server) UpdateEma1dConfig(ctx context.Context, req UpdateEma1dConfigReq
 	u, _ := auth.UserFrom(ctx)
 	if _, err := s.EMA1D.SaveConfig(ctx, req.Body.Version, c, u.Email); err != nil {
 		if errors.Is(err, configstore.ErrVersionConflict) {
-			return nil, httpx.Conflict("version_conflict", "cấu hình vừa được người khác sửa; tải lại rồi thử lại")
+			return nil, httpx.Conflict("version_conflict", "the settings were just changed by someone else; reload and try again")
 		}
 		return nil, err
 	}
@@ -238,5 +238,5 @@ func exchangeErr(err error) error {
 	if errors.As(err, &he) {
 		return err
 	}
-	return &httpx.Error{Status: 502, Code: "exchange_error", Message: "lỗi khi gọi Binance: " + err.Error(), Err: err}
+	return &httpx.Error{Status: 502, Code: "exchange_error", Message: "Binance call failed: " + err.Error(), Err: err}
 }

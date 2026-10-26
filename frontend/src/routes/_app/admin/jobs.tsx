@@ -7,10 +7,7 @@ export const Route = createFileRoute('/_app/admin/jobs')({
   staticData: { title: 'Jobs' },
   component: () => (
     <>
-      <PageHeader
-        title="Jobs"
-        description="Các tác vụ chạy định kỳ. Bấm vào một job để xem lịch sử các lần chạy."
-      />
+      <PageHeader title="Jobs" description="Scheduled tasks. Click a job to see its run history." />
       <JobsList />
     </>
   ),

@@ -8,12 +8,12 @@ import { ErrorState, PageHeader, SkeletonRows } from '@/shared/components/states
 import { formatDateTime } from '@/shared/lib/date'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Input } from '@/shared/ui/input'
+import { NumberInput } from '@/shared/components/number-input'
 import { Label } from '@/shared/ui/label'
 import { Switch } from '@/shared/ui/switch'
 
 export const Route = createFileRoute('/_app/dca/config')({
-  staticData: { title: 'Cấu hình' },
+  staticData: { title: 'Settings' },
   component: DcaConfigPage,
 })
 
@@ -32,12 +32,12 @@ function DcaConfigPage() {
 
   return (
     <>
-      <PageHeader title="Cấu hình DCA" />
+      <PageHeader title="DCA settings" />
       <div className="max-w-2xl space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Chạy tự động</CardTitle>
-            <CardDescription>Tắt: các ladder được giữ nguyên nhưng không lệnh nào được khớp.</CardDescription>
+            <CardTitle className="text-base">Automatic trading</CardTitle>
+            <CardDescription>Off: ladders are kept but no orders are filled.</CardDescription>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
             <Switch
@@ -45,23 +45,22 @@ function DcaConfigPage() {
               checked={c.enabled}
               onCheckedChange={(v) => setPending({ ...c, enabled: v })}
             />
-            <Label htmlFor="dca-enabled">{c.enabled ? 'Đang bật' : 'Đang tắt'}</Label>
+            <Label htmlFor="dca-enabled">{c.enabled ? 'On' : 'Off'}</Label>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Giới hạn vốn</CardTitle>
+            <CardTitle className="text-base">Capital cap</CardTitle>
             <CardDescription>
-              Tổng USDT đang nằm trong các nấc đã mua, trên mọi ladder. Lệnh mua làm vượt giới hạn sẽ bị từ
-              chối. 0 = không giới hạn.
+              Total USDT in bought rungs across all ladders. A buy that would exceed the cap is refused. 0 =
+              no cap.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-end gap-2">
             <div className="grid flex-1 gap-2">
               <Label htmlFor="dca-cap">USDT</Label>
-              <Input
+              <NumberInput
                 id="dca-cap"
-                inputMode="decimal"
                 value={capValue}
                 onChange={(e) => setCap(e.target.value)}
                 aria-invalid={!capValid}
@@ -71,14 +70,14 @@ function DcaConfigPage() {
               disabled={!capValid || capValue === c.maxCapitalUsdt}
               onClick={() => setPending({ ...c, maxCapitalUsdt: capValue })}
             >
-              Lưu
+              Save
             </Button>
           </CardContent>
         </Card>
         {history && history.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Lịch sử thay đổi</CardTitle>
+              <CardTitle className="text-base">Change history</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               {history.map((h) => (
@@ -97,8 +96,8 @@ function DcaConfigPage() {
         <ConfirmDialog
           open
           onOpenChange={(o) => !o && setPending(null)}
-          title="Lưu cấu hình DCA?"
-          description={`Chạy tự động: ${pending.enabled ? 'bật' : 'tắt'} · giới hạn vốn: ${pending.maxCapitalUsdt === '0' ? 'không' : `${pending.maxCapitalUsdt} USDT`}`}
+          title="Save DCA settings?"
+          description={`Automatic trading: ${pending.enabled ? 'on' : 'off'} · capital cap: ${pending.maxCapitalUsdt === '0' ? 'none' : `${pending.maxCapitalUsdt} USDT`}`}
           onConfirm={async () => {
             await save.mutateAsync({ version: data.version, config: pending })
             setCap(null)

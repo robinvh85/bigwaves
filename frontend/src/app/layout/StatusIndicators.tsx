@@ -19,26 +19,24 @@ export function StatusIndicators() {
           <TooltipTrigger asChild>
             <Badge variant="outline" className="gap-1 border-warning/50 text-warning">
               <ShieldOffIcon className="size-3" />
-              <span className="hidden sm:inline">Chỉ đọc</span>
+              <span className="sr-only sm:not-sr-only">Read-only</span>
             </Badge>
           </TooltipTrigger>
-          <TooltipContent>TRADING_ENABLED đang tắt: không lệnh nào được gửi lên Binance</TooltipContent>
+          <TooltipContent>TRADING_ENABLED is off: no orders are sent to Binance</TooltipContent>
         </Tooltip>
       )}
       <Tooltip>
         <TooltipTrigger asChild>
           <span
             role="status"
-            aria-label={connected ? 'Đang nhận cập nhật trực tiếp' : 'Mất kết nối cập nhật trực tiếp'}
+            aria-label={connected ? 'Receiving live updates' : 'Live updates disconnected'}
             className={cn(
               'inline-block size-2 rounded-full',
               connected ? 'bg-success' : 'bg-muted-foreground/50',
             )}
           />
         </TooltipTrigger>
-        <TooltipContent>
-          {connected ? 'Đang nhận cập nhật trực tiếp' : 'Mất kết nối, đang thử lại…'}
-        </TooltipContent>
+        <TooltipContent>{connected ? 'Receiving live updates' : 'Disconnected, retrying…'}</TooltipContent>
       </Tooltip>
     </div>
   )

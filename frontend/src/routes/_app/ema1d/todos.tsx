@@ -9,7 +9,7 @@ import { PageHeader } from '@/shared/components/states'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/toggle-group'
 
 export const Route = createFileRoute('/_app/ema1d/todos')({
-  staticData: { title: 'Hàng đợi' },
+  staticData: { title: 'Queue' },
   validateSearch: z.object({ history: z.boolean().optional() }),
   component: TodosPage,
 })
@@ -22,8 +22,8 @@ function TodosPage() {
   return (
     <>
       <PageHeader
-        title="Hàng đợi lệnh"
-        description="Todo OPEN/CLOSE do sync hoặc tạo tay. Mỗi phút hàng đợi chạy một lượt: CLOSE trước OPEN, lỗi tạm thời được thử lại sau 1, 2, 5, 10, 30, 60 phút."
+        title="Order queue"
+        description="OPEN/CLOSE todos from the sync or created by hand. The queue runs every minute: CLOSE before OPEN, transient errors retried after 1, 2, 5, 10, 30, 60 minutes."
         actions={<ManualTodoDialog />}
       />
       <ToggleGroup
@@ -36,8 +36,8 @@ function TodosPage() {
           if (v) void navigate({ search: { history: v === 'all' ? true : undefined }, replace: true })
         }}
       >
-        <ToggleGroupItem value="attention">Đang chờ & cần xử lý</ToggleGroupItem>
-        <ToggleGroupItem value="all">Toàn bộ 30 ngày</ToggleGroupItem>
+        <ToggleGroupItem value="attention">Pending & needs attention</ToggleGroupItem>
+        <ToggleGroupItem value="all">All, last 30 days</ToggleGroupItem>
       </ToggleGroup>
       <TodoTable todos={data} isLoading={isLoading} error={error} onRetry={() => void refetch()} />
     </>

@@ -160,7 +160,7 @@ func TestDailyCheckTodaysCandleMissing(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "failed", res.Status)
 	check, _ := e.q().GetDailyCheck(e.ctx, "2026-10-25")
-	require.Contains(t, check.LastError, "chưa sẵn sàng")
+	require.Contains(t, check.LastError, "not ready")
 	require.Equal(t, 0, e.count("ema1d_syncs"))
 	require.Empty(t, reports(e))
 	require.Len(t, alerts(e), 1)

@@ -145,7 +145,7 @@ func (s *Service) Get(ctx context.Context, id int64) (SettingRow, error) {
 func (s *Service) CreateSetting(ctx context.Context, pairID int64, note string) (SettingRow, error) {
 	p, err := dbq.New(s.DB.Read).GetPair(ctx, pairID)
 	if errors.Is(err, sql.ErrNoRows) || (err == nil && p.Pair.DeletedAt != nil) {
-		return SettingRow{}, httpx.Validation("pair không tồn tại", nil)
+		return SettingRow{}, httpx.Validation("pair does not exist", nil)
 	}
 	if err != nil {
 		return SettingRow{}, err
@@ -166,7 +166,7 @@ func (s *Service) UpdateSetting(ctx context.Context, id int64, status, note *str
 	st, n := v.Status, v.Note
 	if status != nil {
 		if *status != SettingActive && *status != SettingInactive && *status != SettingDone {
-			return SettingRow{}, httpx.Validation("status phải là ACTIVE, INACTIVE hoặc DONE", nil)
+			return SettingRow{}, httpx.Validation("status must be ACTIVE, INACTIVE or DONE", nil)
 		}
 		st = *status
 	}
@@ -186,7 +186,7 @@ func (s *Service) DeleteSetting(ctx context.Context, id int64) error {
 		return err
 	}
 	if row.HoldingCount > 0 {
-		return httpx.Conflict("dca_has_holdings", "còn nấc đang giữ coin: bán hoặc xử lý trước khi xoá")
+		return httpx.Conflict("dca_has_holdings", "some rungs still hold coins: sell or settle them before deleting")
 	}
 	if err := dbq.New(s.DB.Write).DeleteDcaSetting(ctx, id); err != nil {
 		return err
@@ -205,22 +205,22 @@ type TradeInput struct {
 func validateRung(v settingView, buy, sell, amount money.Dec) error {
 	details := map[string]any{}
 	if !buy.IsPositive() {
-		details["buyPrice"] = "phải lớn hơn 0"
+		details["buyPrice"] = "must be greater than 0"
 	}
 	if !amount.IsPositive() {
-		details["amount"] = "phải lớn hơn 0"
+		details["amount"] = "must be greater than 0"
 	}
 	if sell.IsNegative() || (sell.IsPositive() && sell.LessOrEqual(buy)) {
-		details["sellPrice"] = "phải lớn hơn giá mua (hoặc 0 để giữ)"
+		details["sellPrice"] = "must be above the buy price (or 0 to hold)"
 	}
 	if st := step(v); st.IsPositive() && amount.IsPositive() && !money.FloorToStep(amount, st).IsPositive() {
-		details["amount"] = fmt.Sprintf("nhỏ hơn bước khối lượng %s", st)
+		details["amount"] = fmt.Sprintf("smaller than the quantity step %s", st)
 	}
 	if v.MinNotional != nil && amount.Mul(buy).LessThan(*v.MinNotional) && amount.IsPositive() && buy.IsPositive() {
-		details["amount"] = fmt.Sprintf("giá trị %s USDT dưới mức tối thiểu %s USDT của Binance", amount.Mul(buy).Round(2), v.MinNotional)
+		details["amount"] = fmt.Sprintf("value %s USDT is below the Binance minimum of %s USDT", amount.Mul(buy).Round(2), v.MinNotional)
 	}
 	if len(details) > 0 {
-		return httpx.Validation("nấc DCA không hợp lệ", details)
+		return httpx.Validation("invalid DCA rung", details)
 	}
 	return nil
 }
@@ -231,7 +231,7 @@ func (s *Service) CreateTrade(ctx context.Context, settingID int64, in TradeInpu
 		return TradeRow{}, err
 	}
 	if in.BuyPrice == nil || in.Amount == nil {
-		return TradeRow{}, httpx.Validation("cần giá mua và khối lượng", nil)
+		return TradeRow{}, httpx.Validation("buy price and amount are required", nil)
 	}
 	sell := money.Zero
 	if in.SellPrice != nil {
@@ -265,7 +265,7 @@ func (s *Service) CreateTrade(ctx context.Context, settingID int64, in TradeInpu
 func (s *Service) trade(ctx context.Context, id int64) (dbq.DcaTrade, settingView, error) {
 	t, err := dbq.New(s.DB.Read).GetDcaTrade(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return t, settingView{}, httpx.NewError(404, "dca_trade_not_found", "không tìm thấy nấc DCA")
+		return t, settingView{}, httpx.NewError(404, "dca_trade_not_found", "DCA rung not found")
 	}
 	if err != nil {
 		return t, settingView{}, err
@@ -296,17 +296,17 @@ func (s *Service) UpdateTrade(ctx context.Context, id int64, in TradeInput) (Tra
 		}
 	case TradeOpen:
 		if in.BuyPrice != nil || in.Amount != nil {
-			return TradeRow{}, httpx.Conflict("dca_trade_held", "nấc đã mua: chỉ sửa được giá bán")
+			return TradeRow{}, httpx.Conflict("dca_trade_held", "rung already bought: only the sell price can change")
 		}
 		if in.SellPrice != nil {
 			sp := *in.SellPrice
 			if sp.IsNegative() || (sp.IsPositive() && t.OpenPrice != nil && sp.LessOrEqual(*t.OpenPrice)) {
-				return TradeRow{}, httpx.Validation("giá bán phải lớn hơn giá đã mua (hoặc 0 để giữ)", nil)
+				return TradeRow{}, httpx.Validation("sell price must be above the bought price (or 0 to hold)", nil)
 			}
 			t.SellPrice = sp
 		}
 	default:
-		return TradeRow{}, httpx.Conflict("dca_trade_closed", "nấc đã bán, không sửa được")
+		return TradeRow{}, httpx.Conflict("dca_trade_closed", "rung already sold, it cannot change")
 	}
 	if err := saveTrade(ctx, dbq.New(s.DB.Write), t); err != nil {
 		return TradeRow{}, err
@@ -321,7 +321,7 @@ func (s *Service) DeleteTrade(ctx context.Context, id int64) error {
 		return err
 	}
 	if t.Status != TradeOpening {
-		return httpx.Conflict("dca_trade_not_waiting", "chỉ xoá được nấc chưa mua")
+		return httpx.Conflict("dca_trade_not_waiting", "only rungs not yet bought can be deleted")
 	}
 	if err := dbq.New(s.DB.Write).DeleteDcaTrade(ctx, id); err != nil {
 		return err
@@ -337,7 +337,7 @@ func (s *Service) ForceBuy(ctx context.Context, id int64) (TradeRow, error) {
 		return TradeRow{}, err
 	}
 	if t.Status != TradeOpening {
-		return TradeRow{}, httpx.Conflict("dca_trade_not_waiting", "chỉ mua ngay được nấc đang chờ mua")
+		return TradeRow{}, httpx.Conflict("dca_trade_not_waiting", "only rungs waiting to buy can be bought now")
 	}
 	cfg, _, err := s.Config(ctx)
 	if err != nil {
@@ -358,7 +358,7 @@ func (s *Service) ForceSell(ctx context.Context, id int64) (TradeRow, error) {
 		return TradeRow{}, err
 	}
 	if t.Status != TradeOpen {
-		return TradeRow{}, httpx.Conflict("dca_trade_not_held", "chỉ bán ngay được nấc đang giữ")
+		return TradeRow{}, httpx.Conflict("dca_trade_not_held", "only held rungs can be sold now")
 	}
 	if err := s.sell(ctx, v, &t); err != nil {
 		_ = s.recordFailure(ctx, v, &t, err)
@@ -373,5 +373,5 @@ func upstream(err error) error {
 	if errors.As(err, &he) {
 		return err
 	}
-	return &httpx.Error{Status: 502, Code: "exchange_error", Message: "lỗi khi đặt lệnh: " + err.Error(), Err: err}
+	return &httpx.Error{Status: 502, Code: "exchange_error", Message: "order failed: " + err.Error(), Err: err}
 }

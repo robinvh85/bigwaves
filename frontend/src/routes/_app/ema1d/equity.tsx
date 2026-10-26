@@ -17,7 +17,7 @@ const search = z.object({
 })
 
 export const Route = createFileRoute('/_app/ema1d/equity')({
-  staticData: { title: 'Equity & báo cáo' },
+  staticData: { title: 'Equity & reports' },
   validateSearch: search,
   component: EquityPage,
 })
@@ -32,19 +32,19 @@ function EquityPage() {
   return (
     <>
       <PageHeader
-        title="Equity & báo cáo"
-        description="Đường vốn hằng ngày, báo cáo daily check và bảng tín hiệu hiện tại."
+        title="Equity & reports"
+        description="Daily equity curve, daily check reports and the current signal table."
       />
       <Tabs value={tab} onValueChange={(v) => set({ tab: v as 'equity' })}>
         <TabsList>
-          <TabsTrigger value="equity">Đường vốn</TabsTrigger>
+          <TabsTrigger value="equity">Equity curve</TabsTrigger>
           <TabsTrigger value="reports">Daily check</TabsTrigger>
-          <TabsTrigger value="signals">Tín hiệu</TabsTrigger>
+          <TabsTrigger value="signals">Signals</TabsTrigger>
         </TabsList>
         <TabsContent value="equity">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Vốn chiến lược (đã tính lãi/lỗ chưa chốt)</CardTitle>
+              <CardTitle className="text-base">Strategy capital (incl. unrealized PnL)</CardTitle>
               <ToggleGroup
                 type="single"
                 size="sm"
@@ -65,8 +65,8 @@ function EquityPage() {
                 <SkeletonRows rows={6} />
               ) : data.length < 2 ? (
                 <EmptyState
-                  title="Chưa đủ dữ liệu"
-                  description="Ảnh chụp vốn được ghi mỗi ngày lúc 07:05 VN."
+                  title="Not enough data yet"
+                  description="An equity snapshot is taken every day at 07:05 ICT."
                 />
               ) : (
                 <EquityChart points={data} />

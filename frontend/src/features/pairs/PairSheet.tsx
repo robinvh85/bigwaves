@@ -76,13 +76,13 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
 
       <div className="space-y-4 px-4 pb-6">
         <div className="rounded-lg border p-3">
-          <Info label="Giá hiện tại">
+          <Info label="Current price">
             <Price value={pair.currentPrice} />
           </Info>
-          <Info label="Cập nhật giá">
+          <Info label="Price updated">
             <span title={formatDateTime(pair.priceUpdatedAt)}>{fromNow(pair.priceUpdatedAt)}</span>
           </Info>
-          <Info label="Lãi vay / năm">
+          <Info label="Interest / year">
             {pair.interestRate ? formatPct(pair.interestRate, { sign: false }) : '—'}
           </Info>
           <Info label="Step size">
@@ -93,9 +93,9 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
 
         <div className="flex items-center justify-between rounded-lg border p-3">
           <div>
-            <Label htmlFor="pair-active">Đang hoạt động</Label>
+            <Label htmlFor="pair-active">Active</Label>
             <p className="text-xs text-muted-foreground">
-              Pair tắt vẫn được cập nhật giá, nhưng chiến lược không mở lệnh mới.
+              A disabled pair still gets price updates, but strategies open no new trades on it.
             </p>
           </div>
           <Switch
@@ -112,7 +112,7 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
 
         <Button variant="outline" className="w-full text-destructive" onClick={() => setConfirmDelete(true)}>
           <Trash2Icon />
-          Xoá pair
+          Delete pair
         </Button>
       </div>
 
@@ -120,10 +120,10 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         destructive
-        title={`Xoá ${pair.name}?`}
-        description="Pair bị ẩn khỏi danh sách và không nhận lệnh mới. Lịch sử giao dịch vẫn được giữ. Thêm lại cùng symbol sẽ khôi phục nó."
+        title={`Delete ${pair.name}?`}
+        description="The pair is hidden and takes no new trades. Trade history is kept. Adding the same symbol again restores it."
         typeToConfirm={pair.name}
-        confirmLabel="Xoá"
+        confirmLabel="Delete"
         onConfirm={async () => {
           await del.mutateAsync(pair.id)
           onDeleted()

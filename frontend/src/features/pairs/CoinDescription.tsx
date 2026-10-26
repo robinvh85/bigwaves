@@ -17,7 +17,7 @@ export function CoinDescription({ pair }: { pair: Pair }) {
     return (
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">Ghi chú về {pair.coin.name}</h3>
+          <h3 className="text-sm font-medium">Notes on {pair.coin.name}</h3>
           <Button
             variant="ghost"
             size="sm"
@@ -27,13 +27,13 @@ export function CoinDescription({ pair }: { pair: Pair }) {
             }}
           >
             <PencilIcon />
-            Sửa
+            Edit
           </Button>
         </div>
         {pair.coin.description ? (
           <Markdown>{pair.coin.description}</Markdown>
         ) : (
-          <p className="text-sm text-muted-foreground">Chưa có ghi chú. Hỗ trợ markdown.</p>
+          <p className="text-sm text-muted-foreground">No notes yet. Markdown is supported.</p>
         )}
       </div>
     )
@@ -41,11 +41,11 @@ export function CoinDescription({ pair }: { pair: Pair }) {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium">Ghi chú về {pair.coin.name}</h3>
+      <h3 className="text-sm font-medium">Notes on {pair.coin.name}</h3>
       <Tabs defaultValue="write">
         <TabsList>
-          <TabsTrigger value="write">Viết</TabsTrigger>
-          <TabsTrigger value="preview">Xem trước</TabsTrigger>
+          <TabsTrigger value="write">Write</TabsTrigger>
+          <TabsTrigger value="preview">Preview</TabsTrigger>
         </TabsList>
         <TabsContent value="write">
           <Textarea
@@ -53,16 +53,16 @@ export function CoinDescription({ pair }: { pair: Pair }) {
             onChange={(e) => setDraft(e.target.value)}
             rows={14}
             className="font-mono text-sm"
-            aria-label="Ghi chú markdown"
+            aria-label="Markdown notes"
           />
         </TabsContent>
         <TabsContent value="preview" className="min-h-40 rounded-md border p-3">
-          {draft ? <Markdown>{draft}</Markdown> : <p className="text-sm text-muted-foreground">Trống</p>}
+          {draft ? <Markdown>{draft}</Markdown> : <p className="text-sm text-muted-foreground">Empty</p>}
         </TabsContent>
       </Tabs>
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={() => setEditing(false)} disabled={save.isPending}>
-          Huỷ
+          Cancel
         </Button>
         <Button
           disabled={save.isPending || draft === pair.coin.description}
@@ -71,7 +71,7 @@ export function CoinDescription({ pair }: { pair: Pair }) {
           }
         >
           {save.isPending && <Loader2Icon className="animate-spin" />}
-          Lưu
+          Save
         </Button>
       </div>
     </div>

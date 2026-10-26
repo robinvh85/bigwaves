@@ -58,7 +58,7 @@ func (s *Server) GetPair(ctx context.Context, req GetPairRequestObject) (GetPair
 
 func (s *Server) CreatePair(ctx context.Context, req CreatePairRequestObject) (CreatePairResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	p, err := s.Pairs.Create(ctx, marketdata.CreateInput{
 		Name: req.Body.Name, IsSpot: deref(req.Body.IsSpot), IsIsolated: deref(req.Body.IsIsolated),
@@ -71,7 +71,7 @@ func (s *Server) CreatePair(ctx context.Context, req CreatePairRequestObject) (C
 
 func (s *Server) UpdatePair(ctx context.Context, req UpdatePairRequestObject) (UpdatePairResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	in := marketdata.UpdateInput{IsSpot: req.Body.IsSpot, IsIsolated: req.Body.IsIsolated}
 	if req.Body.Status != nil {
@@ -94,7 +94,7 @@ func (s *Server) DeletePair(ctx context.Context, req DeletePairRequestObject) (D
 
 func (s *Server) UpdateCoin(ctx context.Context, req UpdateCoinRequestObject) (UpdateCoinResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	c, err := s.Pairs.UpdateCoinDescription(ctx, req.Id, req.Body.Description)
 	if err != nil {

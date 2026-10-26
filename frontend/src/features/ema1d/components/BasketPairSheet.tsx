@@ -27,9 +27,9 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 const STATUS_HELP: Record<Ema1dPairRow['status'], string> = {
-  ACTIVE: 'Nhận cả tín hiệu vào và thoát.',
-  EXIT_ONLY: 'Đã loại khỏi rổ: chỉ đóng lệnh đang giữ, không vào mới.',
-  DISABLED: 'Bỏ qua hoàn toàn (kể cả đóng lệnh). Chỉ dùng khi đã xử lý tay.',
+  ACTIVE: 'Takes both entry and exit signals.',
+  EXIT_ONLY: 'Removed from the basket: only closes the held position, no new entries.',
+  DISABLED: 'Ignored entirely (closes too). Use only after handling it by hand.',
 }
 
 export function BasketPairSheet({ id, onClose }: { id?: number; onClose: () => void }) {
@@ -62,58 +62,58 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
           <span className="font-mono">{pair.coin}</span> <BasketStatusBadge status={pair.status} />
         </SheetTitle>
         <SheetDescription>
-          {pair.pairName} · nhóm {pair.pairGroup === 'CORE' ? 'lõi' : 'nhạy'} · thêm vào rổ{' '}
+          {pair.pairName} · {pair.pairGroup === 'CORE' ? 'core' : 'sensitive'} group · added{' '}
           {formatDate(pair.addedOn)}
         </SheetDescription>
       </SheetHeader>
       <div className="space-y-4 px-4 pb-6">
         <div className="rounded-lg border p-3">
-          <Row label="Giá hiện tại">
+          <Row label="Current price">
             <Price value={pair.currentPrice} />
           </Row>
-          <Row label="Đang giữ">
+          <Row label="Holding">
             {pair.position ? (
               <span className="inline-flex items-center gap-2">
-                <Side side={pair.position.side} /> từ {formatDate(pair.position.signalDate)}
+                <Side side={pair.position.side} /> since {formatDate(pair.position.signalDate)}
               </span>
             ) : (
-              <span className="text-muted-foreground">không</span>
+              <span className="text-muted-foreground">none</span>
             )}
           </Row>
           {pair.position && (
-            <Row label="Lãi/lỗ chưa chốt">
+            <Row label="Unrealized PnL">
               <Pnl value={pair.position.unrealizedProfitUsdt} />{' '}
               <Pct value={pair.position.unrealizedPercent} className="text-xs" />
             </Row>
           )}
-          <Row label="Sync muốn">
+          <Row label="Sync wants">
             {pair.wanted ? (
               <span>
                 <WantedLabel state={pair.wanted.state} />
                 {pair.wanted.entryDate && (
-                  <span className="text-muted-foreground"> từ {formatDate(pair.wanted.entryDate)}</span>
+                  <span className="text-muted-foreground"> since {formatDate(pair.wanted.entryDate)}</span>
                 )}
               </span>
             ) : (
               '—'
             )}
           </Row>
-          {pair.pendingTodos.length > 0 && <Row label="Đang chờ">{pair.pendingTodos.join(', ')}</Row>}
+          {pair.pendingTodos.length > 0 && <Row label="Pending">{pair.pendingTodos.join(', ')}</Row>}
           {pair.mismatch && (
             <p className="mt-2 text-sm text-warning">
-              Vị thế đang lệch với chiến lược và không có todo nào sửa.
+              The position differs from the strategy and no todo is fixing it.
             </p>
           )}
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">Thiết lập</h3>
+          <h3 className="text-sm font-medium">Settings</h3>
           <div className="grid gap-2">
-            <Label>Trạng thái trong rổ</Label>
+            <Label>Basket status</Label>
             <Select
               value={pair.status}
               onValueChange={(v) =>
-                ask(`Đổi ${pair.coin} sang ${v}?`, STATUS_HELP[v as Ema1dPairRow['status']], {
+                ask(`Change ${pair.coin} to ${v}?`, STATUS_HELP[v as Ema1dPairRow['status']], {
                   status: v as Ema1dPairRow['status'],
                 })
               }
@@ -122,16 +122,16 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ACTIVE">Trong rổ</SelectItem>
-                <SelectItem value="EXIT_ONLY">Chỉ thoát</SelectItem>
-                <SelectItem value="DISABLED">Tắt</SelectItem>
+                <SelectItem value="ACTIVE">In basket</SelectItem>
+                <SelectItem value="EXIT_ONLY">Exit only</SelectItem>
+                <SelectItem value="DISABLED">Disabled</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">{STATUS_HELP[pair.status]}</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Nhóm (khối lượng)</Label>
+              <Label>Group (sizing)</Label>
               <Select
                 value={pair.pairGroup}
                 onValueChange={(v) => update.mutate({ pairGroup: v as 'CORE' | 'SENSITIVE' })}
@@ -140,13 +140,13 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CORE">Lõi</SelectItem>
-                  <SelectItem value="SENSITIVE">Nhạy</SelectItem>
+                  <SelectItem value="CORE">Core</SelectItem>
+                  <SelectItem value="SENSITIVE">Sensitive</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Thoát LONG theo</Label>
+              <Label>Exit LONG on</Label>
               <Select
                 value={pair.longExitRule ?? 'DIV4H'}
                 onValueChange={(v) => update.mutate({ longExitRule: v })}
@@ -155,14 +155,14 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DIV4H">DIV4H (phân kỳ 4H)</SelectItem>
-                  <SelectItem value="XO">XO (cắt ngược)</SelectItem>
+                  <SelectItem value="DIV4H">DIV4H (4H divergence)</SelectItem>
+                  <SelectItem value="XO">XO (reverse cross)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="flex items-center justify-between rounded-lg border p-3">
-            <Label htmlFor="allow-long">Cho phép LONG</Label>
+            <Label htmlFor="allow-long">Allow LONG</Label>
             <Switch
               id="allow-long"
               checked={pair.allowLong}
@@ -171,10 +171,10 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
           </div>
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>
-              <Label htmlFor="allow-short">Cho phép SHORT</Label>
+              <Label htmlFor="allow-short">Allow SHORT</Label>
               {pair.allowShort && !pair.shortSupported && (
                 <p className="text-xs text-warning">
-                  Binance hiện không cho vay {pair.coin}: SHORT sẽ bị bỏ qua.
+                  Binance does not lend {pair.coin} right now: SHORT will be skipped.
                 </p>
               )}
             </div>
@@ -185,7 +185,7 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="signal-from">Chỉ theo tín hiệu từ ngày</Label>
+            <Label htmlFor="signal-from">Follow signals from</Label>
             <Input
               id="signal-from"
               type="date"
@@ -195,7 +195,7 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Để trống: theo toàn bộ lịch sử. Coin mới thêm: chỉ vào ở tín hiệu mới.
+              Empty: follow the whole history. Newly added coin: enter on new signals only.
             </p>
           </div>
         </div>
@@ -203,7 +203,7 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
         <Separator />
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">Kiểm tra trên Binance</h3>
+            <h3 className="text-sm font-medium">Binance check</h3>
             <Button
               size="sm"
               variant="outline"
@@ -211,19 +211,17 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
               onClick={() =>
                 check.mutate([pair.id], {
                   onSuccess: (r) =>
-                    toast.success(
-                      r.items[0]?.shortSupported ? 'SHORT được hỗ trợ' : 'SHORT KHÔNG được hỗ trợ',
-                    ),
+                    toast.success(r.items[0]?.shortSupported ? 'SHORT supported' : 'SHORT NOT supported'),
                 })
               }
             >
               {check.isPending ? <Loader2Icon className="animate-spin" /> : <SearchCheckIcon />}
-              Kiểm tra
+              Check
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">{pair.checkNote || 'Chưa kiểm tra.'}</p>
+          <p className="text-sm text-muted-foreground">{pair.checkNote || 'Not checked yet.'}</p>
           {pair.checkedAt && (
-            <p className="text-xs text-muted-foreground">Lần cuối {formatDateTime(pair.checkedAt)}</p>
+            <p className="text-xs text-muted-foreground">Last checked {formatDateTime(pair.checkedAt)}</p>
           )}
         </div>
       </div>

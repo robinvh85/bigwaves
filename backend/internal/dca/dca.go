@@ -116,7 +116,7 @@ func (v settingView) baseAsset() string { return strings.TrimSuffix(v.PairName, 
 func (s *Service) getSetting(ctx context.Context, q *dbq.Queries, id int64) (settingView, error) {
 	r, err := q.GetDcaSetting(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return settingView{}, httpx.NewError(404, "dca_not_found", "không tìm thấy DCA")
+		return settingView{}, httpx.NewError(404, "dca_not_found", "DCA ladder not found")
 	}
 	if err != nil {
 		return settingView{}, err
@@ -387,7 +387,7 @@ func ptr[T any](v T) *T { return &v }
 // Jobs returns the DCA price check.
 func (s *Service) Jobs() []scheduler.Job {
 	return []scheduler.Job{{
-		Name: "dca.check", Description: "DCA: mua khi giá ≤ giá mua, bán khi giá ≥ giá bán, cập nhật lãi/lỗ",
+		Name: "dca.check", Description: "DCA: buy when price ≤ buy price, sell when price ≥ sell price, update PnL",
 		Cron: "0 */5 * * * *", Timeout: 5 * time.Minute, Run: s.Check,
 	}}
 }

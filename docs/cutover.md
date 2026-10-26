@@ -59,12 +59,12 @@ Chọn thời điểm sau 07:05 VN, khi hàng đợi Rails trống.
        sudo bwctl import-pg -pg "$PG" -out /var/lib/bigwaves/bigwaves.db -archive /var/lib/bigwaves/archive
        sudo bwctl verify-import -pg "$PG" -db /var/lib/bigwaves/bigwaves.db
        ```
-5. [ ] Đối chiếu vị thế đang mở (màn Rổ coin / `sudo bwctl ema1d signals`) với tài khoản Binance: nợ từng coin
+5. [ ] Đối chiếu vị thế đang mở (màn EMA1D → Basket / `sudo bwctl ema1d signals`) với tài khoản Binance: nợ từng coin
        (SHORT), số coin đang giữ (LONG).
 6. [ ] **Đổi key**: tạo API key Binance mới (whitelist IP, không quyền rút), webhook Discord mới. Key cũ đã
        nằm trong git Rails.
 7. [ ] `sudoedit /etc/bigwaves/env`: key mới, `SCHEDULER_ENABLED=true`, **vẫn** `TRADING_ENABLED=false`.
-8. [ ] `sudo systemctl start bigwaves`. Màn EMA1D → Cấu hình: bật **Tạm dừng mở mới**, bật **Thực thi lệnh**,
+8. [ ] `sudo systemctl start bigwaves`. Màn EMA1D → Settings: bật **Pause new entries**, bật **Execute orders**,
        bật **Daily check**.
 9. [ ] `sudoedit /etc/bigwaves/env`: `TRADING_ENABLED=true`; `sudo systemctl restart bigwaves`. Trỏ domain
        (Caddy `__SITE__`) sang bigwaves, giữ app cũ chỉ đọc ở địa chỉ khác 2 tuần.
@@ -72,7 +72,7 @@ Chọn thời điểm sau 07:05 VN, khi hàng đợi Rails trống.
 ## 3. 24 giờ đầu
 
 - [ ] Theo dõi: daily check 07:03, hàng đợi, monitor 15 phút, snapshot 07:05, tin Discord.
-- [ ] Ổn định → tắt **Tạm dừng mở mới**.
+- [ ] Ổn định → tắt **Pause new entries**.
 
 ## 4. Cutover DCA
 

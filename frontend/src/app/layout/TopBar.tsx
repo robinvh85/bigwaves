@@ -67,18 +67,18 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Tài khoản và giao diện">
+        <Button variant="ghost" size="icon" aria-label="Account and appearance">
           <Icon />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         {me && <DropdownMenuLabel className="truncate font-normal">{me.email}</DropdownMenuLabel>}
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Giao diện</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs text-muted-foreground">Theme</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={theme} onValueChange={(v) => setTheme(v as ThemePreference)}>
-          <DropdownMenuRadioItem value="dark">Tối</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="light">Sáng</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="system">Theo hệ thống</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -87,7 +87,7 @@ function UserMenu() {
           }}
         >
           <LogOutIcon />
-          Đăng xuất
+          Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

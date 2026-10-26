@@ -32,6 +32,6 @@ export function useRunJob() {
   return useMutation({
     mutationFn: (name: string) => unwrap(api.POST('/jobs/{name}/run', { params: { path: { name } } })),
     onSuccess: () => qc.invalidateQueries({ queryKey: jobKeys.all }),
-    meta: { success: 'Đã bắt đầu chạy job' },
+    meta: { success: 'Job started' },
   })
 }

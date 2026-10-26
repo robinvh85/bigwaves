@@ -106,14 +106,14 @@ func (s *Service) prepareCheck(ctx context.Context, check *dbq.Ema1dDailyCheck, 
 		return err
 	}
 	if len(candles.Errors) > 0 {
-		return &checkFailure{"tải nến Binance: " + strings.Join(candles.Errors[:min(3, len(candles.Errors))], "; ")}
+		return &checkFailure{"loading Binance candles: " + strings.Join(candles.Errors[:min(3, len(candles.Errors))], "; ")}
 	}
 	sig, err := s.Signals(ctx)
 	if err != nil {
 		return err
 	}
 	if len(sig.Warnings) > 0 {
-		return &checkFailure{"dữ liệu chưa sẵn sàng, chưa sync: " + strings.Join(sig.Warnings, "; ")}
+		return &checkFailure{"data not ready, not synced: " + strings.Join(sig.Warnings, "; ")}
 	}
 	date := check.SignalDate
 	runID := "auto-" + strings.ReplaceAll(date, "-", "")
@@ -135,7 +135,7 @@ func (s *Service) prepareCheck(ctx context.Context, check *dbq.Ema1dDailyCheck, 
 	}
 	notes := make([]string, len(candles.Gaps))
 	for i, g := range candles.Gaps {
-		notes[i] = "thiếu nến: " + g
+		notes[i] = "missing candles: " + g
 	}
 	rows, _ := json.Marshal(sig.Rows)
 	params, _ := json.Marshal(map[string]any{"date": sig.Date, "s": sig.S, "warnings": sig.Warnings})
@@ -148,7 +148,7 @@ func (s *Service) prepareCheck(ctx context.Context, check *dbq.Ema1dDailyCheck, 
 
 func (s *Service) sendReport(ctx context.Context, check *dbq.Ema1dDailyCheck, dryRun bool) error {
 	if !s.ReportConfigured {
-		return &checkFailure{"thiếu DISCORD_REPORT_WEBHOOK trong env"}
+		return &checkFailure{"DISCORD_REPORT_WEBHOOK is not set"}
 	}
 	parts := reportParts(check.Report, 1900)
 	for i, part := range parts {
@@ -156,7 +156,7 @@ func (s *Service) sendReport(ctx context.Context, check *dbq.Ema1dDailyCheck, dr
 			s.sleep(time.Second)
 		}
 		if err := s.Notifier.Send(ctx, notify.Reports, part); err != nil {
-			return &checkFailure{fmt.Sprintf("gửi Discord lỗi (phần %d): %v", i+1, err)}
+			return &checkFailure{fmt.Sprintf("sending to Discord failed (part %d): %v", i+1, err)}
 		}
 	}
 	check.Status, check.SentAt, check.LastError = CheckSent, tptr(s.now()), ""

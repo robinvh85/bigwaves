@@ -16,7 +16,7 @@ import { formatMoney } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/utils'
 
 export const Route = createFileRoute('/_app/')({
-  staticData: { title: 'Tổng quan' },
+  staticData: { title: 'Overview' },
   component: Overview,
 })
 
@@ -27,7 +27,7 @@ function Section({ title, to, children }: { title: string; to?: string; children
         <h2 className="font-medium">{title}</h2>
         {to && (
           <Link to={to} className="text-sm text-muted-foreground underline-offset-2 hover:underline">
-            Chi tiết →
+            Details →
           </Link>
         )}
       </div>
@@ -51,16 +51,16 @@ function Overview() {
 
   return (
     <>
-      <PageHeader title="Tổng quan" />
-      <Section title="Tài khoản Binance">
+      <PageHeader title="Overview" />
+      <Section title="Binance account">
         <StatCard
-          label="Tài sản ròng"
+          label="Net assets"
           loading={balances.isLoading}
           value={balances.data ? <Money value={balances.data.netTotalUsdt} /> : '—'}
           hint={
             balances.error
               ? errorMessage(balances.error)
-              : balances.data && `cập nhật ${fromNow(balances.data.fetchedAt)}`
+              : balances.data && `updated ${fromNow(balances.data.fetchedAt)}`
           }
         />
         <StatCard
@@ -71,32 +71,32 @@ function Overview() {
               {formatMoney(balances.data?.marginLevel)}
             </span>
           }
-          hint="cảnh báo dưới 1.5, báo động dưới 1.3"
+          hint="warning below 1.5, alert below 1.3"
         />
         <StatCard
-          label="USDT cross khả dụng"
+          label="Cross USDT available"
           loading={balances.isLoading}
           value={<Money value={balances.data?.crossUsdtFree} />}
         />
         <StatCard
-          label="Job lỗi"
+          label="Failed jobs"
           loading={jobs.isLoading}
           value={<span className={cn(failedJobs.length > 0 && 'text-destructive')}>{failedJobs.length}</span>}
           hint={
             <Link to="/admin/jobs" className="underline-offset-2 hover:underline">
-              {failedJobs.length > 0 ? failedJobs.map((j) => j.name).join(', ') : 'tất cả đang ổn'}
+              {failedJobs.length > 0 ? failedJobs.map((j) => j.name).join(', ') : 'all good'}
             </Link>
           }
         />
       </Section>
       <Section title="EMA1D" to="/ema1d">
         <StatCard
-          label="Vốn chiến lược"
+          label="Strategy capital"
           loading={ema1d.isLoading}
           value={<Money value={ema1d.data?.capital.equityUsdt} />}
         />
         <StatCard
-          label="Lãi/lỗ chưa chốt"
+          label="Unrealized PnL"
           loading={ema1d.isLoading}
           value={<Pnl value={ema1d.data?.capital.unrealizedProfitUsdt} />}
           hint={
@@ -104,42 +104,42 @@ function Overview() {
           }
         />
         <StatCard
-          label="Lệnh lỗi"
+          label="Failed orders"
           loading={ema1d.isLoading}
           value={
             <span className={cn(failedTodos.length > 0 && 'text-destructive')}>{failedTodos.length}</span>
           }
           hint={
             <Link to="/ema1d/todos" className="underline-offset-2 hover:underline">
-              hàng đợi
+              queue
             </Link>
           }
         />
         <StatCard
-          label="Trạng thái"
+          label="Status"
           loading={ema1d.isLoading}
           value={
             <span className="text-base">
-              {ema1d.data?.enabled ? (ema1d.data.pauseOpen ? 'Chỉ đóng lệnh' : 'Đang chạy') : 'Tắt thực thi'}
+              {ema1d.data?.enabled ? (ema1d.data.pauseOpen ? 'Closing only' : 'Running') : 'Execution off'}
             </span>
           }
-          hint={ema1d.data?.lastSync ? `sync ${ema1d.data.lastSync.date}` : 'chưa có sync'}
+          hint={ema1d.data?.lastSync ? `sync ${ema1d.data.lastSync.date}` : 'no sync yet'}
         />
       </Section>
       <Section title="DCA" to="/dca">
-        <StatCard label="Ladder đang chạy" loading={dca.isLoading} value={activeDca.length} />
+        <StatCard label="Active ladders" loading={dca.isLoading} value={activeDca.length} />
         <StatCard
-          label="Vốn đang giữ"
+          label="Capital held"
           loading={dca.isLoading}
           value={<Money value={sum(dca.data, 'capitalUsdt')} />}
         />
         <StatCard
-          label="Đã chốt"
+          label="Realized"
           loading={dca.isLoading}
           value={<Pnl value={sum(dca.data, 'realizedProfit')} />}
         />
         <StatCard
-          label="Chưa chốt"
+          label="Unrealized"
           loading={dca.isLoading}
           value={<Pnl value={sum(dca.data, 'unrealizedProfit')} />}
         />

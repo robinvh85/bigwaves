@@ -21,7 +21,7 @@ function LoginPage() {
             <WavesIcon className="size-5" />
           </div>
           <CardTitle>bigwaves</CardTitle>
-          <CardDescription>Đăng nhập để tiếp tục</CardDescription>
+          <CardDescription>Sign in to continue</CardDescription>
         </CardHeader>
         <CardContent>
           <Button
@@ -30,7 +30,7 @@ function LoginPage() {
               login(redirect)
             }}
           >
-            Đăng nhập với Auth0
+            Sign in with Auth0
           </Button>
         </CardContent>
       </Card>

@@ -18,19 +18,19 @@ export const pairColumns = [
     meta: { mobile: 'title' },
   }),
   col.accessor('status', {
-    header: 'Trạng thái',
+    header: 'Status',
     cell: (c) => <PairStatusBadge status={c.getValue()} />,
     meta: { mobile: 'badge' },
   }),
   col.accessor((p) => num(p.currentPrice), {
     id: 'price',
-    header: 'Giá',
+    header: 'Price',
     cell: (c) => <Price value={c.row.original.currentPrice} />,
     meta: { align: 'right', mobile: 'primary' },
   }),
   col.accessor((p) => num(p.interestRate), {
     id: 'interest',
-    header: 'Lãi vay/năm',
+    header: 'Interest/yr',
     cell: (c) =>
       c.row.original.interestRate ? formatPct(c.row.original.interestRate, { sign: false }) : '—',
     meta: { align: 'right' },
@@ -43,12 +43,12 @@ export const pairColumns = [
   }),
   col.display({
     id: 'account',
-    header: 'Tài khoản',
+    header: 'Account',
     cell: (c) => <AccountTypeLabel isSpot={c.row.original.isSpot} isIsolated={c.row.original.isIsolated} />,
   }),
   col.accessor((p) => p.priceUpdatedAt ?? '', {
     id: 'updated',
-    header: 'Cập nhật giá',
+    header: 'Price updated',
     cell: (c) => <span className="text-muted-foreground">{fromNow(c.row.original.priceUpdatedAt)}</span>,
     meta: { align: 'right', mobile: 'hidden' },
   }),

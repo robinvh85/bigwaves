@@ -21,7 +21,7 @@ function Runs({ name }: { name: string }) {
   const { data, error, isLoading, refetch } = useQuery(jobRunsQuery(name))
   if (error) return <ErrorState error={error} onRetry={() => void refetch()} />
   if (isLoading || !data) return <SkeletonRows rows={3} />
-  if (data.length === 0) return <p className="text-sm text-muted-foreground">Chưa chạy lần nào.</p>
+  if (data.length === 0) return <p className="text-sm text-muted-foreground">Never run.</p>
   return (
     <ul className="divide-y text-sm">
       {data.map((r) => (
@@ -32,7 +32,7 @@ function Runs({ name }: { name: string }) {
             <span className="num text-xs text-muted-foreground">{duration(r.startedAt, r.finishedAt)}</span>
           </div>
           <span className={cn('min-w-0 break-words', r.status === 'FAILED' && 'text-destructive')}>
-            {r.trigger === 'manual' && <span className="mr-1 text-xs text-muted-foreground">[chạy tay]</span>}
+            {r.trigger === 'manual' && <span className="mr-1 text-xs text-muted-foreground">[manual]</span>}
             {r.message || '—'}
           </span>
         </li>
@@ -73,13 +73,13 @@ function JobRow({ job }: { job: JobStatus }) {
         <div className="flex items-center justify-between gap-4 text-sm sm:justify-end">
           <div className="text-muted-foreground sm:text-right">
             <div>
-              Lần cuối:{' '}
+              Last:{' '}
               <span className="text-foreground" title={formatDateTime(job.lastRun?.startedAt)}>
-                {job.lastRun ? fromNow(job.lastRun.startedAt) : 'chưa chạy'}
+                {job.lastRun ? fromNow(job.lastRun.startedAt) : 'never'}
               </span>
             </div>
             <div>
-              Kế tiếp:{' '}
+              Next:{' '}
               <span className="text-foreground" title={formatDateTime(job.nextRunAt)}>
                 {job.nextRunAt ? fromNow(job.nextRunAt) : '—'}
               </span>
@@ -87,7 +87,7 @@ function JobRow({ job }: { job: JobStatus }) {
           </div>
           <Button variant="outline" size="sm" disabled={busy} onClick={() => run.mutate(job.name)}>
             {busy ? <Loader2Icon className="animate-spin" /> : <PlayIcon />}
-            Chạy ngay
+            Run now
           </Button>
         </div>
       </div>
@@ -102,13 +102,13 @@ export function JobsList() {
   const { data, error, isLoading, refetch } = useQuery(jobsQuery)
   if (error) return <ErrorState error={error} onRetry={() => void refetch()} />
   if (isLoading || !data) return <SkeletonRows rows={6} className="[&>*]:h-20" />
-  if (data.length === 0) return <EmptyState title="Không có job nào" />
+  if (data.length === 0) return <EmptyState title="No jobs" />
   const failed = data.filter((j) => j.lastRun?.status === 'FAILED')
   return (
     <div className="space-y-2">
       {failed.length > 0 && (
         <p className="text-sm text-destructive">
-          {failed.length} job lỗi ở lần chạy gần nhất: {failed.map((j) => j.name).join(', ')}
+          {failed.length} job(s) failed on their last run: {failed.map((j) => j.name).join(', ')}
         </p>
       )}
       {data.map((j) => (

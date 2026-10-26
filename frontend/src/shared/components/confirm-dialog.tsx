@@ -25,7 +25,7 @@ export function ConfirmDialog({
   title,
   description,
   children,
-  confirmLabel = 'Xác nhận',
+  confirmLabel = 'Confirm',
   destructive,
   typeToConfirm,
   confirmDisabled,
@@ -77,7 +77,7 @@ export function ConfirmDialog({
         {typeToConfirm !== undefined && (
           <div className="space-y-2">
             <Label htmlFor="confirm-text">
-              Gõ <span className="font-mono font-semibold">{typeToConfirm}</span> để xác nhận
+              Type <span className="font-mono font-semibold">{typeToConfirm}</span> to confirm
             </Label>
             <Input
               id="confirm-text"
@@ -89,7 +89,7 @@ export function ConfirmDialog({
           </div>
         )}
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Huỷ</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
           <Button
             variant={destructive ? 'destructive' : 'default'}
             disabled={blocked || pending}

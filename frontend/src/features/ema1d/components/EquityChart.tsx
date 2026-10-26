@@ -8,7 +8,7 @@ import type { components } from '@/shared/api/schema'
 
 type Point = components['schemas']['Ema1dEquityPoint']
 
-const config = { equity: { label: 'Vốn (USDT)', color: 'var(--chart-2)' } } satisfies ChartConfig
+const config = { equity: { label: 'Equity (USDT)', color: 'var(--chart-2)' } } satisfies ChartConfig
 
 export function EquityChart({ points }: { points: Point[] }) {
   const data = points.map((p) => ({ date: p.date, equity: Number(p.equityUsdt) }))
@@ -31,7 +31,7 @@ export function EquityChart({ points }: { points: Point[] }) {
           tickLine={false}
           axisLine={false}
           minTickGap={32}
-          tickFormatter={(v: string) => dayjs(v).format('DD/MM')}
+          tickFormatter={(v: string) => dayjs(v).format('DD MMM')}
         />
         <YAxis
           domain={[min - pad, max + pad]}
@@ -43,7 +43,7 @@ export function EquityChart({ points }: { points: Point[] }) {
         <ChartTooltip
           content={
             <ChartTooltipContent
-              labelFormatter={(v) => dayjs(String(v)).format('DD/MM/YYYY')}
+              labelFormatter={(v) => dayjs(String(v)).format('DD MMM YYYY')}
               formatter={(v) => `${formatMoney(Number(v))} USDT`}
             />
           }

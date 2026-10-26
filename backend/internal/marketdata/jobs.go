@@ -151,7 +151,7 @@ func (s *Service) UpdateFilters(ctx context.Context) (string, error) {
 func (s *Service) Jobs(ev *events.Broker) []scheduler.Job {
 	return []scheduler.Job{
 		{
-			Name: "market.update_prices", Description: "Cập nhật giá mọi pair (1 lệnh ticker)",
+			Name: "market.update_prices", Description: "Update prices of all pairs (one ticker call)",
 			Cron: "5 */10 * * * *", Timeout: 2 * time.Minute,
 			Run: func(ctx context.Context) (string, error) {
 				msg, err := s.UpdatePrices(ctx)
@@ -162,11 +162,11 @@ func (s *Service) Jobs(ev *events.Broker) []scheduler.Job {
 			},
 		},
 		{
-			Name: "market.update_interest", Description: "Cập nhật lãi vay margin theo năm của từng coin",
+			Name: "market.update_interest", Description: "Update the yearly margin interest rate of each coin",
 			Cron: "0 3 * * * *", Timeout: 10 * time.Minute, Run: s.UpdateInterestRates,
 		},
 		{
-			Name: "market.update_filters", Description: "Cập nhật step size và min notional từ exchangeInfo",
+			Name: "market.update_filters", Description: "Update step size and min notional from exchangeInfo",
 			Cron: "CRON_TZ=Asia/Ho_Chi_Minh 0 7 7 * * *", Timeout: 10 * time.Minute, Run: s.UpdateFilters,
 		},
 	}

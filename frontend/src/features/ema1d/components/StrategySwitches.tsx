@@ -11,19 +11,19 @@ type Key = 'enabled' | 'pauseOpen' | 'dailyCheckEnabled'
 
 const LABELS: Record<Key, { label: string; on: string; off: string }> = {
   enabled: {
-    label: 'Thực thi lệnh',
-    on: 'Hàng đợi sẽ bắt đầu đặt lệnh thật lên Binance (nếu TRADING_ENABLED đang bật).',
-    off: 'Hàng đợi dừng lại: todo vẫn được tạo nhưng không được thực thi.',
+    label: 'Execute orders',
+    on: 'The queue starts placing real orders on Binance (if TRADING_ENABLED is on).',
+    off: 'The queue stops: todos are still created but not executed.',
   },
   pauseOpen: {
-    label: 'Tạm dừng mở mới',
-    on: 'Sync, lệnh tay và hàng đợi sẽ không mở lệnh mới. Lệnh đóng vẫn chạy.',
-    off: 'Cho phép mở lệnh mới trở lại.',
+    label: 'Pause new entries',
+    on: 'Sync, manual orders and the queue open no new positions. Closes still run.',
+    off: 'Allow new entries again.',
   },
   dailyCheckEnabled: {
     label: 'Daily check 07:03',
-    on: 'Mỗi sáng 07:03 VN: tải nến, tính tín hiệu, sync và gửi báo cáo Discord.',
-    off: 'Không tự chạy daily check nữa.',
+    on: 'Every morning at 07:03 ICT: load candles, compute signals, sync and send the Discord report.',
+    off: 'Stop running the daily check automatically.',
   },
 }
 
@@ -56,10 +56,10 @@ export function StrategySwitches() {
           onOpenChange={(o) => {
             if (!o) setPending(null)
           }}
-          title={`${pending.value ? 'Bật' : 'Tắt'} "${LABELS[pending.key].label}"?`}
+          title={`Turn ${pending.value ? 'on' : 'off'} "${LABELS[pending.key].label}"?`}
           description={pending.value ? LABELS[pending.key].on : LABELS[pending.key].off}
           destructive={pending.key === 'enabled' && pending.value}
-          confirmLabel={pending.value ? 'Bật' : 'Tắt'}
+          confirmLabel={pending.value ? 'Turn on' : 'Turn off'}
           onConfirm={async () => {
             const next: Ema1dConfig = { ...cfg, [pending.key]: pending.value }
             await save.mutateAsync({ version: data.version, config: next })

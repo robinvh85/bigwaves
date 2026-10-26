@@ -94,7 +94,7 @@ export function DataTable<T>({
 
   if (isLoading && !data) {
     return (
-      <div className="space-y-2" aria-busy="true" aria-label="Đang tải">
+      <div className="space-y-2" aria-busy="true" aria-label="Loading">
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} className="h-10 w-full" />
         ))}
@@ -104,9 +104,7 @@ export function DataTable<T>({
 
   const rows = table.getRowModel().rows
   if (rows.length === 0) {
-    return (
-      <>{empty ?? <EmptyState title={globalFilter ? 'Không có kết quả phù hợp' : 'Chưa có dữ liệu'} />}</>
-    )
+    return <>{empty ?? <EmptyState title={globalFilter ? 'No matching results' : 'No data yet'} />}</>
   }
 
   const pager = table.getPageCount() > 1 && <Pager table={table} />
@@ -278,7 +276,7 @@ function Pager<T>({ table }: { table: ReturnType<typeof useReactTable<T>> }) {
         className="size-8"
         onClick={() => table.previousPage()}
         disabled={!table.getCanPreviousPage()}
-        aria-label="Trang trước"
+        aria-label="Previous page"
       >
         <ChevronLeftIcon />
       </Button>
@@ -288,7 +286,7 @@ function Pager<T>({ table }: { table: ReturnType<typeof useReactTable<T>> }) {
         className="size-8"
         onClick={() => table.nextPage()}
         disabled={!table.getCanNextPage()}
-        aria-label="Trang sau"
+        aria-label="Next page"
       >
         <ChevronRightIcon />
       </Button>

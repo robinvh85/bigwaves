@@ -138,7 +138,7 @@ func (s *Service) prices(ctx context.Context) (map[string]money.Dec, error) {
 
 func positive(amount money.Dec) error {
 	if !amount.IsPositive() {
-		return httpx.Validation("số tiền phải lớn hơn 0", map[string]any{"amount": amount.String()})
+		return httpx.Validation("amount must be greater than 0", map[string]any{"amount": amount.String()})
 	}
 	return nil
 }
@@ -178,10 +178,10 @@ func upstream(err error) error {
 		return nil
 	}
 	if errors.Is(err, binance.ErrNotConfigured) {
-		return &httpx.Error{Status: http.StatusFailedDependency, Code: "exchange_not_configured", Message: "chưa cấu hình API key Binance", Err: err}
+		return &httpx.Error{Status: http.StatusFailedDependency, Code: "exchange_not_configured", Message: "Binance API key is not configured", Err: err}
 	}
 	if errors.Is(err, binance.ErrTradingDisabled) {
-		return &httpx.Error{Status: http.StatusConflict, Code: "trading_disabled", Message: "TRADING_ENABLED đang tắt: không gửi lệnh ghi lên Binance", Err: err}
+		return &httpx.Error{Status: http.StatusConflict, Code: "trading_disabled", Message: "TRADING_ENABLED is off: no write calls are sent to Binance", Err: err}
 	}
-	return &httpx.Error{Status: http.StatusBadGateway, Code: "exchange_error", Message: "lỗi khi gọi Binance: " + err.Error(), Err: err}
+	return &httpx.Error{Status: http.StatusBadGateway, Code: "exchange_error", Message: "Binance call failed: " + err.Error(), Err: err}
 }

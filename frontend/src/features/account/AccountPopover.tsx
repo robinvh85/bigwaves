@@ -10,7 +10,7 @@ import { fromNow } from '@/shared/lib/date'
 import { formatMoney } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { Input } from '@/shared/ui/input'
+import { NumberInput } from '@/shared/components/number-input'
 import { Label } from '@/shared/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
 import { Separator } from '@/shared/ui/separator'
@@ -20,10 +20,10 @@ import { type AccountAction, accountKeys, balancesQuery, useAccountAction } from
 import { marginLevelClass } from './margin'
 
 const ACTIONS: Record<AccountAction, { label: string; verb: string }> = {
-  borrow: { label: 'Vay USDT', verb: 'Vay' },
-  repay: { label: 'Trả nợ USDT', verb: 'Trả' },
-  spotToCross: { label: 'Spot → Cross', verb: 'Chuyển' },
-  crossToSpot: { label: 'Cross → Spot', verb: 'Chuyển' },
+  borrow: { label: 'Borrow USDT', verb: 'Borrow' },
+  repay: { label: 'Repay USDT', verb: 'Repay' },
+  spotToCross: { label: 'Spot → Cross', verb: 'Transfer' },
+  crossToSpot: { label: 'Cross → Spot', verb: 'Transfer' },
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -53,9 +53,9 @@ export function AccountPopover() {
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2" aria-label="Số dư tài khoản">
+          <Button variant="ghost" size="sm" className="gap-2" aria-label="Account balances">
             <WalletIcon />
-            <span className="hidden sm:inline">Tài khoản</span>
+            <span className="hidden sm:inline">Account</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-80">
@@ -66,7 +66,7 @@ export function AccountPopover() {
               size="icon"
               className="size-7"
               onClick={() => void refresh()}
-              aria-label="Làm mới số dư"
+              aria-label="Refresh balances"
               disabled={isFetching}
             >
               <RefreshCwIcon className={cn(isFetching && 'animate-spin')} />
@@ -82,7 +82,7 @@ export function AccountPopover() {
             </div>
           ) : (
             <div className="space-y-2">
-              <Row label="Tổng tài sản ròng">
+              <Row label="Total net assets">
                 <Money value={data.netTotalUsdt} />
               </Row>
               <Row label="Margin level">
@@ -91,16 +91,16 @@ export function AccountPopover() {
                 </span>
               </Row>
               <Separator />
-              <Row label="Spot USDT khả dụng">
+              <Row label="Spot USDT available">
                 <Money value={data.spotUsdtFree} />
               </Row>
-              <Row label="Cross USDT khả dụng">
+              <Row label="Cross USDT available">
                 <Money value={data.crossUsdtFree} />
               </Row>
-              <Row label="Nợ USDT (gốc + lãi)">
+              <Row label="USDT debt (principal + interest)">
                 <Money value={data.crossUsdtDebt} />
               </Row>
-              <Row label="Tổng nợ quy USDT">
+              <Row label="Total debt in USDT">
                 <Money value={data.crossDebtUsdt} />
               </Row>
               <Separator />
@@ -119,7 +119,7 @@ export function AccountPopover() {
                   </Button>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">Cập nhật {fromNow(data.fetchedAt)}</p>
+              <p className="text-xs text-muted-foreground">Updated {fromNow(data.fetchedAt)}</p>
             </div>
           )}
         </PopoverContent>
@@ -132,7 +132,7 @@ export function AccountPopover() {
             if (!o) setAction(null)
           }}
           title={ACTIONS[action].label}
-          description="Lệnh được gửi thẳng lên Binance và không hoàn tác được."
+          description="This is sent straight to Binance and cannot be undone."
           confirmLabel={`${ACTIONS[action].verb} ${amountValid ? `${formatMoney(amount)} USDT` : ''}`}
           confirmDisabled={!amountValid}
           onConfirm={async () => {
@@ -141,12 +141,11 @@ export function AccountPopover() {
           }}
         >
           <div className="space-y-2">
-            <Label htmlFor="account-amount">Số USDT</Label>
-            <Input
+            <Label htmlFor="account-amount">Amount (USDT)</Label>
+            <NumberInput
               id="account-amount"
-              inputMode="decimal"
               value={amount}
-              onChange={(e) => setAmount(e.target.value.replace(',', '.'))}
+              onChange={(e) => setAmount(e.target.value)}
               aria-invalid={amount !== '' && !amountValid}
             />
           </div>

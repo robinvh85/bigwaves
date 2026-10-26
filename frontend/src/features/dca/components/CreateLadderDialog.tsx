@@ -33,14 +33,14 @@ export function CreateLadderDialog() {
       <DialogTrigger asChild>
         <Button>
           <PlusIcon />
-          Ladder mới
+          New ladder
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Tạo ladder DCA</DialogTitle>
+          <DialogTitle>Create DCA ladder</DialogTitle>
           <DialogDescription>
-            Chọn pair, sau đó thêm từng nấc: mua ở giá nào, bán ở giá nào, bao nhiêu coin.
+            Pick a pair, then add rungs: the buy price, the sell price and how many coins.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -48,7 +48,7 @@ export function CreateLadderDialog() {
             <Label>Pair</Label>
             <Select value={pairId} onValueChange={setPairId}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn pair" />
+                <SelectValue placeholder="Select a pair" />
               </SelectTrigger>
               <SelectContent>
                 {pairs?.map((p) => (
@@ -60,13 +60,13 @@ export function CreateLadderDialog() {
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="dca-note">Ghi chú</Label>
+            <Label htmlFor="dca-note">Note</Label>
             <Textarea id="dca-note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Huỷ
+            Cancel
           </Button>
           <Button
             disabled={!pairId || create.isPending}
@@ -83,7 +83,7 @@ export function CreateLadderDialog() {
             }
           >
             {create.isPending && <Loader2Icon className="animate-spin" />}
-            Tạo
+            Create
           </Button>
         </DialogFooter>
       </DialogContent>

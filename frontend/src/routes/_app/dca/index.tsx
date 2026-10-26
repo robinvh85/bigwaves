@@ -11,7 +11,7 @@ import { EmptyState, PageHeader } from '@/shared/components/states'
 import { StatCard } from '@/shared/components/stat-card'
 
 export const Route = createFileRoute('/_app/dca/')({
-  staticData: { title: 'Danh sách' },
+  staticData: { title: 'Ladders' },
   component: DcaList,
 })
 
@@ -24,36 +24,36 @@ const columns = [
     meta: { mobile: 'title' },
   }),
   col.accessor('status', {
-    header: 'Trạng thái',
+    header: 'Status',
     cell: (c) => <SettingStatusBadge status={c.getValue()} />,
     meta: { mobile: 'badge' },
   }),
   col.accessor('account', {
-    header: 'Tài khoản',
+    header: 'Account',
     cell: (c) => <span className="text-muted-foreground">{c.getValue()}</span>,
     meta: { mobile: 'hidden' },
   }),
   col.accessor((s) => num(s.currentPrice), {
     id: 'price',
-    header: 'Giá',
+    header: 'Price',
     cell: (c) => <Price value={c.row.original.currentPrice} />,
     meta: { align: 'right' },
   }),
   col.accessor((s) => num(s.nextBuyPrice), {
     id: 'nextBuy',
-    header: 'Mua kế tiếp',
+    header: 'Next buy',
     cell: (c) => <Price value={c.row.original.nextBuyPrice} className="text-primary" />,
     meta: { align: 'right' },
   }),
   col.accessor((s) => num(s.nextSellPrice), {
     id: 'nextSell',
-    header: 'Bán kế tiếp',
+    header: 'Next sell',
     cell: (c) => <Price value={c.row.original.nextSellPrice} className="text-long" />,
     meta: { align: 'right' },
   }),
   col.display({
     id: 'counts',
-    header: 'Nấc (chờ / giữ)',
+    header: 'Rungs (waiting / held)',
     cell: (c) => (
       <span className="num">
         {c.row.original.waitingCount} / {c.row.original.holdingCount}
@@ -62,13 +62,13 @@ const columns = [
   }),
   col.accessor((s) => num(s.capitalUsdt), {
     id: 'capital',
-    header: 'Vốn đang giữ',
+    header: 'Capital held',
     cell: (c) => <Money value={c.row.original.capitalUsdt} />,
     meta: { align: 'right' },
   }),
   col.accessor((s) => num(s.unrealizedProfit) + num(s.realizedProfit), {
     id: 'pnl',
-    header: 'Lãi/lỗ (chốt + chưa chốt)',
+    header: 'PnL (realized + unrealized)',
     cell: (c) => (
       <div className="flex flex-col items-end">
         <Pnl value={c.row.original.realizedProfit} />
@@ -90,18 +90,18 @@ function DcaList() {
     <>
       <PageHeader
         title="DCA"
-        description="Thang lệnh mua do anh đặt: hệ thống chỉ canh giá (5 phút/lần) và khớp lệnh market."
+        description="Buy ladders you set up: the system only watches prices (every 5 minutes) and fills with market orders."
         actions={<CreateLadderDialog />}
       />
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard
-          label="Vốn đang giữ"
+          label="Capital held"
           loading={isLoading}
           value={<Money value={sum(data, 'capitalUsdt')} />}
         />
-        <StatCard label="Đã chốt" loading={isLoading} value={<Pnl value={sum(data, 'realizedProfit')} />} />
+        <StatCard label="Realized" loading={isLoading} value={<Pnl value={sum(data, 'realizedProfit')} />} />
         <StatCard
-          label="Chưa chốt"
+          label="Unrealized"
           loading={isLoading}
           value={<Pnl value={sum(data, 'unrealizedProfit')} />}
         />
@@ -116,8 +116,8 @@ function DcaList() {
         onRowClick={(s) => void navigate({ to: '/dca/$id', params: { id: String(s.id) } })}
         empty={
           <EmptyState
-            title="Chưa có ladder nào"
-            description="Tạo ladder đầu tiên, rồi thêm các nấc mua/bán."
+            title="No ladders yet"
+            description="Create the first ladder, then add buy/sell rungs."
           />
         }
       />

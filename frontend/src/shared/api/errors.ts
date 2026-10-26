@@ -24,9 +24,9 @@ export class ApiError extends Error {
 /** Network failures (server down, offline) are not ApiErrors; give them a readable message. */
 export function errorMessage(err: unknown): string {
   if (err instanceof ApiError) return err.message
-  if (err instanceof TypeError) return 'Không kết nối được tới server'
+  if (err instanceof TypeError) return 'Cannot reach the server'
   if (err instanceof Error) return err.message
-  return 'Đã có lỗi xảy ra'
+  return 'Something went wrong'
 }
 
 export function isErrorBody(body: unknown): body is { error: ErrorDetail } {

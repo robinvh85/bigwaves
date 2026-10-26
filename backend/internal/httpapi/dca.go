@@ -25,7 +25,7 @@ func (s *Server) ListDcaSettings(ctx context.Context, req ListDcaSettingsRequest
 
 func (s *Server) CreateDcaSetting(ctx context.Context, req CreateDcaSettingRequestObject) (CreateDcaSettingResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	row, err := s.DCA.CreateSetting(ctx, req.Body.PairId, deref(req.Body.Note))
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *Server) GetDcaSetting(ctx context.Context, req GetDcaSettingRequestObje
 
 func (s *Server) UpdateDcaSetting(ctx context.Context, req UpdateDcaSettingRequestObject) (UpdateDcaSettingResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	var status *string
 	if req.Body.Status != nil {
@@ -71,7 +71,7 @@ func tradeInput(b *DcaTradeInput) dca.TradeInput {
 
 func (s *Server) CreateDcaTrade(ctx context.Context, req CreateDcaTradeRequestObject) (CreateDcaTradeResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	t, err := s.DCA.CreateTrade(ctx, req.Id, tradeInput(req.Body))
 	if err != nil {
@@ -82,7 +82,7 @@ func (s *Server) CreateDcaTrade(ctx context.Context, req CreateDcaTradeRequestOb
 
 func (s *Server) UpdateDcaTrade(ctx context.Context, req UpdateDcaTradeRequestObject) (UpdateDcaTradeResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	t, err := s.DCA.UpdateTrade(ctx, req.Id, tradeInput(req.Body))
 	if err != nil {
@@ -129,7 +129,7 @@ func (s *Server) GetDcaConfig(ctx context.Context, _ GetDcaConfigRequestObject) 
 
 func (s *Server) UpdateDcaConfig(ctx context.Context, req UpdateDcaConfigRequestObject) (UpdateDcaConfigResponseObject, error) {
 	if req.Body == nil {
-		return nil, httpx.Validation("thiếu body", nil)
+		return nil, httpx.Validation("missing body", nil)
 	}
 	c, err := convert[dca.Config](req.Body.Config)
 	if err != nil {
@@ -138,7 +138,7 @@ func (s *Server) UpdateDcaConfig(ctx context.Context, req UpdateDcaConfigRequest
 	u, _ := auth.UserFrom(ctx)
 	if _, err := s.DCA.SaveConfig(ctx, req.Body.Version, c, u.Email); err != nil {
 		if errors.Is(err, configstore.ErrVersionConflict) {
-			return nil, httpx.Conflict("version_conflict", "cấu hình vừa được người khác sửa; tải lại rồi thử lại")
+			return nil, httpx.Conflict("version_conflict", "the settings were just changed by someone else; reload and try again")
 		}
 		return nil, err
 	}

@@ -17,7 +17,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   ),
   notFoundComponent: () => (
     <div className="p-6">
-      <ErrorState title="Không tìm thấy trang" error={null} />
+      <ErrorState title="Page not found" error={null} />
     </div>
   ),
 })

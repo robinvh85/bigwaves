@@ -21,7 +21,7 @@ const search = z.object({
 })
 
 export const Route = createFileRoute('/_app/ema1d/trades')({
-  staticData: { title: 'Lịch sử lệnh' },
+  staticData: { title: 'Trade history' },
   validateSearch: search,
   component: TradesPage,
 })
@@ -43,8 +43,8 @@ function TradesPage() {
   return (
     <>
       <PageHeader
-        title="Lịch sử lệnh"
-        description="Lãi/lỗ đã trừ phí hai chiều và lãi vay (SHORT). Trượt giá so với giá open của nến tín hiệu."
+        title="Trade history"
+        description="PnL is net of fees both ways and borrow interest (SHORT). Slippage is against the open of the signal candle."
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <ToggleGroup
@@ -54,15 +54,15 @@ function TradesPage() {
           value={status}
           onValueChange={(v) => v && set({ status: v as 'open' | 'closed' })}
         >
-          <ToggleGroupItem value="closed">Đã đóng</ToggleGroupItem>
-          <ToggleGroupItem value="open">Đang mở</ToggleGroupItem>
+          <ToggleGroupItem value="closed">Closed</ToggleGroupItem>
+          <ToggleGroupItem value="open">Open</ToggleGroupItem>
         </ToggleGroup>
         <Select value={s.coin ?? ALL} onValueChange={(v) => set({ coin: v === ALL ? undefined : v })}>
-          <SelectTrigger size="sm" className="w-32" aria-label="Lọc coin">
+          <SelectTrigger size="sm" className="w-32" aria-label="Filter coin">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Mọi coin</SelectItem>
+            <SelectItem value={ALL}>All coins</SelectItem>
             {pairs?.map((p) => (
               <SelectItem key={p.id} value={p.coin}>
                 {p.coin}
@@ -74,11 +74,11 @@ function TradesPage() {
           value={s.side ?? ALL}
           onValueChange={(v) => set({ side: v === ALL ? undefined : (v as 'LONG' | 'SHORT') })}
         >
-          <SelectTrigger size="sm" className="w-28" aria-label="Lọc chiều">
+          <SelectTrigger size="sm" className="w-28" aria-label="Filter side">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Hai chiều</SelectItem>
+            <SelectItem value={ALL}>Both sides</SelectItem>
             <SelectItem value="LONG">LONG</SelectItem>
             <SelectItem value="SHORT">SHORT</SelectItem>
           </SelectContent>
@@ -86,21 +86,23 @@ function TradesPage() {
         <Input
           type="month"
           className="h-8 w-40"
-          aria-label="Lọc tháng"
+          aria-label="Filter month"
           value={s.month ?? ''}
           onChange={(e) => set({ month: e.target.value || undefined })}
         />
       </div>
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
-          label="Số lệnh"
+          label="Trades"
           loading={isLoading}
           value={sum?.count ?? '—'}
-          hint={sum?.winRatePercent ? `thắng ${formatPct(sum.winRatePercent, { sign: false })}` : undefined}
+          hint={
+            sum?.winRatePercent ? `win rate ${formatPct(sum.winRatePercent, { sign: false })}` : undefined
+          }
         />
-        <StatCard label="Tổng lãi/lỗ" loading={isLoading} value={<Pnl value={sum?.totalProfitUsdt} />} />
+        <StatCard label="Total PnL" loading={isLoading} value={<Pnl value={sum?.totalProfitUsdt} />} />
         <StatCard
-          label="TB thắng / thua"
+          label="Avg win / loss"
           loading={isLoading}
           value={
             <span className="text-base">
@@ -109,7 +111,7 @@ function TradesPage() {
           }
         />
         <StatCard
-          label="Phí + lãi vay"
+          label="Fees + interest"
           loading={isLoading}
           value={<Money value={sum ? String(Number(sum.feeUsdt) + Number(sum.interestUsdt)) : undefined} />}
         />
@@ -121,7 +123,7 @@ function TradesPage() {
         error={error}
         onRetry={() => void refetch()}
         getRowId={(p) => String(p.id)}
-        empty={<EmptyState title="Không có lệnh phù hợp bộ lọc" />}
+        empty={<EmptyState title="No trades match the filters" />}
       />
     </>
   )
