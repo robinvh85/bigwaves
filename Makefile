@@ -19,15 +19,18 @@ gen-sqlc:
 gen-ts:
 	cd frontend && npm run gen:api
 
-dev: ## Run backend (:8080) and frontend (:5173) together
+# Dev ports: 8080 is often taken by a local nginx, so the backend listens on 18080 in dev.
+DEV_BACKEND ?= 127.0.0.1:18080
+
+dev: ## Run backend (:18080) and frontend (:5173) together
 	@trap 'kill 0' EXIT; $(MAKE) dev-be & $(MAKE) dev-fe & wait
 
 # Loads ../.env (repo root) when present.
 dev-be:
-	cd backend && set -a && { [ ! -f ../.env ] || . ../.env; } && set +a && go run ./cmd/bigwaves
+	cd backend && set -a && { [ ! -f ../.env ] || . ../.env; } && set +a && HTTP_ADDR=$(DEV_BACKEND) go run ./cmd/bigwaves
 
 dev-fe:
-	cd frontend && npm run dev
+	cd frontend && BACKEND_URL=http://$(DEV_BACKEND) npm run dev
 
 test: test-be test-fe ## Run all tests
 

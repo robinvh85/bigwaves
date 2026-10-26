@@ -6,7 +6,7 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-const backend = process.env.BACKEND_URL ?? 'http://localhost:8080'
+const backend = process.env.BACKEND_URL ?? 'http://127.0.0.1:18080'
 
 export default defineConfig({
   plugins: [
@@ -44,6 +44,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
     css: false,
   },
 })
