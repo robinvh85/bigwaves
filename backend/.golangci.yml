@@ -1,0 +1,37 @@
+version: "2"
+run:
+  timeout: 5m
+linters:
+  default: standard
+  enable:
+    - gosec
+    - revive
+    - bodyclose
+    - errorlint
+    - misspell
+    - nolintlint
+    - sqlclosecheck
+    - rowserrcheck
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+    gosec:
+      excludes:
+        - G104 # covered by errcheck
+  exclusions:
+    generated: strict
+    rules:
+      - path: _test\.go
+        linters: [gosec]
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - bigwaves

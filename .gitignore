@@ -1,0 +1,35 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Data
+*.db
+*.db-shm
+*.db-wal
+/data/
+/archive/
+*.dump
+
+# Backend
+/backend/bin/
+/backend/internal/web/dist/*
+!/backend/internal/web/dist/.gitkeep
+/backend/coverage.out
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/coverage/
+/frontend/playwright-report/
+/frontend/test-results/
+*.tsbuildinfo
+
+# Claude local settings
+.claude/settings.local.json

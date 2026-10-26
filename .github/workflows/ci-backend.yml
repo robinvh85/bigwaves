@@ -1,0 +1,41 @@
+name: ci-backend
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', 'api/**', '.github/workflows/ci-backend.yml']
+  pull_request:
+    paths: ['backend/**', 'api/**', '.github/workflows/ci-backend.yml']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Generated code is up to date
+        run: |
+          go tool oapi-codegen -config internal/httpapi/oapi-codegen.yaml ../api/openapi.yaml
+          git diff --exit-code -- internal/httpapi/api.gen.go
+      - run: go vet ./...
+      - run: go test -race -count=1 ./...
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          working-directory: backend
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
