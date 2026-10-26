@@ -28,7 +28,7 @@ export const NAV: NavGroup[] = [
       { title: 'Rổ coin', to: '/ema1d/pairs', icon: CoinsIcon },
       { title: 'Hàng đợi', to: '/ema1d/todos', icon: ListChecksIcon },
       { title: 'Lịch sử lệnh', to: '/ema1d/trades', icon: HistoryIcon },
-      { title: 'Equity', to: '/ema1d/equity', icon: LineChartIcon },
+      { title: 'Equity & báo cáo', to: '/ema1d/equity', icon: LineChartIcon },
       { title: 'Cấu hình', to: '/ema1d/config', icon: SlidersHorizontalIcon },
     ],
   },

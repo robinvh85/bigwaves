@@ -212,6 +212,226 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ema1d/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Capital, exposure, margin level, open positions, todos and the last sync */
+        get: operations["getEma1dStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/pairs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The basket, each pair with its position and what the last sync wanted */
+        get: operations["listEma1dPairs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/pairs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateEma1dPair"];
+        trace?: never;
+    };
+    "/ema1d/pairs/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check on Binance whether pairs trade on cross margin and can be shorted */
+        post: operations["checkEma1dPairs"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/todos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listEma1dTodos"];
+        put?: never;
+        /** Queue one OPEN or CLOSE by hand (same checks as the sync) */
+        post: operations["createEma1dTodo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/todos/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["retryEma1dTodo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/todos/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cancelEma1dTodo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/trades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listEma1dTrades"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/equity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEma1dEquity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/signals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Where the strategy stands from the stored candles (no fetch, no sync) */
+        get: operations["getEma1dSignals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/daily-checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listEma1dDailyChecks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema1d/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEma1dConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save a new config; fails with 409 when version is stale */
+        patch: operations["updateEma1dConfig"];
+        trace?: never;
+    };
+    "/ema1d/config/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEma1dConfigHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -330,6 +550,320 @@ export interface components {
             /** Format: date-time */
             nextRunAt?: string;
             lastRun?: components["schemas"]["JobRun"];
+        };
+        /** @enum {string} */
+        Side: "LONG" | "SHORT";
+        ConfigChange: {
+            /** Format: int64 */
+            id: number;
+            before: {
+                [key: string]: unknown;
+            };
+            after: {
+                [key: string]: unknown;
+            };
+            userEmail: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        Ema1dSizes: {
+            coreLong: components["schemas"]["Decimal"];
+            coreShort: components["schemas"]["Decimal"];
+            sensitiveLong: components["schemas"]["Decimal"];
+            sensitiveShort: components["schemas"]["Decimal"];
+        };
+        Ema1dConfig: {
+            /** @description Executes the todo queue */
+            enabled: boolean;
+            /** @description Blocks new entries; closes still run */
+            pauseOpen: boolean;
+            /** @description Runs the 07:03 VN daily check */
+            dailyCheckEnabled: boolean;
+            budgetUsdt: components["schemas"]["Decimal"];
+            maxEntryAgeDays: number;
+            sizes: components["schemas"]["Ema1dSizes"];
+            marginLevelWarn: components["schemas"]["Decimal"];
+            marginLevelAlert: components["schemas"]["Decimal"];
+        };
+        Ema1dConfigEnvelope: {
+            config: components["schemas"]["Ema1dConfig"];
+            /** Format: int64 */
+            version: number;
+            suggestedSizes: components["schemas"]["Ema1dSizes"];
+        };
+        Ema1dCapital: {
+            budgetUsdt: components["schemas"]["Decimal"];
+            realizedProfitUsdt: components["schemas"]["Decimal"];
+            equityUsdt: components["schemas"]["Decimal"];
+            unrealizedProfitUsdt: components["schemas"]["Decimal"];
+            interestPaidUsdt: components["schemas"]["Decimal"];
+            feePaidUsdt: components["schemas"]["Decimal"];
+            closedPositions: number;
+        };
+        Ema1dExposure: {
+            longUsdt: components["schemas"]["Decimal"];
+            shortUsdt: components["schemas"]["Decimal"];
+            longPercent?: components["schemas"]["Decimal"];
+            shortPercent?: components["schemas"]["Decimal"];
+            longCount: number;
+            shortCount: number;
+        };
+        Ema1dMarginLevel: {
+            value?: components["schemas"]["Decimal"];
+            /** Format: date-time */
+            at?: string;
+            warn: components["schemas"]["Decimal"];
+            alert: components["schemas"]["Decimal"];
+        };
+        Ema1dSizeRow: {
+            key: string;
+            percent: components["schemas"]["Decimal"];
+            suggestedPercent: components["schemas"]["Decimal"];
+        };
+        Ema1dPosition: {
+            /** Format: int64 */
+            id: number;
+            coin: string;
+            pairName: string;
+            side: components["schemas"]["Side"];
+            /** @enum {string} */
+            status: "OPENING" | "OPEN" | "CLOSED";
+            /** Format: date */
+            signalDate: string;
+            /** @enum {string} */
+            exitRule?: "DIV4H" | "XO";
+            amount: components["schemas"]["Decimal"];
+            openPrice?: components["schemas"]["Decimal"];
+            refOpenPrice?: components["schemas"]["Decimal"];
+            openSlippagePercent?: components["schemas"]["Decimal"];
+            closePrice?: components["schemas"]["Decimal"];
+            refClosePrice?: components["schemas"]["Decimal"];
+            closeSlippagePercent?: components["schemas"]["Decimal"];
+            currentPrice?: components["schemas"]["Decimal"];
+            notionalUsdt: components["schemas"]["Decimal"];
+            sizePercent: components["schemas"]["Decimal"];
+            equityPercent?: components["schemas"]["Decimal"];
+            /** @description Unrealized for open positions, realized for closed ones */
+            profitUsdt: components["schemas"]["Decimal"];
+            profitPercent?: components["schemas"]["Decimal"];
+            feeUsdt: components["schemas"]["Decimal"];
+            interestUsdt: components["schemas"]["Decimal"];
+            /** Format: date-time */
+            openAt?: string;
+            /** Format: date-time */
+            closeAt?: string;
+            daysHeld?: number;
+        };
+        Ema1dTodo: {
+            /** Format: int64 */
+            id: number;
+            coin: string;
+            /** @enum {string} */
+            action: "OPEN" | "CLOSE";
+            side: components["schemas"]["Side"];
+            /** Format: date */
+            signalDate: string;
+            /** @enum {string} */
+            status: "PENDING" | "RUNNING" | "DONE" | "FAILED" | "SKIPPED" | "CANCELLED";
+            /** @enum {string} */
+            source: "SYNC" | "MANUAL";
+            refPrice?: components["schemas"]["Decimal"];
+            /** @enum {string} */
+            exitRule?: "DIV4H" | "XO";
+            /** Format: int64 */
+            attempts: number;
+            /** Format: date-time */
+            runAfter?: string;
+            lastError: string;
+            /** @enum {string} */
+            step?: "BORROWING" | "BORROWED" | "BORROW_REVERTED";
+            /** Format: int64 */
+            dependsOnId?: number;
+            /** Format: int64 */
+            positionId?: number;
+            cancellable: boolean;
+            retryable: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Ema1dSkipped: {
+            coin: string;
+            action: string;
+            side: string;
+            reason: string;
+        };
+        Ema1dLastSync: {
+            runId: string;
+            /** Format: date */
+            date: string;
+            /** Format: date-time */
+            at: string;
+            createdTodos: number;
+            skipped: components["schemas"]["Ema1dSkipped"][];
+            warnings: string[];
+        };
+        Ema1dStatus: {
+            /** Format: date-time */
+            generatedAt: string;
+            enabled: boolean;
+            pauseOpen: boolean;
+            dailyCheckEnabled: boolean;
+            tradingEnabled: boolean;
+            capital: components["schemas"]["Ema1dCapital"];
+            exposure: components["schemas"]["Ema1dExposure"];
+            marginLevel: components["schemas"]["Ema1dMarginLevel"];
+            sizes: components["schemas"]["Ema1dSizeRow"][];
+            openPositions: components["schemas"]["Ema1dPosition"][];
+            todos: components["schemas"]["Ema1dTodo"][];
+            lastSync?: components["schemas"]["Ema1dLastSync"];
+            syncMissingToday: boolean;
+        };
+        Ema1dPairRow: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            pairId: number;
+            coin: string;
+            pairName: string;
+            /** @enum {string} */
+            pairGroup: "CORE" | "SENSITIVE";
+            /** @enum {string} */
+            status: "ACTIVE" | "EXIT_ONLY" | "DISABLED";
+            allowLong: boolean;
+            allowShort: boolean;
+            shortSupported: boolean;
+            /** @enum {string} */
+            longExitRule?: "DIV4H" | "XO";
+            /** Format: date */
+            addedOn: string;
+            /** Format: date */
+            removedOn?: string;
+            /** Format: date */
+            signalFrom?: string;
+            checkNote: string;
+            /** Format: date-time */
+            checkedAt?: string;
+            currentPrice?: components["schemas"]["Decimal"];
+            position?: {
+                /** Format: int64 */
+                positionId: number;
+                side: components["schemas"]["Side"];
+                status: string;
+                /** Format: date */
+                signalDate: string;
+                unrealizedProfitUsdt: components["schemas"]["Decimal"];
+                unrealizedPercent?: components["schemas"]["Decimal"];
+            };
+            wanted?: {
+                /** @enum {string} */
+                state: "L" | "S" | "F";
+                /** Format: date */
+                entryDate?: string;
+                rule?: string;
+                /** Format: date */
+                syncDate: string;
+            };
+            pendingTodos: string[];
+            /** @description Held position differs from the strategy and nothing is queued */
+            mismatch: boolean;
+        };
+        Ema1dPairUpdate: {
+            /** @enum {string} */
+            pairGroup?: "CORE" | "SENSITIVE";
+            /** @enum {string} */
+            status?: "ACTIVE" | "EXIT_ONLY" | "DISABLED";
+            allowLong?: boolean;
+            allowShort?: boolean;
+            /** Format: date */
+            addedOn?: string;
+            /** @description YYYY-MM-DD, empty to clear */
+            removedOn?: string;
+            /** @description DIV4H, XO or empty */
+            longExitRule?: string;
+            /** @description YYYY-MM-DD, empty to clear */
+            signalFrom?: string;
+        };
+        Ema1dPairCheck: {
+            coin: string;
+            shortSupported: boolean;
+            crossMargin: boolean;
+            note: string;
+        };
+        Ema1dManualTodoRequest: {
+            /** @enum {string} */
+            action: "OPEN" | "CLOSE";
+            coin: string;
+            side?: components["schemas"]["Side"];
+            /** Format: date */
+            signalDate?: string;
+            refPrice?: string;
+            /** @enum {string} */
+            rule?: "DIV4H" | "XO";
+            /** @description Lifts the entry age limit only */
+            force?: boolean;
+        };
+        Ema1dManualTodoResult: {
+            created: boolean;
+            todo: components["schemas"]["Ema1dTodo"];
+        };
+        Ema1dTradesSummary: {
+            count: number;
+            totalProfitUsdt: components["schemas"]["Decimal"];
+            winRatePercent?: components["schemas"]["Decimal"];
+            avgWinUsdt?: components["schemas"]["Decimal"];
+            avgLossUsdt?: components["schemas"]["Decimal"];
+            interestUsdt: components["schemas"]["Decimal"];
+            feeUsdt: components["schemas"]["Decimal"];
+        };
+        Ema1dEquityPoint: {
+            /** Format: date */
+            date: string;
+            equityUsdt: components["schemas"]["Decimal"];
+            marginLevel?: components["schemas"]["Decimal"];
+        };
+        /** @description One line of the strategy status table (status.py columns) */
+        Ema1dSignalRow: {
+            pair: string;
+            ngay: string;
+            /** Format: double */
+            gia: number;
+            ema_open: string;
+            cat_hom_nay: string;
+            lenh: string;
+            vao?: string | null;
+            /** Format: double */
+            gia_vao?: number | null;
+            lai: string;
+            thoat_theo: string;
+            hanh_dong_hom_nay: string;
+            nhom: string;
+            ghi_chu: string;
+            open: boolean;
+            side?: string;
+        };
+        Ema1dSignals: {
+            date: string;
+            rows: components["schemas"]["Ema1dSignalRow"][];
+            /** @description The sync string */
+            s: string;
+            warnings: string[];
+        };
+        Ema1dDailyCheck: {
+            /** Format: date */
+            signalDate: string;
+            /** @enum {string} */
+            status: "PENDING" | "SYNCED" | "SENT" | "FAILED";
+            runId: string;
+            /** Format: int64 */
+            attempts: number;
+            report: string;
+            lastError: string;
+            /** Format: date-time */
+            syncedAt?: string;
+            /** Format: date-time */
+            sentAt?: string;
         };
     };
     responses: {
@@ -716,6 +1250,377 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEma1dStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ema1dStatus"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listEma1dPairs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Ema1dPairRow"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateEma1dPair: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Ema1dPairUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ema1dPairRow"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    checkEma1dPairs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    ids?: number[];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Ema1dPairCheck"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listEma1dTodos: {
+        parameters: {
+            query?: {
+                /** @description Every todo of the last 30 days instead of the ones that need attention */
+                history?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Ema1dTodo"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createEma1dTodo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Ema1dManualTodoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ema1dManualTodoResult"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    retryEma1dTodo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ema1dTodo"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    cancelEma1dTodo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ema1dTodo"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listEma1dTrades: {
+        parameters: {
+            query?: {
+                status?: "open" | "closed";
+                coin?: string;
+                side?: components["schemas"]["Side"];
+                /** @description YYYY-MM (open month for open positions, close month for closed ones) */
+                month?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Ema1dPosition"][];
+                        summary: components["schemas"]["Ema1dTradesSummary"];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEma1dEquity: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Ema1dEquityPoint"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEma1dSignals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ema1dSignals"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listEma1dDailyChecks: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Ema1dDailyCheck"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEma1dConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ema1dConfigEnvelope"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateEma1dConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: int64 */
+                    version: number;
+                    config: components["schemas"]["Ema1dConfig"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ema1dConfigEnvelope"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEma1dConfigHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConfigChange"][];
+                    };
+                };
             };
             default: components["responses"]["Error"];
         };

@@ -24,18 +24,24 @@ export function useEventStream() {
   const queryClient = useQueryClient()
   useEffect(() => {
     const es = new EventSource('/api/v1/events')
-    es.onopen = () => useStreamStore.setState({ connected: true })
-    es.onerror = () => useStreamStore.setState({ connected: false })
-    const handlers = Object.keys(INVALIDATES).map((type) => {
-      const h = () => {
-        useStreamStore.setState({ connected: true, lastEventAt: Date.now() })
-        for (const key of INVALIDATES[type] ?? []) void queryClient.invalidateQueries({ queryKey: key })
+    es.onopen = () => {
+      useStreamStore.setState({ connected: true })
+    }
+    es.onerror = () => {
+      useStreamStore.setState({ connected: false })
+    }
+    es.onmessage = (msg: MessageEvent<string>) => {
+      let type: string
+      try {
+        type = (JSON.parse(msg.data) as { type: string }).type
+      } catch {
+        return
       }
-      es.addEventListener(type, h)
-      return [type, h] as const
-    })
+      useStreamStore.setState({ connected: true, lastEventAt: Date.now() })
+      // Looked up on every event: features register their keys when their module loads.
+      for (const key of INVALIDATES[type] ?? []) void queryClient.invalidateQueries({ queryKey: key })
+    }
     return () => {
-      for (const [type, h] of handlers) es.removeEventListener(type, h)
       es.close()
     }
   }, [queryClient])

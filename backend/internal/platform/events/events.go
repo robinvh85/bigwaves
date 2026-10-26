@@ -87,7 +87,9 @@ func (b *Broker) ServeSSE(w http.ResponseWriter, r *http.Request) {
 				slog.Error("sse marshal", "err", err)
 				continue
 			}
-			_, _ = fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.Type, data)
+			// One default "message" stream: the client dispatches on the type inside the data, so
+			// features loaded later still receive their events.
+			_, _ = fmt.Fprintf(w, "data: %s\n\n", data)
 			flusher.Flush()
 		}
 	}

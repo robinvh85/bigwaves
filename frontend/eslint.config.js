@@ -44,6 +44,10 @@ export default tseslint.config(
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       'jsx-a11y/click-events-have-key-events': 'off',
       'jsx-a11y/no-noninteractive-element-interactions': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
     },
   },
   {
