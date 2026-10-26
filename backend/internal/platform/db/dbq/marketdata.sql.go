@@ -12,6 +12,26 @@ import (
 	"bigwaves/internal/platform/money"
 )
 
+const countPairHoldings = `-- name: CountPairHoldings :one
+SELECT
+  (SELECT count(*) FROM ema1d_positions x WHERE x.pair_id = ?1 AND x.status IN ('OPENING', 'OPEN')) AS ema1d_positions,
+  (SELECT count(*) FROM dca_trades t JOIN dca_settings s ON s.id = t.dca_setting_id
+   WHERE s.pair_id = ?1 AND t.status = 'OPEN') AS dca_rungs
+`
+
+type CountPairHoldingsRow struct {
+	Ema1dPositions int64
+	DcaRungs       int64
+}
+
+// Positions that were opened on the pair's current account and must be closed there.
+func (q *Queries) CountPairHoldings(ctx context.Context, pairID int64) (CountPairHoldingsRow, error) {
+	row := q.db.QueryRowContext(ctx, countPairHoldings, pairID)
+	var i CountPairHoldingsRow
+	err := row.Scan(&i.Ema1dPositions, &i.DcaRungs)
+	return i, err
+}
+
 const createCoin = `-- name: CreateCoin :one
 INSERT INTO coins (name) VALUES (?)
 ON CONFLICT (name) DO UPDATE SET name = excluded.name

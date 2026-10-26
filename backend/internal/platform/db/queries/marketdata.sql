@@ -63,3 +63,10 @@ UPDATE pairs SET step_size = ?, min_notional = ? WHERE id = ?;
 
 -- name: PricesByNames :many
 SELECT name, current_price FROM pairs WHERE deleted_at IS NULL AND current_price IS NOT NULL;
+
+-- name: CountPairHoldings :one
+-- Positions that were opened on the pair's current account and must be closed there.
+SELECT
+  (SELECT count(*) FROM ema1d_positions x WHERE x.pair_id = sqlc.arg(pair_id) AND x.status IN ('OPENING', 'OPEN')) AS ema1d_positions,
+  (SELECT count(*) FROM dca_trades t JOIN dca_settings s ON s.id = t.dca_setting_id
+   WHERE s.pair_id = sqlc.arg(pair_id) AND t.status = 'OPEN') AS dca_rungs;

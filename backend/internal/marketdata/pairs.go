@@ -168,6 +168,19 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateInput) (Pair, e
 	if isSpot && isIsolated {
 		return Pair{}, httpx.Validation("a spot pair cannot be isolated margin", nil)
 	}
+	// Strategies read the account from the pair when they place an order, so a position opened
+	// on one account would be closed on another. Only switch while nothing is held.
+	if isSpot != cur.IsSpot || isIsolated != cur.IsIsolated {
+		h, err := dbq.New(s.DB.Read).CountPairHoldings(ctx, id)
+		if err != nil {
+			return Pair{}, err
+		}
+		if h.Ema1dPositions > 0 || h.DcaRungs > 0 {
+			return Pair{}, httpx.Conflict("pair_has_holdings", fmt.Sprintf(
+				"%s still holds coins on its current account (%d EMA1D position(s), %d DCA rung(s)): close them before changing the account",
+				cur.Name, h.Ema1dPositions, h.DcaRungs))
+		}
+	}
 	if _, err := dbq.New(s.DB.Write).UpdatePair(ctx, dbq.UpdatePairParams{Status: status, IsSpot: isSpot, IsIsolated: isIsolated, ID: id}); err != nil {
 		return Pair{}, err
 	}

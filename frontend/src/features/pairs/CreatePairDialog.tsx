@@ -20,6 +20,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/fie
 import { Input } from '@/shared/ui/input'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/toggle-group'
 
+import { ACCOUNT_HINT, ACCOUNT_OPTIONS, accountFlags } from './account'
 import { type Pair, useCreatePair } from './api'
 
 const schema = z.object({
@@ -42,8 +43,7 @@ export function CreatePairDialog({ onCreated }: { onCreated?: (p: Pair) => void 
     try {
       const p = await create.mutateAsync({
         name: v.name,
-        isSpot: v.account === 'SPOT',
-        isIsolated: v.account === 'ISOLATED',
+        ...accountFlags(v.account),
       })
       toast.success(`Added ${p.name}`)
       setOpen(false)
@@ -104,13 +104,15 @@ export function CreatePairDialog({ onCreated }: { onCreated?: (p: Pair) => void 
                     if (v) field.onChange(v)
                   }}
                 >
-                  <ToggleGroupItem value="CROSS">Cross margin</ToggleGroupItem>
-                  <ToggleGroupItem value="ISOLATED">Isolated</ToggleGroupItem>
-                  <ToggleGroupItem value="SPOT">Spot</ToggleGroupItem>
+                  {ACCOUNT_OPTIONS.map((o) => (
+                    <ToggleGroupItem key={o.value} value={o.value}>
+                      {o.label}
+                    </ToggleGroupItem>
+                  ))}
                 </ToggleGroup>
               )}
             />
-            <FieldDescription>EMA1D needs cross margin. DCA also works on spot.</FieldDescription>
+            <FieldDescription>{ACCOUNT_HINT}</FieldDescription>
           </Field>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

@@ -10,9 +10,18 @@ import { formatPct } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import { Separator } from '@/shared/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet'
-import { Switch } from '@/shared/ui/switch'
 import { Label } from '@/shared/ui/label'
+import { Switch } from '@/shared/ui/switch'
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/toggle-group'
 
+import {
+  ACCOUNT_HINT,
+  ACCOUNT_OPTIONS,
+  type AccountType,
+  accountFlags,
+  accountLabel,
+  accountOf,
+} from './account'
 import { pairQuery, useDeletePair, useUpdatePair } from './api'
 import { CoinDescription } from './CoinDescription'
 import { AccountTypeLabel, PairStatusBadge } from './PairStatusBadge'
@@ -46,6 +55,7 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
   const update = useUpdatePair(id)
   const del = useDeletePair()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [nextAccount, setNextAccount] = useState<AccountType | null>(null)
 
   if (error) {
     return (
@@ -106,6 +116,29 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
           />
         </div>
 
+        <div className="space-y-2 rounded-lg border p-3">
+          <Label id="pair-account">Trade on</Label>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            aria-labelledby="pair-account"
+            value={accountOf(pair)}
+            disabled={update.isPending}
+            onValueChange={(v) => {
+              if (v && v !== accountOf(pair)) setNextAccount(v as AccountType)
+            }}
+          >
+            {ACCOUNT_OPTIONS.map((o) => (
+              <ToggleGroupItem key={o.value} value={o.value}>
+                {o.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+          <p className="text-xs text-muted-foreground">
+            {ACCOUNT_HINT} Can only change while no strategy holds coins on this pair.
+          </p>
+        </div>
+
         <Separator />
         <CoinDescription key={pair.coin.id} pair={pair} />
         <Separator />
@@ -115,6 +148,19 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
           Delete pair
         </Button>
       </div>
+
+      {nextAccount && (
+        <ConfirmDialog
+          open
+          onOpenChange={(o) => {
+            if (!o) setNextAccount(null)
+          }}
+          title={`Trade ${pair.name} on ${accountLabel(nextAccount)}?`}
+          description={`From now on, every order of every strategy on ${pair.name} goes to the ${accountLabel(nextAccount)} account. Refused while an EMA1D position or a bought DCA rung still holds coins here.${nextAccount !== 'CROSS' ? ' EMA1D will not open new positions on this pair.' : ''}`}
+          confirmLabel="Change account"
+          onConfirm={() => update.mutateAsync(accountFlags(nextAccount))}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmDelete}

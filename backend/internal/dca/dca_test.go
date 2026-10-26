@@ -202,3 +202,34 @@ func TestDisabledDoesNothing(t *testing.T) {
 }
 
 func itoa(i int64) string { return money.FromInt(i).String() }
+
+func TestPairAccountLockedWhileRungHeld(t *testing.T) {
+	e := newEnv(t)
+	e.k.Exchange.FundCross("USDT", "1000")
+	l := e.ladder(false, "0.025")
+	_, err := e.s.CreateTrade(e.ctx, l.ID, dca.TradeInput{BuyPrice: d("0.02"), SellPrice: d("0.03"), Amount: d("1000")})
+	require.NoError(t, err)
+	spot := true
+
+	// A rung waiting to buy holds nothing: switching is fine, the buy will use the new account.
+	_, err = e.k.App.Pairs.Update(e.ctx, l.PairID, marketdata.UpdateInput{IsSpot: &spot})
+	require.NoError(t, err)
+	cross := false
+	_, err = e.k.App.Pairs.Update(e.ctx, l.PairID, marketdata.UpdateInput{IsSpot: &cross})
+	require.NoError(t, err)
+
+	e.price("0.019")
+	require.NoError(t, e.check())
+	require.Equal(t, dca.TradeOpen, e.get(l.ID).Trades[0].Status)
+
+	// Bought on cross: selling must happen on cross too.
+	_, err = e.k.App.Pairs.Update(e.ctx, l.PairID, marketdata.UpdateInput{IsSpot: &spot})
+	var he *httpx.Error
+	require.ErrorAs(t, err, &he)
+	require.Equal(t, "pair_has_holdings", he.Code)
+
+	// Status changes stay allowed.
+	disabled := "DISABLED"
+	_, err = e.k.App.Pairs.Update(e.ctx, l.PairID, marketdata.UpdateInput{Status: &disabled})
+	require.NoError(t, err)
+}
