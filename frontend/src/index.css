@@ -149,6 +149,35 @@
   html {
     @apply font-sans;
   }
+  /*
+   * Tailwind v4 leaves buttons with the default arrow cursor. Everything clickable gets the hand,
+   * disabled controls get "not allowed". Base layer: a cursor-* utility on a component still wins.
+   */
+  :is(
+    button,
+    summary,
+    select,
+    [role='button'],
+    [role='tab'],
+    [role='switch'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='combobox'],
+    [role='option'],
+    [role='menuitem'],
+    [role='menuitemcheckbox'],
+    [role='menuitemradio'],
+    [role='switch'] + label,
+    [role='checkbox'] + label
+  ):not(:disabled, [aria-disabled='true'], [data-disabled]) {
+    cursor: pointer;
+  }
+  :is(button, select, [role='tab'], [role='switch'], [role='checkbox'], [role='radio']):is(
+    :disabled,
+    [aria-disabled='true']
+  ) {
+    cursor: not-allowed;
+  }
   /* Numbers line up in tables and stat cards. */
   .num {
     font-variant-numeric: tabular-nums;

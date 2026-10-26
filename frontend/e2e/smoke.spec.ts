@@ -87,3 +87,11 @@ test('the manual order coin picker can be searched', async ({ page }) => {
   await search.fill('zzzz')
   await expect(page.getByText('No coin found')).toBeVisible()
 })
+
+test('clickable controls show the hand cursor', async ({ page }) => {
+  await page.goto('/ema1d/config')
+  await expect(page.getByRole('tab').first()).toHaveCSS('cursor', 'pointer')
+  await expect(page.getByRole('switch').first()).toHaveCSS('cursor', 'pointer')
+  await expect(page.getByRole('button', { name: 'Account and appearance' })).toHaveCSS('cursor', 'pointer')
+  await expect(page.getByRole('button', { name: 'Review & save' })).toHaveCSS('cursor', 'not-allowed')
+})
