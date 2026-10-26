@@ -13,6 +13,7 @@ tags:
   - name: pairs
   - name: account
   - name: jobs
+  - name: ema1d
 paths:
   /me:
     get:
@@ -271,6 +272,277 @@ paths:
         "202": { description: Started }
         default: { $ref: "#/components/responses/Error" }
 
+  /ema1d/status:
+    get:
+      tags: [ema1d]
+      operationId: getEma1dStatus
+      summary: Capital, exposure, margin level, open positions, todos and the last sync
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ema1dStatus" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/pairs:
+    get:
+      tags: [ema1d]
+      operationId: listEma1dPairs
+      summary: The basket, each pair with its position and what the last sync wanted
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Ema1dPairRow" } }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/pairs/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    patch:
+      tags: [ema1d]
+      operationId: updateEma1dPair
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Ema1dPairUpdate" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ema1dPairRow" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/pairs/check:
+    post:
+      tags: [ema1d]
+      operationId: checkEma1dPairs
+      summary: Check on Binance whether pairs trade on cross margin and can be shorted
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids: { type: array, items: { type: integer, format: int64 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Ema1dPairCheck" } }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/todos:
+    get:
+      tags: [ema1d]
+      operationId: listEma1dTodos
+      parameters:
+        - name: history
+          in: query
+          description: Every todo of the last 30 days instead of the ones that need attention
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Ema1dTodo" } }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      tags: [ema1d]
+      operationId: createEma1dTodo
+      summary: Queue one OPEN or CLOSE by hand (same checks as the sync)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Ema1dManualTodoRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ema1dManualTodoResult" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/todos/{id}/retry:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [ema1d]
+      operationId: retryEma1dTodo
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ema1dTodo" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/todos/{id}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [ema1d]
+      operationId: cancelEma1dTodo
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ema1dTodo" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/trades:
+    get:
+      tags: [ema1d]
+      operationId: listEma1dTrades
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [open, closed], default: open }
+        - name: coin
+          in: query
+          schema: { type: string }
+        - name: side
+          in: query
+          schema: { $ref: "#/components/schemas/Side" }
+        - name: month
+          in: query
+          description: YYYY-MM (open month for open positions, close month for closed ones)
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, summary]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Ema1dPosition" } }
+                  summary: { $ref: "#/components/schemas/Ema1dTradesSummary" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/equity:
+    get:
+      tags: [ema1d]
+      operationId: getEma1dEquity
+      parameters:
+        - name: days
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 3650, default: 180 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Ema1dEquityPoint" } }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/signals:
+    get:
+      tags: [ema1d]
+      operationId: getEma1dSignals
+      summary: Where the strategy stands from the stored candles (no fetch, no sync)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ema1dSignals" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/daily-checks:
+    get:
+      tags: [ema1d]
+      operationId: listEma1dDailyChecks
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 365, default: 30 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Ema1dDailyCheck" } }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/config:
+    get:
+      tags: [ema1d]
+      operationId: getEma1dConfig
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ema1dConfigEnvelope" }
+        default: { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [ema1d]
+      operationId: updateEma1dConfig
+      summary: Save a new config; fails with 409 when version is stale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, config]
+              properties:
+                version: { type: integer, format: int64 }
+                config: { $ref: "#/components/schemas/Ema1dConfig" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ema1dConfigEnvelope" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema1d/config/history:
+    get:
+      tags: [ema1d]
+      operationId: getEma1dConfigHistory
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   parameters:
     Id:
@@ -435,3 +707,325 @@ components:
         running: { type: boolean }
         nextRunAt: { type: string, format: date-time }
         lastRun: { $ref: "#/components/schemas/JobRun" }
+
+    Side:
+      type: string
+      enum: [LONG, SHORT]
+
+    ConfigChange:
+      type: object
+      required: [id, before, after, userEmail, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        before: { type: object, additionalProperties: true }
+        after: { type: object, additionalProperties: true }
+        userEmail: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Ema1dSizes:
+      type: object
+      required: [coreLong, coreShort, sensitiveLong, sensitiveShort]
+      properties:
+        coreLong: { $ref: "#/components/schemas/Decimal" }
+        coreShort: { $ref: "#/components/schemas/Decimal" }
+        sensitiveLong: { $ref: "#/components/schemas/Decimal" }
+        sensitiveShort: { $ref: "#/components/schemas/Decimal" }
+
+    Ema1dConfig:
+      type: object
+      required: [enabled, pauseOpen, dailyCheckEnabled, budgetUsdt, maxEntryAgeDays, sizes, marginLevelWarn, marginLevelAlert]
+      properties:
+        enabled: { type: boolean, description: Executes the todo queue }
+        pauseOpen: { type: boolean, description: Blocks new entries; closes still run }
+        dailyCheckEnabled: { type: boolean, description: "Runs the 07:03 VN daily check" }
+        budgetUsdt: { $ref: "#/components/schemas/Decimal" }
+        maxEntryAgeDays: { type: integer, minimum: 0, maximum: 30 }
+        sizes: { $ref: "#/components/schemas/Ema1dSizes" }
+        marginLevelWarn: { $ref: "#/components/schemas/Decimal" }
+        marginLevelAlert: { $ref: "#/components/schemas/Decimal" }
+
+    Ema1dConfigEnvelope:
+      type: object
+      required: [config, version, suggestedSizes]
+      properties:
+        config: { $ref: "#/components/schemas/Ema1dConfig" }
+        version: { type: integer, format: int64 }
+        suggestedSizes: { $ref: "#/components/schemas/Ema1dSizes" }
+
+    Ema1dCapital:
+      type: object
+      required: [budgetUsdt, realizedProfitUsdt, equityUsdt, unrealizedProfitUsdt, interestPaidUsdt, feePaidUsdt, closedPositions]
+      properties:
+        budgetUsdt: { $ref: "#/components/schemas/Decimal" }
+        realizedProfitUsdt: { $ref: "#/components/schemas/Decimal" }
+        equityUsdt: { $ref: "#/components/schemas/Decimal" }
+        unrealizedProfitUsdt: { $ref: "#/components/schemas/Decimal" }
+        interestPaidUsdt: { $ref: "#/components/schemas/Decimal" }
+        feePaidUsdt: { $ref: "#/components/schemas/Decimal" }
+        closedPositions: { type: integer }
+
+    Ema1dExposure:
+      type: object
+      required: [longUsdt, shortUsdt, longCount, shortCount]
+      properties:
+        longUsdt: { $ref: "#/components/schemas/Decimal" }
+        shortUsdt: { $ref: "#/components/schemas/Decimal" }
+        longPercent: { $ref: "#/components/schemas/Decimal" }
+        shortPercent: { $ref: "#/components/schemas/Decimal" }
+        longCount: { type: integer }
+        shortCount: { type: integer }
+
+    Ema1dMarginLevel:
+      type: object
+      required: [warn, alert]
+      properties:
+        value: { $ref: "#/components/schemas/Decimal" }
+        at: { type: string, format: date-time }
+        warn: { $ref: "#/components/schemas/Decimal" }
+        alert: { $ref: "#/components/schemas/Decimal" }
+
+    Ema1dSizeRow:
+      type: object
+      required: [key, percent, suggestedPercent]
+      properties:
+        key: { type: string }
+        percent: { $ref: "#/components/schemas/Decimal" }
+        suggestedPercent: { $ref: "#/components/schemas/Decimal" }
+
+    Ema1dPosition:
+      type: object
+      required: [id, coin, pairName, side, status, signalDate, amount, notionalUsdt, sizePercent, profitUsdt, feeUsdt, interestUsdt]
+      properties:
+        id: { type: integer, format: int64 }
+        coin: { type: string }
+        pairName: { type: string }
+        side: { $ref: "#/components/schemas/Side" }
+        status: { type: string, enum: [OPENING, OPEN, CLOSED] }
+        signalDate: { type: string, format: date }
+        exitRule: { type: string, enum: [DIV4H, XO] }
+        amount: { $ref: "#/components/schemas/Decimal" }
+        openPrice: { $ref: "#/components/schemas/Decimal" }
+        refOpenPrice: { $ref: "#/components/schemas/Decimal" }
+        openSlippagePercent: { $ref: "#/components/schemas/Decimal" }
+        closePrice: { $ref: "#/components/schemas/Decimal" }
+        refClosePrice: { $ref: "#/components/schemas/Decimal" }
+        closeSlippagePercent: { $ref: "#/components/schemas/Decimal" }
+        currentPrice: { $ref: "#/components/schemas/Decimal" }
+        notionalUsdt: { $ref: "#/components/schemas/Decimal" }
+        sizePercent: { $ref: "#/components/schemas/Decimal" }
+        equityPercent: { $ref: "#/components/schemas/Decimal" }
+        profitUsdt:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: Unrealized for open positions, realized for closed ones
+        profitPercent: { $ref: "#/components/schemas/Decimal" }
+        feeUsdt: { $ref: "#/components/schemas/Decimal" }
+        interestUsdt: { $ref: "#/components/schemas/Decimal" }
+        openAt: { type: string, format: date-time }
+        closeAt: { type: string, format: date-time }
+        daysHeld: { type: integer }
+
+    Ema1dTodo:
+      type: object
+      required: [id, coin, action, side, signalDate, status, source, attempts, lastError, cancellable, retryable, createdAt, updatedAt]
+      properties:
+        id: { type: integer, format: int64 }
+        coin: { type: string }
+        action: { type: string, enum: [OPEN, CLOSE] }
+        side: { $ref: "#/components/schemas/Side" }
+        signalDate: { type: string, format: date }
+        status: { type: string, enum: [PENDING, RUNNING, DONE, FAILED, SKIPPED, CANCELLED] }
+        source: { type: string, enum: [SYNC, MANUAL] }
+        refPrice: { $ref: "#/components/schemas/Decimal" }
+        exitRule: { type: string, enum: [DIV4H, XO] }
+        attempts: { type: integer, format: int64 }
+        runAfter: { type: string, format: date-time }
+        lastError: { type: string }
+        step: { type: string, enum: [BORROWING, BORROWED, BORROW_REVERTED] }
+        dependsOnId: { type: integer, format: int64 }
+        positionId: { type: integer, format: int64 }
+        cancellable: { type: boolean }
+        retryable: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Ema1dSkipped:
+      type: object
+      required: [coin, action, side, reason]
+      properties:
+        coin: { type: string }
+        action: { type: string }
+        side: { type: string }
+        reason: { type: string }
+
+    Ema1dLastSync:
+      type: object
+      required: [runId, date, at, createdTodos, skipped, warnings]
+      properties:
+        runId: { type: string }
+        date: { type: string, format: date }
+        at: { type: string, format: date-time }
+        createdTodos: { type: integer }
+        skipped: { type: array, items: { $ref: "#/components/schemas/Ema1dSkipped" } }
+        warnings: { type: array, items: { type: string } }
+
+    Ema1dStatus:
+      type: object
+      required: [generatedAt, enabled, pauseOpen, dailyCheckEnabled, tradingEnabled, capital, exposure, marginLevel, sizes, openPositions, todos, syncMissingToday]
+      properties:
+        generatedAt: { type: string, format: date-time }
+        enabled: { type: boolean }
+        pauseOpen: { type: boolean }
+        dailyCheckEnabled: { type: boolean }
+        tradingEnabled: { type: boolean }
+        capital: { $ref: "#/components/schemas/Ema1dCapital" }
+        exposure: { $ref: "#/components/schemas/Ema1dExposure" }
+        marginLevel: { $ref: "#/components/schemas/Ema1dMarginLevel" }
+        sizes: { type: array, items: { $ref: "#/components/schemas/Ema1dSizeRow" } }
+        openPositions: { type: array, items: { $ref: "#/components/schemas/Ema1dPosition" } }
+        todos: { type: array, items: { $ref: "#/components/schemas/Ema1dTodo" } }
+        lastSync: { $ref: "#/components/schemas/Ema1dLastSync" }
+        syncMissingToday: { type: boolean }
+
+    Ema1dPairRow:
+      type: object
+      required: [id, pairId, coin, pairName, pairGroup, status, allowLong, allowShort, shortSupported, addedOn, checkNote, pendingTodos, mismatch]
+      properties:
+        id: { type: integer, format: int64 }
+        pairId: { type: integer, format: int64 }
+        coin: { type: string }
+        pairName: { type: string }
+        pairGroup: { type: string, enum: [CORE, SENSITIVE] }
+        status: { type: string, enum: [ACTIVE, EXIT_ONLY, DISABLED] }
+        allowLong: { type: boolean }
+        allowShort: { type: boolean }
+        shortSupported: { type: boolean }
+        longExitRule: { type: string, enum: [DIV4H, XO] }
+        addedOn: { type: string, format: date }
+        removedOn: { type: string, format: date }
+        signalFrom: { type: string, format: date }
+        checkNote: { type: string }
+        checkedAt: { type: string, format: date-time }
+        currentPrice: { $ref: "#/components/schemas/Decimal" }
+        position:
+          type: object
+          required: [positionId, side, status, signalDate, unrealizedProfitUsdt]
+          properties:
+            positionId: { type: integer, format: int64 }
+            side: { $ref: "#/components/schemas/Side" }
+            status: { type: string }
+            signalDate: { type: string, format: date }
+            unrealizedProfitUsdt: { $ref: "#/components/schemas/Decimal" }
+            unrealizedPercent: { $ref: "#/components/schemas/Decimal" }
+        wanted:
+          type: object
+          required: [state, syncDate]
+          properties:
+            state: { type: string, enum: [L, S, F] }
+            entryDate: { type: string, format: date }
+            rule: { type: string }
+            syncDate: { type: string, format: date }
+        pendingTodos: { type: array, items: { type: string } }
+        mismatch: { type: boolean, description: Held position differs from the strategy and nothing is queued }
+
+    Ema1dPairUpdate:
+      type: object
+      properties:
+        pairGroup: { type: string, enum: [CORE, SENSITIVE] }
+        status: { type: string, enum: [ACTIVE, EXIT_ONLY, DISABLED] }
+        allowLong: { type: boolean }
+        allowShort: { type: boolean }
+        addedOn: { type: string, format: date }
+        removedOn: { type: string, description: "YYYY-MM-DD, empty to clear" }
+        longExitRule: { type: string, description: "DIV4H, XO or empty" }
+        signalFrom: { type: string, description: "YYYY-MM-DD, empty to clear" }
+
+    Ema1dPairCheck:
+      type: object
+      required: [coin, shortSupported, crossMargin, note]
+      properties:
+        coin: { type: string }
+        shortSupported: { type: boolean }
+        crossMargin: { type: boolean }
+        note: { type: string }
+
+    Ema1dManualTodoRequest:
+      type: object
+      required: [action, coin]
+      properties:
+        action: { type: string, enum: [OPEN, CLOSE] }
+        coin: { type: string }
+        side: { $ref: "#/components/schemas/Side" }
+        signalDate: { type: string, format: date }
+        refPrice: { type: string }
+        rule: { type: string, enum: [DIV4H, XO] }
+        force: { type: boolean, description: Lifts the entry age limit only }
+
+    Ema1dManualTodoResult:
+      type: object
+      required: [created, todo]
+      properties:
+        created: { type: boolean }
+        todo: { $ref: "#/components/schemas/Ema1dTodo" }
+
+    Ema1dTradesSummary:
+      type: object
+      required: [count, totalProfitUsdt, interestUsdt, feeUsdt]
+      properties:
+        count: { type: integer }
+        totalProfitUsdt: { $ref: "#/components/schemas/Decimal" }
+        winRatePercent: { $ref: "#/components/schemas/Decimal" }
+        avgWinUsdt: { $ref: "#/components/schemas/Decimal" }
+        avgLossUsdt: { $ref: "#/components/schemas/Decimal" }
+        interestUsdt: { $ref: "#/components/schemas/Decimal" }
+        feeUsdt: { $ref: "#/components/schemas/Decimal" }
+
+    Ema1dEquityPoint:
+      type: object
+      required: [date, equityUsdt]
+      properties:
+        date: { type: string, format: date }
+        equityUsdt: { $ref: "#/components/schemas/Decimal" }
+        marginLevel: { $ref: "#/components/schemas/Decimal" }
+
+    Ema1dSignalRow:
+      type: object
+      description: One line of the strategy status table (status.py columns)
+      required: [pair, ngay, gia, ema_open, cat_hom_nay, lenh, lai, thoat_theo, hanh_dong_hom_nay, nhom, ghi_chu, open]
+      properties:
+        pair: { type: string }
+        ngay: { type: string }
+        gia: { type: number, format: double }
+        ema_open: { type: string }
+        cat_hom_nay: { type: string }
+        lenh: { type: string }
+        vao: { type: string, nullable: true }
+        gia_vao: { type: number, format: double, nullable: true }
+        lai: { type: string }
+        thoat_theo: { type: string }
+        hanh_dong_hom_nay: { type: string }
+        nhom: { type: string }
+        ghi_chu: { type: string }
+        open: { type: boolean }
+        side: { type: string }
+
+    Ema1dSignals:
+      type: object
+      required: [date, rows, s, warnings]
+      properties:
+        date: { type: string }
+        rows: { type: array, items: { $ref: "#/components/schemas/Ema1dSignalRow" } }
+        s: { type: string, description: The sync string }
+        warnings: { type: array, items: { type: string } }
+
+    Ema1dDailyCheck:
+      type: object
+      required: [signalDate, status, runId, attempts, report, lastError]
+      properties:
+        signalDate: { type: string, format: date }
+        status: { type: string, enum: [PENDING, SYNCED, SENT, FAILED] }
+        runId: { type: string }
+        attempts: { type: integer, format: int64 }
+        report: { type: string }
+        lastError: { type: string }
+        syncedAt: { type: string, format: date-time }
+        sentAt: { type: string, format: date-time }

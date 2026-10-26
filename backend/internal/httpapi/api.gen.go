@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -22,7 +23,329 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// Defines values for Ema1dDailyCheckStatus.
+const (
+	Ema1dDailyCheckStatusFAILED  Ema1dDailyCheckStatus = "FAILED"
+	Ema1dDailyCheckStatusPENDING Ema1dDailyCheckStatus = "PENDING"
+	Ema1dDailyCheckStatusSENT    Ema1dDailyCheckStatus = "SENT"
+	Ema1dDailyCheckStatusSYNCED  Ema1dDailyCheckStatus = "SYNCED"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dDailyCheckStatus enum.
+func (e Ema1dDailyCheckStatus) Valid() bool {
+	switch e {
+	case Ema1dDailyCheckStatusFAILED:
+		return true
+	case Ema1dDailyCheckStatusPENDING:
+		return true
+	case Ema1dDailyCheckStatusSENT:
+		return true
+	case Ema1dDailyCheckStatusSYNCED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dManualTodoRequestAction.
+const (
+	Ema1dManualTodoRequestActionCLOSE Ema1dManualTodoRequestAction = "CLOSE"
+	Ema1dManualTodoRequestActionOPEN  Ema1dManualTodoRequestAction = "OPEN"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dManualTodoRequestAction enum.
+func (e Ema1dManualTodoRequestAction) Valid() bool {
+	switch e {
+	case Ema1dManualTodoRequestActionCLOSE:
+		return true
+	case Ema1dManualTodoRequestActionOPEN:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dManualTodoRequestRule.
+const (
+	Ema1dManualTodoRequestRuleDIV4H Ema1dManualTodoRequestRule = "DIV4H"
+	Ema1dManualTodoRequestRuleXO    Ema1dManualTodoRequestRule = "XO"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dManualTodoRequestRule enum.
+func (e Ema1dManualTodoRequestRule) Valid() bool {
+	switch e {
+	case Ema1dManualTodoRequestRuleDIV4H:
+		return true
+	case Ema1dManualTodoRequestRuleXO:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dPairRowLongExitRule.
+const (
+	Ema1dPairRowLongExitRuleDIV4H Ema1dPairRowLongExitRule = "DIV4H"
+	Ema1dPairRowLongExitRuleXO    Ema1dPairRowLongExitRule = "XO"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dPairRowLongExitRule enum.
+func (e Ema1dPairRowLongExitRule) Valid() bool {
+	switch e {
+	case Ema1dPairRowLongExitRuleDIV4H:
+		return true
+	case Ema1dPairRowLongExitRuleXO:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dPairRowPairGroup.
+const (
+	Ema1dPairRowPairGroupCORE      Ema1dPairRowPairGroup = "CORE"
+	Ema1dPairRowPairGroupSENSITIVE Ema1dPairRowPairGroup = "SENSITIVE"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dPairRowPairGroup enum.
+func (e Ema1dPairRowPairGroup) Valid() bool {
+	switch e {
+	case Ema1dPairRowPairGroupCORE:
+		return true
+	case Ema1dPairRowPairGroupSENSITIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dPairRowStatus.
+const (
+	Ema1dPairRowStatusACTIVE   Ema1dPairRowStatus = "ACTIVE"
+	Ema1dPairRowStatusDISABLED Ema1dPairRowStatus = "DISABLED"
+	Ema1dPairRowStatusEXITONLY Ema1dPairRowStatus = "EXIT_ONLY"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dPairRowStatus enum.
+func (e Ema1dPairRowStatus) Valid() bool {
+	switch e {
+	case Ema1dPairRowStatusACTIVE:
+		return true
+	case Ema1dPairRowStatusDISABLED:
+		return true
+	case Ema1dPairRowStatusEXITONLY:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dPairRowWantedState.
+const (
+	F Ema1dPairRowWantedState = "F"
+	L Ema1dPairRowWantedState = "L"
+	S Ema1dPairRowWantedState = "S"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dPairRowWantedState enum.
+func (e Ema1dPairRowWantedState) Valid() bool {
+	switch e {
+	case F:
+		return true
+	case L:
+		return true
+	case S:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dPairUpdatePairGroup.
+const (
+	Ema1dPairUpdatePairGroupCORE      Ema1dPairUpdatePairGroup = "CORE"
+	Ema1dPairUpdatePairGroupSENSITIVE Ema1dPairUpdatePairGroup = "SENSITIVE"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dPairUpdatePairGroup enum.
+func (e Ema1dPairUpdatePairGroup) Valid() bool {
+	switch e {
+	case Ema1dPairUpdatePairGroupCORE:
+		return true
+	case Ema1dPairUpdatePairGroupSENSITIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dPairUpdateStatus.
+const (
+	Ema1dPairUpdateStatusACTIVE   Ema1dPairUpdateStatus = "ACTIVE"
+	Ema1dPairUpdateStatusDISABLED Ema1dPairUpdateStatus = "DISABLED"
+	Ema1dPairUpdateStatusEXITONLY Ema1dPairUpdateStatus = "EXIT_ONLY"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dPairUpdateStatus enum.
+func (e Ema1dPairUpdateStatus) Valid() bool {
+	switch e {
+	case Ema1dPairUpdateStatusACTIVE:
+		return true
+	case Ema1dPairUpdateStatusDISABLED:
+		return true
+	case Ema1dPairUpdateStatusEXITONLY:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dPositionExitRule.
+const (
+	Ema1dPositionExitRuleDIV4H Ema1dPositionExitRule = "DIV4H"
+	Ema1dPositionExitRuleXO    Ema1dPositionExitRule = "XO"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dPositionExitRule enum.
+func (e Ema1dPositionExitRule) Valid() bool {
+	switch e {
+	case Ema1dPositionExitRuleDIV4H:
+		return true
+	case Ema1dPositionExitRuleXO:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dPositionStatus.
+const (
+	Ema1dPositionStatusCLOSED  Ema1dPositionStatus = "CLOSED"
+	Ema1dPositionStatusOPEN    Ema1dPositionStatus = "OPEN"
+	Ema1dPositionStatusOPENING Ema1dPositionStatus = "OPENING"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dPositionStatus enum.
+func (e Ema1dPositionStatus) Valid() bool {
+	switch e {
+	case Ema1dPositionStatusCLOSED:
+		return true
+	case Ema1dPositionStatusOPEN:
+		return true
+	case Ema1dPositionStatusOPENING:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dTodoAction.
+const (
+	Ema1dTodoActionCLOSE Ema1dTodoAction = "CLOSE"
+	Ema1dTodoActionOPEN  Ema1dTodoAction = "OPEN"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dTodoAction enum.
+func (e Ema1dTodoAction) Valid() bool {
+	switch e {
+	case Ema1dTodoActionCLOSE:
+		return true
+	case Ema1dTodoActionOPEN:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dTodoExitRule.
+const (
+	Ema1dTodoExitRuleDIV4H Ema1dTodoExitRule = "DIV4H"
+	Ema1dTodoExitRuleXO    Ema1dTodoExitRule = "XO"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dTodoExitRule enum.
+func (e Ema1dTodoExitRule) Valid() bool {
+	switch e {
+	case Ema1dTodoExitRuleDIV4H:
+		return true
+	case Ema1dTodoExitRuleXO:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dTodoSource.
+const (
+	MANUAL Ema1dTodoSource = "MANUAL"
+	SYNC   Ema1dTodoSource = "SYNC"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dTodoSource enum.
+func (e Ema1dTodoSource) Valid() bool {
+	switch e {
+	case MANUAL:
+		return true
+	case SYNC:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dTodoStatus.
+const (
+	Ema1dTodoStatusCANCELLED Ema1dTodoStatus = "CANCELLED"
+	Ema1dTodoStatusDONE      Ema1dTodoStatus = "DONE"
+	Ema1dTodoStatusFAILED    Ema1dTodoStatus = "FAILED"
+	Ema1dTodoStatusPENDING   Ema1dTodoStatus = "PENDING"
+	Ema1dTodoStatusRUNNING   Ema1dTodoStatus = "RUNNING"
+	Ema1dTodoStatusSKIPPED   Ema1dTodoStatus = "SKIPPED"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dTodoStatus enum.
+func (e Ema1dTodoStatus) Valid() bool {
+	switch e {
+	case Ema1dTodoStatusCANCELLED:
+		return true
+	case Ema1dTodoStatusDONE:
+		return true
+	case Ema1dTodoStatusFAILED:
+		return true
+	case Ema1dTodoStatusPENDING:
+		return true
+	case Ema1dTodoStatusRUNNING:
+		return true
+	case Ema1dTodoStatusSKIPPED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Ema1dTodoStep.
+const (
+	BORROWED       Ema1dTodoStep = "BORROWED"
+	BORROWING      Ema1dTodoStep = "BORROWING"
+	BORROWREVERTED Ema1dTodoStep = "BORROW_REVERTED"
+)
+
+// Valid indicates whether the value is a known member of the Ema1dTodoStep enum.
+func (e Ema1dTodoStep) Valid() bool {
+	switch e {
+	case BORROWED:
+		return true
+	case BORROWING:
+		return true
+	case BORROWREVERTED:
+		return true
+	default:
+		return false
+	}
+}
 
 // Defines values for JobRunTrigger.
 const (
@@ -44,22 +367,22 @@ func (e JobRunTrigger) Valid() bool {
 
 // Defines values for JobRunStatus.
 const (
-	FAILED  JobRunStatus = "FAILED"
-	OK      JobRunStatus = "OK"
-	RUNNING JobRunStatus = "RUNNING"
-	SKIPPED JobRunStatus = "SKIPPED"
+	JobRunStatusFAILED  JobRunStatus = "FAILED"
+	JobRunStatusOK      JobRunStatus = "OK"
+	JobRunStatusRUNNING JobRunStatus = "RUNNING"
+	JobRunStatusSKIPPED JobRunStatus = "SKIPPED"
 )
 
 // Valid indicates whether the value is a known member of the JobRunStatus enum.
 func (e JobRunStatus) Valid() bool {
 	switch e {
-	case FAILED:
+	case JobRunStatusFAILED:
 		return true
-	case OK:
+	case JobRunStatusOK:
 		return true
-	case RUNNING:
+	case JobRunStatusRUNNING:
 		return true
-	case SKIPPED:
+	case JobRunStatusSKIPPED:
 		return true
 	default:
 		return false
@@ -68,16 +391,34 @@ func (e JobRunStatus) Valid() bool {
 
 // Defines values for PairStatus.
 const (
-	ACTIVE   PairStatus = "ACTIVE"
-	DISABLED PairStatus = "DISABLED"
+	PairStatusACTIVE   PairStatus = "ACTIVE"
+	PairStatusDISABLED PairStatus = "DISABLED"
 )
 
 // Valid indicates whether the value is a known member of the PairStatus enum.
 func (e PairStatus) Valid() bool {
 	switch e {
-	case ACTIVE:
+	case PairStatusACTIVE:
 		return true
-	case DISABLED:
+	case PairStatusDISABLED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Side.
+const (
+	LONG  Side = "LONG"
+	SHORT Side = "SHORT"
+)
+
+// Valid indicates whether the value is a known member of the Side enum.
+func (e Side) Valid() bool {
+	switch e {
+	case LONG:
+		return true
+	case SHORT:
 		return true
 	default:
 		return false
@@ -96,6 +437,24 @@ func (e TransferUsdtJSONBodyDirection) Valid() bool {
 	case CROSSTOSPOT:
 		return true
 	case SPOTTOCROSS:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListEma1dTradesParamsStatus.
+const (
+	Closed ListEma1dTradesParamsStatus = "closed"
+	Open   ListEma1dTradesParamsStatus = "open"
+)
+
+// Valid indicates whether the value is a known member of the ListEma1dTradesParamsStatus enum.
+func (e ListEma1dTradesParamsStatus) Valid() bool {
+	switch e {
+	case Closed:
+		return true
+	case Open:
 		return true
 	default:
 		return false
@@ -133,6 +492,15 @@ type Coin struct {
 	Name string `json:"name"`
 }
 
+// ConfigChange defines model for ConfigChange.
+type ConfigChange struct {
+	After     map[string]interface{} `json:"after"`
+	Before    map[string]interface{} `json:"before"`
+	CreatedAt time.Time              `json:"createdAt"`
+	Id        int64                  `json:"id"`
+	UserEmail string                 `json:"userEmail"`
+}
+
 // CreatePairRequest defines model for CreatePairRequest.
 type CreatePairRequest struct {
 	IsIsolated *bool `json:"isIsolated,omitempty"`
@@ -144,6 +512,354 @@ type CreatePairRequest struct {
 
 // Decimal defines model for Decimal.
 type Decimal = money.Dec
+
+// Ema1dCapital defines model for Ema1dCapital.
+type Ema1dCapital struct {
+	BudgetUsdt           Decimal `json:"budgetUsdt"`
+	ClosedPositions      int     `json:"closedPositions"`
+	EquityUsdt           Decimal `json:"equityUsdt"`
+	FeePaidUsdt          Decimal `json:"feePaidUsdt"`
+	InterestPaidUsdt     Decimal `json:"interestPaidUsdt"`
+	RealizedProfitUsdt   Decimal `json:"realizedProfitUsdt"`
+	UnrealizedProfitUsdt Decimal `json:"unrealizedProfitUsdt"`
+}
+
+// Ema1dConfig defines model for Ema1dConfig.
+type Ema1dConfig struct {
+	BudgetUsdt Decimal `json:"budgetUsdt"`
+
+	// DailyCheckEnabled Runs the 07:03 VN daily check
+	DailyCheckEnabled bool `json:"dailyCheckEnabled"`
+
+	// Enabled Executes the todo queue
+	Enabled          bool    `json:"enabled"`
+	MarginLevelAlert Decimal `json:"marginLevelAlert"`
+	MarginLevelWarn  Decimal `json:"marginLevelWarn"`
+	MaxEntryAgeDays  int     `json:"maxEntryAgeDays"`
+
+	// PauseOpen Blocks new entries; closes still run
+	PauseOpen bool       `json:"pauseOpen"`
+	Sizes     Ema1dSizes `json:"sizes"`
+}
+
+// Ema1dConfigEnvelope defines model for Ema1dConfigEnvelope.
+type Ema1dConfigEnvelope struct {
+	Config         Ema1dConfig `json:"config"`
+	SuggestedSizes Ema1dSizes  `json:"suggestedSizes"`
+	Version        int64       `json:"version"`
+}
+
+// Ema1dDailyCheck defines model for Ema1dDailyCheck.
+type Ema1dDailyCheck struct {
+	Attempts   int64                 `json:"attempts"`
+	LastError  string                `json:"lastError"`
+	Report     string                `json:"report"`
+	RunId      string                `json:"runId"`
+	SentAt     *time.Time            `json:"sentAt,omitempty"`
+	SignalDate openapi_types.Date    `json:"signalDate"`
+	Status     Ema1dDailyCheckStatus `json:"status"`
+	SyncedAt   *time.Time            `json:"syncedAt,omitempty"`
+}
+
+// Ema1dDailyCheckStatus defines model for Ema1dDailyCheck.Status.
+type Ema1dDailyCheckStatus string
+
+// Ema1dEquityPoint defines model for Ema1dEquityPoint.
+type Ema1dEquityPoint struct {
+	Date        openapi_types.Date `json:"date"`
+	EquityUsdt  Decimal            `json:"equityUsdt"`
+	MarginLevel *Decimal           `json:"marginLevel,omitempty"`
+}
+
+// Ema1dExposure defines model for Ema1dExposure.
+type Ema1dExposure struct {
+	LongCount    int      `json:"longCount"`
+	LongPercent  *Decimal `json:"longPercent,omitempty"`
+	LongUsdt     Decimal  `json:"longUsdt"`
+	ShortCount   int      `json:"shortCount"`
+	ShortPercent *Decimal `json:"shortPercent,omitempty"`
+	ShortUsdt    Decimal  `json:"shortUsdt"`
+}
+
+// Ema1dLastSync defines model for Ema1dLastSync.
+type Ema1dLastSync struct {
+	At           time.Time          `json:"at"`
+	CreatedTodos int                `json:"createdTodos"`
+	Date         openapi_types.Date `json:"date"`
+	RunId        string             `json:"runId"`
+	Skipped      []Ema1dSkipped     `json:"skipped"`
+	Warnings     []string           `json:"warnings"`
+}
+
+// Ema1dManualTodoRequest defines model for Ema1dManualTodoRequest.
+type Ema1dManualTodoRequest struct {
+	Action Ema1dManualTodoRequestAction `json:"action"`
+	Coin   string                       `json:"coin"`
+
+	// Force Lifts the entry age limit only
+	Force      *bool                       `json:"force,omitempty"`
+	RefPrice   *string                     `json:"refPrice,omitempty"`
+	Rule       *Ema1dManualTodoRequestRule `json:"rule,omitempty"`
+	Side       *Side                       `json:"side,omitempty"`
+	SignalDate *openapi_types.Date         `json:"signalDate,omitempty"`
+}
+
+// Ema1dManualTodoRequestAction defines model for Ema1dManualTodoRequest.Action.
+type Ema1dManualTodoRequestAction string
+
+// Ema1dManualTodoRequestRule defines model for Ema1dManualTodoRequest.Rule.
+type Ema1dManualTodoRequestRule string
+
+// Ema1dManualTodoResult defines model for Ema1dManualTodoResult.
+type Ema1dManualTodoResult struct {
+	Created bool      `json:"created"`
+	Todo    Ema1dTodo `json:"todo"`
+}
+
+// Ema1dMarginLevel defines model for Ema1dMarginLevel.
+type Ema1dMarginLevel struct {
+	Alert Decimal    `json:"alert"`
+	At    *time.Time `json:"at,omitempty"`
+	Value *Decimal   `json:"value,omitempty"`
+	Warn  Decimal    `json:"warn"`
+}
+
+// Ema1dPairCheck defines model for Ema1dPairCheck.
+type Ema1dPairCheck struct {
+	Coin           string `json:"coin"`
+	CrossMargin    bool   `json:"crossMargin"`
+	Note           string `json:"note"`
+	ShortSupported bool   `json:"shortSupported"`
+}
+
+// Ema1dPairRow defines model for Ema1dPairRow.
+type Ema1dPairRow struct {
+	AddedOn      openapi_types.Date        `json:"addedOn"`
+	AllowLong    bool                      `json:"allowLong"`
+	AllowShort   bool                      `json:"allowShort"`
+	CheckNote    string                    `json:"checkNote"`
+	CheckedAt    *time.Time                `json:"checkedAt,omitempty"`
+	Coin         string                    `json:"coin"`
+	CurrentPrice *Decimal                  `json:"currentPrice,omitempty"`
+	Id           int64                     `json:"id"`
+	LongExitRule *Ema1dPairRowLongExitRule `json:"longExitRule,omitempty"`
+
+	// Mismatch Held position differs from the strategy and nothing is queued
+	Mismatch     bool                  `json:"mismatch"`
+	PairGroup    Ema1dPairRowPairGroup `json:"pairGroup"`
+	PairId       int64                 `json:"pairId"`
+	PairName     string                `json:"pairName"`
+	PendingTodos []string              `json:"pendingTodos"`
+	Position     *struct {
+		PositionId           int64              `json:"positionId"`
+		Side                 Side               `json:"side"`
+		SignalDate           openapi_types.Date `json:"signalDate"`
+		Status               string             `json:"status"`
+		UnrealizedPercent    *Decimal           `json:"unrealizedPercent,omitempty"`
+		UnrealizedProfitUsdt Decimal            `json:"unrealizedProfitUsdt"`
+	} `json:"position,omitempty"`
+	RemovedOn      *openapi_types.Date `json:"removedOn,omitempty"`
+	ShortSupported bool                `json:"shortSupported"`
+	SignalFrom     *openapi_types.Date `json:"signalFrom,omitempty"`
+	Status         Ema1dPairRowStatus  `json:"status"`
+	Wanted         *struct {
+		EntryDate *openapi_types.Date     `json:"entryDate,omitempty"`
+		Rule      *string                 `json:"rule,omitempty"`
+		State     Ema1dPairRowWantedState `json:"state"`
+		SyncDate  openapi_types.Date      `json:"syncDate"`
+	} `json:"wanted,omitempty"`
+}
+
+// Ema1dPairRowLongExitRule defines model for Ema1dPairRow.LongExitRule.
+type Ema1dPairRowLongExitRule string
+
+// Ema1dPairRowPairGroup defines model for Ema1dPairRow.PairGroup.
+type Ema1dPairRowPairGroup string
+
+// Ema1dPairRowStatus defines model for Ema1dPairRow.Status.
+type Ema1dPairRowStatus string
+
+// Ema1dPairRowWantedState defines model for Ema1dPairRow.Wanted.State.
+type Ema1dPairRowWantedState string
+
+// Ema1dPairUpdate defines model for Ema1dPairUpdate.
+type Ema1dPairUpdate struct {
+	AddedOn    *openapi_types.Date `json:"addedOn,omitempty"`
+	AllowLong  *bool               `json:"allowLong,omitempty"`
+	AllowShort *bool               `json:"allowShort,omitempty"`
+
+	// LongExitRule DIV4H, XO or empty
+	LongExitRule *string                   `json:"longExitRule,omitempty"`
+	PairGroup    *Ema1dPairUpdatePairGroup `json:"pairGroup,omitempty"`
+
+	// RemovedOn YYYY-MM-DD, empty to clear
+	RemovedOn *string `json:"removedOn,omitempty"`
+
+	// SignalFrom YYYY-MM-DD, empty to clear
+	SignalFrom *string                `json:"signalFrom,omitempty"`
+	Status     *Ema1dPairUpdateStatus `json:"status,omitempty"`
+}
+
+// Ema1dPairUpdatePairGroup defines model for Ema1dPairUpdate.PairGroup.
+type Ema1dPairUpdatePairGroup string
+
+// Ema1dPairUpdateStatus defines model for Ema1dPairUpdate.Status.
+type Ema1dPairUpdateStatus string
+
+// Ema1dPosition defines model for Ema1dPosition.
+type Ema1dPosition struct {
+	Amount               Decimal                `json:"amount"`
+	CloseAt              *time.Time             `json:"closeAt,omitempty"`
+	ClosePrice           *Decimal               `json:"closePrice,omitempty"`
+	CloseSlippagePercent *Decimal               `json:"closeSlippagePercent,omitempty"`
+	Coin                 string                 `json:"coin"`
+	CurrentPrice         *Decimal               `json:"currentPrice,omitempty"`
+	DaysHeld             *int                   `json:"daysHeld,omitempty"`
+	EquityPercent        *Decimal               `json:"equityPercent,omitempty"`
+	ExitRule             *Ema1dPositionExitRule `json:"exitRule,omitempty"`
+	FeeUsdt              Decimal                `json:"feeUsdt"`
+	Id                   int64                  `json:"id"`
+	InterestUsdt         Decimal                `json:"interestUsdt"`
+	NotionalUsdt         Decimal                `json:"notionalUsdt"`
+	OpenAt               *time.Time             `json:"openAt,omitempty"`
+	OpenPrice            *Decimal               `json:"openPrice,omitempty"`
+	OpenSlippagePercent  *Decimal               `json:"openSlippagePercent,omitempty"`
+	PairName             string                 `json:"pairName"`
+	ProfitPercent        *Decimal               `json:"profitPercent,omitempty"`
+
+	// ProfitUsdt Unrealized for open positions, realized for closed ones
+	ProfitUsdt    Decimal             `json:"profitUsdt"`
+	RefClosePrice *Decimal            `json:"refClosePrice,omitempty"`
+	RefOpenPrice  *Decimal            `json:"refOpenPrice,omitempty"`
+	Side          Side                `json:"side"`
+	SignalDate    openapi_types.Date  `json:"signalDate"`
+	SizePercent   Decimal             `json:"sizePercent"`
+	Status        Ema1dPositionStatus `json:"status"`
+}
+
+// Ema1dPositionExitRule defines model for Ema1dPosition.ExitRule.
+type Ema1dPositionExitRule string
+
+// Ema1dPositionStatus defines model for Ema1dPosition.Status.
+type Ema1dPositionStatus string
+
+// Ema1dSignalRow One line of the strategy status table (status.py columns)
+type Ema1dSignalRow struct {
+	CatHomNay      string   `json:"cat_hom_nay"`
+	EmaOpen        string   `json:"ema_open"`
+	GhiChu         string   `json:"ghi_chu"`
+	Gia            float64  `json:"gia"`
+	GiaVao         *float64 `json:"gia_vao,omitempty"`
+	HanhDongHomNay string   `json:"hanh_dong_hom_nay"`
+	Lai            string   `json:"lai"`
+	Lenh           string   `json:"lenh"`
+	Ngay           string   `json:"ngay"`
+	Nhom           string   `json:"nhom"`
+	Open           bool     `json:"open"`
+	Pair           string   `json:"pair"`
+	Side           *string  `json:"side,omitempty"`
+	ThoatTheo      string   `json:"thoat_theo"`
+	Vao            *string  `json:"vao,omitempty"`
+}
+
+// Ema1dSignals defines model for Ema1dSignals.
+type Ema1dSignals struct {
+	Date string           `json:"date"`
+	Rows []Ema1dSignalRow `json:"rows"`
+
+	// S The sync string
+	S        string   `json:"s"`
+	Warnings []string `json:"warnings"`
+}
+
+// Ema1dSizeRow defines model for Ema1dSizeRow.
+type Ema1dSizeRow struct {
+	Key              string  `json:"key"`
+	Percent          Decimal `json:"percent"`
+	SuggestedPercent Decimal `json:"suggestedPercent"`
+}
+
+// Ema1dSizes defines model for Ema1dSizes.
+type Ema1dSizes struct {
+	CoreLong       Decimal `json:"coreLong"`
+	CoreShort      Decimal `json:"coreShort"`
+	SensitiveLong  Decimal `json:"sensitiveLong"`
+	SensitiveShort Decimal `json:"sensitiveShort"`
+}
+
+// Ema1dSkipped defines model for Ema1dSkipped.
+type Ema1dSkipped struct {
+	Action string `json:"action"`
+	Coin   string `json:"coin"`
+	Reason string `json:"reason"`
+	Side   string `json:"side"`
+}
+
+// Ema1dStatus defines model for Ema1dStatus.
+type Ema1dStatus struct {
+	Capital           Ema1dCapital     `json:"capital"`
+	DailyCheckEnabled bool             `json:"dailyCheckEnabled"`
+	Enabled           bool             `json:"enabled"`
+	Exposure          Ema1dExposure    `json:"exposure"`
+	GeneratedAt       time.Time        `json:"generatedAt"`
+	LastSync          *Ema1dLastSync   `json:"lastSync,omitempty"`
+	MarginLevel       Ema1dMarginLevel `json:"marginLevel"`
+	OpenPositions     []Ema1dPosition  `json:"openPositions"`
+	PauseOpen         bool             `json:"pauseOpen"`
+	Sizes             []Ema1dSizeRow   `json:"sizes"`
+	SyncMissingToday  bool             `json:"syncMissingToday"`
+	Todos             []Ema1dTodo      `json:"todos"`
+	TradingEnabled    bool             `json:"tradingEnabled"`
+}
+
+// Ema1dTodo defines model for Ema1dTodo.
+type Ema1dTodo struct {
+	Action      Ema1dTodoAction    `json:"action"`
+	Attempts    int64              `json:"attempts"`
+	Cancellable bool               `json:"cancellable"`
+	Coin        string             `json:"coin"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	DependsOnId *int64             `json:"dependsOnId,omitempty"`
+	ExitRule    *Ema1dTodoExitRule `json:"exitRule,omitempty"`
+	Id          int64              `json:"id"`
+	LastError   string             `json:"lastError"`
+	PositionId  *int64             `json:"positionId,omitempty"`
+	RefPrice    *Decimal           `json:"refPrice,omitempty"`
+	Retryable   bool               `json:"retryable"`
+	RunAfter    *time.Time         `json:"runAfter,omitempty"`
+	Side        Side               `json:"side"`
+	SignalDate  openapi_types.Date `json:"signalDate"`
+	Source      Ema1dTodoSource    `json:"source"`
+	Status      Ema1dTodoStatus    `json:"status"`
+	Step        *Ema1dTodoStep     `json:"step,omitempty"`
+	UpdatedAt   time.Time          `json:"updatedAt"`
+}
+
+// Ema1dTodoAction defines model for Ema1dTodo.Action.
+type Ema1dTodoAction string
+
+// Ema1dTodoExitRule defines model for Ema1dTodo.ExitRule.
+type Ema1dTodoExitRule string
+
+// Ema1dTodoSource defines model for Ema1dTodo.Source.
+type Ema1dTodoSource string
+
+// Ema1dTodoStatus defines model for Ema1dTodo.Status.
+type Ema1dTodoStatus string
+
+// Ema1dTodoStep defines model for Ema1dTodo.Step.
+type Ema1dTodoStep string
+
+// Ema1dTradesSummary defines model for Ema1dTradesSummary.
+type Ema1dTradesSummary struct {
+	AvgLossUsdt     *Decimal `json:"avgLossUsdt,omitempty"`
+	AvgWinUsdt      *Decimal `json:"avgWinUsdt,omitempty"`
+	Count           int      `json:"count"`
+	FeeUsdt         Decimal  `json:"feeUsdt"`
+	InterestUsdt    Decimal  `json:"interestUsdt"`
+	TotalProfitUsdt Decimal  `json:"totalProfitUsdt"`
+	WinRatePercent  *Decimal `json:"winRatePercent,omitempty"`
+}
 
 // ErrorDetail defines model for ErrorDetail.
 type ErrorDetail struct {
@@ -212,6 +928,9 @@ type Pair struct {
 // PairStatus defines model for PairStatus.
 type PairStatus string
 
+// Side defines model for Side.
+type Side string
+
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
 	Env              string `json:"env"`
@@ -268,6 +987,46 @@ type UpdateCoinJSONBody struct {
 	Description string `json:"description"`
 }
 
+// UpdateEma1dConfigJSONBody defines parameters for UpdateEma1dConfig.
+type UpdateEma1dConfigJSONBody struct {
+	Config  Ema1dConfig `json:"config"`
+	Version int64       `json:"version"`
+}
+
+// ListEma1dDailyChecksParams defines parameters for ListEma1dDailyChecks.
+type ListEma1dDailyChecksParams struct {
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetEma1dEquityParams defines parameters for GetEma1dEquity.
+type GetEma1dEquityParams struct {
+	Days *int `form:"days,omitempty" json:"days,omitempty"`
+}
+
+// CheckEma1dPairsJSONBody defines parameters for CheckEma1dPairs.
+type CheckEma1dPairsJSONBody struct {
+	Ids *[]int64 `json:"ids,omitempty"`
+}
+
+// ListEma1dTodosParams defines parameters for ListEma1dTodos.
+type ListEma1dTodosParams struct {
+	// History Every todo of the last 30 days instead of the ones that need attention
+	History *bool `form:"history,omitempty" json:"history,omitempty"`
+}
+
+// ListEma1dTradesParams defines parameters for ListEma1dTrades.
+type ListEma1dTradesParams struct {
+	Status *ListEma1dTradesParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+	Coin   *string                      `form:"coin,omitempty" json:"coin,omitempty"`
+	Side   *Side                        `form:"side,omitempty" json:"side,omitempty"`
+
+	// Month YYYY-MM (open month for open positions, close month for closed ones)
+	Month *string `form:"month,omitempty" json:"month,omitempty"`
+}
+
+// ListEma1dTradesParamsStatus defines parameters for ListEma1dTrades.
+type ListEma1dTradesParamsStatus string
+
 // ListJobRunsParams defines parameters for ListJobRuns.
 type ListJobRunsParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
@@ -290,6 +1049,18 @@ type TransferUsdtJSONRequestBody TransferUsdtJSONBody
 
 // UpdateCoinJSONRequestBody defines body for UpdateCoin for application/json ContentType.
 type UpdateCoinJSONRequestBody UpdateCoinJSONBody
+
+// UpdateEma1dConfigJSONRequestBody defines body for UpdateEma1dConfig for application/json ContentType.
+type UpdateEma1dConfigJSONRequestBody UpdateEma1dConfigJSONBody
+
+// CheckEma1dPairsJSONRequestBody defines body for CheckEma1dPairs for application/json ContentType.
+type CheckEma1dPairsJSONRequestBody CheckEma1dPairsJSONBody
+
+// UpdateEma1dPairJSONRequestBody defines body for UpdateEma1dPair for application/json ContentType.
+type UpdateEma1dPairJSONRequestBody = Ema1dPairUpdate
+
+// CreateEma1dTodoJSONRequestBody defines body for CreateEma1dTodo for application/json ContentType.
+type CreateEma1dTodoJSONRequestBody = Ema1dManualTodoRequest
 
 // CreatePairJSONRequestBody defines body for CreatePair for application/json ContentType.
 type CreatePairJSONRequestBody = CreatePairRequest
@@ -314,6 +1085,51 @@ type ServerInterface interface {
 	// UpdateCoin Edit the coin's markdown description
 	// (PATCH /coins/{id})
 	UpdateCoin(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /ema1d/config)
+	GetEma1dConfig(w http.ResponseWriter, r *http.Request)
+	// UpdateEma1dConfig Save a new config; fails with 409 when version is stale
+	// (PATCH /ema1d/config)
+	UpdateEma1dConfig(w http.ResponseWriter, r *http.Request)
+
+	// (GET /ema1d/config/history)
+	GetEma1dConfigHistory(w http.ResponseWriter, r *http.Request)
+
+	// (GET /ema1d/daily-checks)
+	ListEma1dDailyChecks(w http.ResponseWriter, r *http.Request, params ListEma1dDailyChecksParams)
+
+	// (GET /ema1d/equity)
+	GetEma1dEquity(w http.ResponseWriter, r *http.Request, params GetEma1dEquityParams)
+	// ListEma1dPairs The basket, each pair with its position and what the last sync wanted
+	// (GET /ema1d/pairs)
+	ListEma1dPairs(w http.ResponseWriter, r *http.Request)
+	// CheckEma1dPairs Check on Binance whether pairs trade on cross margin and can be shorted
+	// (POST /ema1d/pairs/check)
+	CheckEma1dPairs(w http.ResponseWriter, r *http.Request)
+
+	// (PATCH /ema1d/pairs/{id})
+	UpdateEma1dPair(w http.ResponseWriter, r *http.Request, id Id)
+	// GetEma1dSignals Where the strategy stands from the stored candles (no fetch, no sync)
+	// (GET /ema1d/signals)
+	GetEma1dSignals(w http.ResponseWriter, r *http.Request)
+	// GetEma1dStatus Capital, exposure, margin level, open positions, todos and the last sync
+	// (GET /ema1d/status)
+	GetEma1dStatus(w http.ResponseWriter, r *http.Request)
+
+	// (GET /ema1d/todos)
+	ListEma1dTodos(w http.ResponseWriter, r *http.Request, params ListEma1dTodosParams)
+	// CreateEma1dTodo Queue one OPEN or CLOSE by hand (same checks as the sync)
+	// (POST /ema1d/todos)
+	CreateEma1dTodo(w http.ResponseWriter, r *http.Request)
+
+	// (POST /ema1d/todos/{id}/cancel)
+	CancelEma1dTodo(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (POST /ema1d/todos/{id}/retry)
+	RetryEma1dTodo(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /ema1d/trades)
+	ListEma1dTrades(w http.ResponseWriter, r *http.Request, params ListEma1dTradesParams)
 
 	// (GET /jobs)
 	ListJobs(w http.ResponseWriter, r *http.Request)
@@ -376,6 +1192,87 @@ func (_ Unimplemented) TransferUsdt(w http.ResponseWriter, r *http.Request) {
 // UpdateCoin Edit the coin's markdown description
 // (PATCH /coins/{id})
 func (_ Unimplemented) UpdateCoin(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema1d/config)
+func (_ Unimplemented) GetEma1dConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateEma1dConfig Save a new config; fails with 409 when version is stale
+// (PATCH /ema1d/config)
+func (_ Unimplemented) UpdateEma1dConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema1d/config/history)
+func (_ Unimplemented) GetEma1dConfigHistory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema1d/daily-checks)
+func (_ Unimplemented) ListEma1dDailyChecks(w http.ResponseWriter, r *http.Request, params ListEma1dDailyChecksParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema1d/equity)
+func (_ Unimplemented) GetEma1dEquity(w http.ResponseWriter, r *http.Request, params GetEma1dEquityParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListEma1dPairs The basket, each pair with its position and what the last sync wanted
+// (GET /ema1d/pairs)
+func (_ Unimplemented) ListEma1dPairs(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CheckEma1dPairs Check on Binance whether pairs trade on cross margin and can be shorted
+// (POST /ema1d/pairs/check)
+func (_ Unimplemented) CheckEma1dPairs(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /ema1d/pairs/{id})
+func (_ Unimplemented) UpdateEma1dPair(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetEma1dSignals Where the strategy stands from the stored candles (no fetch, no sync)
+// (GET /ema1d/signals)
+func (_ Unimplemented) GetEma1dSignals(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetEma1dStatus Capital, exposure, margin level, open positions, todos and the last sync
+// (GET /ema1d/status)
+func (_ Unimplemented) GetEma1dStatus(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema1d/todos)
+func (_ Unimplemented) ListEma1dTodos(w http.ResponseWriter, r *http.Request, params ListEma1dTodosParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateEma1dTodo Queue one OPEN or CLOSE by hand (same checks as the sync)
+// (POST /ema1d/todos)
+func (_ Unimplemented) CreateEma1dTodo(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /ema1d/todos/{id}/cancel)
+func (_ Unimplemented) CancelEma1dTodo(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /ema1d/todos/{id}/retry)
+func (_ Unimplemented) RetryEma1dTodo(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema1d/trades)
+func (_ Unimplemented) ListEma1dTrades(w http.ResponseWriter, r *http.Request, params ListEma1dTradesParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -534,6 +1431,367 @@ func (siw *ServerInterfaceWrapper) UpdateCoin(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateCoin(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEma1dConfig operation middleware
+func (siw *ServerInterfaceWrapper) GetEma1dConfig(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEma1dConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateEma1dConfig operation middleware
+func (siw *ServerInterfaceWrapper) UpdateEma1dConfig(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateEma1dConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEma1dConfigHistory operation middleware
+func (siw *ServerInterfaceWrapper) GetEma1dConfigHistory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEma1dConfigHistory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListEma1dDailyChecks operation middleware
+func (siw *ServerInterfaceWrapper) ListEma1dDailyChecks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListEma1dDailyChecksParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListEma1dDailyChecks(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEma1dEquity operation middleware
+func (siw *ServerInterfaceWrapper) GetEma1dEquity(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetEma1dEquityParams
+
+	// ------------- Optional query parameter "days" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "days", r.URL.Query(), &params.Days, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "days"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "days", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEma1dEquity(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListEma1dPairs operation middleware
+func (siw *ServerInterfaceWrapper) ListEma1dPairs(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListEma1dPairs(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CheckEma1dPairs operation middleware
+func (siw *ServerInterfaceWrapper) CheckEma1dPairs(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CheckEma1dPairs(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateEma1dPair operation middleware
+func (siw *ServerInterfaceWrapper) UpdateEma1dPair(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateEma1dPair(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEma1dSignals operation middleware
+func (siw *ServerInterfaceWrapper) GetEma1dSignals(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEma1dSignals(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEma1dStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetEma1dStatus(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEma1dStatus(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListEma1dTodos operation middleware
+func (siw *ServerInterfaceWrapper) ListEma1dTodos(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListEma1dTodosParams
+
+	// ------------- Optional query parameter "history" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "history", r.URL.Query(), &params.History, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "history"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "history", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListEma1dTodos(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateEma1dTodo operation middleware
+func (siw *ServerInterfaceWrapper) CreateEma1dTodo(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateEma1dTodo(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CancelEma1dTodo operation middleware
+func (siw *ServerInterfaceWrapper) CancelEma1dTodo(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CancelEma1dTodo(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RetryEma1dTodo operation middleware
+func (siw *ServerInterfaceWrapper) RetryEma1dTodo(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RetryEma1dTodo(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListEma1dTrades operation middleware
+func (siw *ServerInterfaceWrapper) ListEma1dTrades(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListEma1dTradesParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "coin" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "coin", r.URL.Query(), &params.Coin, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "coin"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "coin", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "side" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "side", r.URL.Query(), &params.Side, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "side"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "side", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "month" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "month", r.URL.Query(), &params.Month, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "month"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "month", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListEma1dTrades(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -949,6 +2207,51 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/jobs/{name}/run", wrapper.RunJob)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/status", wrapper.GetEma1dStatus)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/pairs", wrapper.ListEma1dPairs)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/ema1d/pairs/{id}", wrapper.UpdateEma1dPair)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema1d/pairs/check", wrapper.CheckEma1dPairs)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/todos", wrapper.ListEma1dTodos)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema1d/todos", wrapper.CreateEma1dTodo)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema1d/todos/{id}/retry", wrapper.RetryEma1dTodo)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema1d/todos/{id}/cancel", wrapper.CancelEma1dTodo)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/trades", wrapper.ListEma1dTrades)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/equity", wrapper.GetEma1dEquity)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/signals", wrapper.GetEma1dSignals)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/daily-checks", wrapper.ListEma1dDailyChecks)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/config", wrapper.GetEma1dConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/ema1d/config", wrapper.UpdateEma1dConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema1d/config/history", wrapper.GetEma1dConfigHistory)
+	})
 
 	return r
 }
@@ -1140,6 +2443,602 @@ type UpdateCoindefaultJSONResponse struct {
 }
 
 func (response UpdateCoindefaultJSONResponse) VisitUpdateCoinResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dConfigRequestObject struct {
+}
+
+type GetEma1dConfigResponseObject interface {
+	VisitGetEma1dConfigResponse(w http.ResponseWriter) error
+}
+
+type GetEma1dConfig200JSONResponse Ema1dConfigEnvelope
+
+func (response GetEma1dConfig200JSONResponse) VisitGetEma1dConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dConfigdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEma1dConfigdefaultJSONResponse) VisitGetEma1dConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEma1dConfigRequestObject struct {
+	Body *UpdateEma1dConfigJSONRequestBody
+}
+
+type UpdateEma1dConfigResponseObject interface {
+	VisitUpdateEma1dConfigResponse(w http.ResponseWriter) error
+}
+
+type UpdateEma1dConfig200JSONResponse Ema1dConfigEnvelope
+
+func (response UpdateEma1dConfig200JSONResponse) VisitUpdateEma1dConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEma1dConfigdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateEma1dConfigdefaultJSONResponse) VisitUpdateEma1dConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dConfigHistoryRequestObject struct {
+}
+
+type GetEma1dConfigHistoryResponseObject interface {
+	VisitGetEma1dConfigHistoryResponse(w http.ResponseWriter) error
+}
+
+type GetEma1dConfigHistory200JSONResponse struct {
+	Items []ConfigChange `json:"items"`
+}
+
+func (response GetEma1dConfigHistory200JSONResponse) VisitGetEma1dConfigHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dConfigHistorydefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEma1dConfigHistorydefaultJSONResponse) VisitGetEma1dConfigHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEma1dDailyChecksRequestObject struct {
+	Params ListEma1dDailyChecksParams
+}
+
+type ListEma1dDailyChecksResponseObject interface {
+	VisitListEma1dDailyChecksResponse(w http.ResponseWriter) error
+}
+
+type ListEma1dDailyChecks200JSONResponse struct {
+	Items []Ema1dDailyCheck `json:"items"`
+}
+
+func (response ListEma1dDailyChecks200JSONResponse) VisitListEma1dDailyChecksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEma1dDailyChecksdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListEma1dDailyChecksdefaultJSONResponse) VisitListEma1dDailyChecksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dEquityRequestObject struct {
+	Params GetEma1dEquityParams
+}
+
+type GetEma1dEquityResponseObject interface {
+	VisitGetEma1dEquityResponse(w http.ResponseWriter) error
+}
+
+type GetEma1dEquity200JSONResponse struct {
+	Items []Ema1dEquityPoint `json:"items"`
+}
+
+func (response GetEma1dEquity200JSONResponse) VisitGetEma1dEquityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dEquitydefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEma1dEquitydefaultJSONResponse) VisitGetEma1dEquityResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEma1dPairsRequestObject struct {
+}
+
+type ListEma1dPairsResponseObject interface {
+	VisitListEma1dPairsResponse(w http.ResponseWriter) error
+}
+
+type ListEma1dPairs200JSONResponse struct {
+	Items []Ema1dPairRow `json:"items"`
+}
+
+func (response ListEma1dPairs200JSONResponse) VisitListEma1dPairsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEma1dPairsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListEma1dPairsdefaultJSONResponse) VisitListEma1dPairsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CheckEma1dPairsRequestObject struct {
+	Body *CheckEma1dPairsJSONRequestBody
+}
+
+type CheckEma1dPairsResponseObject interface {
+	VisitCheckEma1dPairsResponse(w http.ResponseWriter) error
+}
+
+type CheckEma1dPairs200JSONResponse struct {
+	Items []Ema1dPairCheck `json:"items"`
+}
+
+func (response CheckEma1dPairs200JSONResponse) VisitCheckEma1dPairsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CheckEma1dPairsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CheckEma1dPairsdefaultJSONResponse) VisitCheckEma1dPairsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEma1dPairRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdateEma1dPairJSONRequestBody
+}
+
+type UpdateEma1dPairResponseObject interface {
+	VisitUpdateEma1dPairResponse(w http.ResponseWriter) error
+}
+
+type UpdateEma1dPair200JSONResponse Ema1dPairRow
+
+func (response UpdateEma1dPair200JSONResponse) VisitUpdateEma1dPairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEma1dPairdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateEma1dPairdefaultJSONResponse) VisitUpdateEma1dPairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dSignalsRequestObject struct {
+}
+
+type GetEma1dSignalsResponseObject interface {
+	VisitGetEma1dSignalsResponse(w http.ResponseWriter) error
+}
+
+type GetEma1dSignals200JSONResponse Ema1dSignals
+
+func (response GetEma1dSignals200JSONResponse) VisitGetEma1dSignalsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dSignalsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEma1dSignalsdefaultJSONResponse) VisitGetEma1dSignalsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dStatusRequestObject struct {
+}
+
+type GetEma1dStatusResponseObject interface {
+	VisitGetEma1dStatusResponse(w http.ResponseWriter) error
+}
+
+type GetEma1dStatus200JSONResponse Ema1dStatus
+
+func (response GetEma1dStatus200JSONResponse) VisitGetEma1dStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEma1dStatusdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEma1dStatusdefaultJSONResponse) VisitGetEma1dStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEma1dTodosRequestObject struct {
+	Params ListEma1dTodosParams
+}
+
+type ListEma1dTodosResponseObject interface {
+	VisitListEma1dTodosResponse(w http.ResponseWriter) error
+}
+
+type ListEma1dTodos200JSONResponse struct {
+	Items []Ema1dTodo `json:"items"`
+}
+
+func (response ListEma1dTodos200JSONResponse) VisitListEma1dTodosResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEma1dTodosdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListEma1dTodosdefaultJSONResponse) VisitListEma1dTodosResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateEma1dTodoRequestObject struct {
+	Body *CreateEma1dTodoJSONRequestBody
+}
+
+type CreateEma1dTodoResponseObject interface {
+	VisitCreateEma1dTodoResponse(w http.ResponseWriter) error
+}
+
+type CreateEma1dTodo200JSONResponse Ema1dManualTodoResult
+
+func (response CreateEma1dTodo200JSONResponse) VisitCreateEma1dTodoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateEma1dTododefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CreateEma1dTododefaultJSONResponse) VisitCreateEma1dTodoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CancelEma1dTodoRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type CancelEma1dTodoResponseObject interface {
+	VisitCancelEma1dTodoResponse(w http.ResponseWriter) error
+}
+
+type CancelEma1dTodo200JSONResponse Ema1dTodo
+
+func (response CancelEma1dTodo200JSONResponse) VisitCancelEma1dTodoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CancelEma1dTododefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CancelEma1dTododefaultJSONResponse) VisitCancelEma1dTodoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RetryEma1dTodoRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type RetryEma1dTodoResponseObject interface {
+	VisitRetryEma1dTodoResponse(w http.ResponseWriter) error
+}
+
+type RetryEma1dTodo200JSONResponse Ema1dTodo
+
+func (response RetryEma1dTodo200JSONResponse) VisitRetryEma1dTodoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RetryEma1dTododefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response RetryEma1dTododefaultJSONResponse) VisitRetryEma1dTodoResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEma1dTradesRequestObject struct {
+	Params ListEma1dTradesParams
+}
+
+type ListEma1dTradesResponseObject interface {
+	VisitListEma1dTradesResponse(w http.ResponseWriter) error
+}
+
+type ListEma1dTrades200JSONResponse struct {
+	Items   []Ema1dPosition    `json:"items"`
+	Summary Ema1dTradesSummary `json:"summary"`
+}
+
+func (response ListEma1dTrades200JSONResponse) VisitListEma1dTradesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEma1dTradesdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListEma1dTradesdefaultJSONResponse) VisitListEma1dTradesResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -1552,6 +3451,51 @@ type StrictServerInterface interface {
 	// (PATCH /coins/{id})
 	UpdateCoin(ctx context.Context, request UpdateCoinRequestObject) (UpdateCoinResponseObject, error)
 
+	// (GET /ema1d/config)
+	GetEma1dConfig(ctx context.Context, request GetEma1dConfigRequestObject) (GetEma1dConfigResponseObject, error)
+	// UpdateEma1dConfig Save a new config; fails with 409 when version is stale
+	// (PATCH /ema1d/config)
+	UpdateEma1dConfig(ctx context.Context, request UpdateEma1dConfigRequestObject) (UpdateEma1dConfigResponseObject, error)
+
+	// (GET /ema1d/config/history)
+	GetEma1dConfigHistory(ctx context.Context, request GetEma1dConfigHistoryRequestObject) (GetEma1dConfigHistoryResponseObject, error)
+
+	// (GET /ema1d/daily-checks)
+	ListEma1dDailyChecks(ctx context.Context, request ListEma1dDailyChecksRequestObject) (ListEma1dDailyChecksResponseObject, error)
+
+	// (GET /ema1d/equity)
+	GetEma1dEquity(ctx context.Context, request GetEma1dEquityRequestObject) (GetEma1dEquityResponseObject, error)
+	// ListEma1dPairs The basket, each pair with its position and what the last sync wanted
+	// (GET /ema1d/pairs)
+	ListEma1dPairs(ctx context.Context, request ListEma1dPairsRequestObject) (ListEma1dPairsResponseObject, error)
+	// CheckEma1dPairs Check on Binance whether pairs trade on cross margin and can be shorted
+	// (POST /ema1d/pairs/check)
+	CheckEma1dPairs(ctx context.Context, request CheckEma1dPairsRequestObject) (CheckEma1dPairsResponseObject, error)
+
+	// (PATCH /ema1d/pairs/{id})
+	UpdateEma1dPair(ctx context.Context, request UpdateEma1dPairRequestObject) (UpdateEma1dPairResponseObject, error)
+	// GetEma1dSignals Where the strategy stands from the stored candles (no fetch, no sync)
+	// (GET /ema1d/signals)
+	GetEma1dSignals(ctx context.Context, request GetEma1dSignalsRequestObject) (GetEma1dSignalsResponseObject, error)
+	// GetEma1dStatus Capital, exposure, margin level, open positions, todos and the last sync
+	// (GET /ema1d/status)
+	GetEma1dStatus(ctx context.Context, request GetEma1dStatusRequestObject) (GetEma1dStatusResponseObject, error)
+
+	// (GET /ema1d/todos)
+	ListEma1dTodos(ctx context.Context, request ListEma1dTodosRequestObject) (ListEma1dTodosResponseObject, error)
+	// CreateEma1dTodo Queue one OPEN or CLOSE by hand (same checks as the sync)
+	// (POST /ema1d/todos)
+	CreateEma1dTodo(ctx context.Context, request CreateEma1dTodoRequestObject) (CreateEma1dTodoResponseObject, error)
+
+	// (POST /ema1d/todos/{id}/cancel)
+	CancelEma1dTodo(ctx context.Context, request CancelEma1dTodoRequestObject) (CancelEma1dTodoResponseObject, error)
+
+	// (POST /ema1d/todos/{id}/retry)
+	RetryEma1dTodo(ctx context.Context, request RetryEma1dTodoRequestObject) (RetryEma1dTodoResponseObject, error)
+
+	// (GET /ema1d/trades)
+	ListEma1dTrades(ctx context.Context, request ListEma1dTradesRequestObject) (ListEma1dTradesResponseObject, error)
+
 	// (GET /jobs)
 	ListJobs(ctx context.Context, request ListJobsRequestObject) (ListJobsResponseObject, error)
 	// RunJob Start the job now, in the background
@@ -1767,6 +3711,411 @@ func (sh *strictHandler) UpdateCoin(w http.ResponseWriter, r *http.Request, id I
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateCoinResponseObject); ok {
 		if err := validResponse.VisitUpdateCoinResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEma1dConfig operation middleware
+func (sh *strictHandler) GetEma1dConfig(w http.ResponseWriter, r *http.Request) {
+	var request GetEma1dConfigRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEma1dConfig(ctx, request.(GetEma1dConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEma1dConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEma1dConfigResponseObject); ok {
+		if err := validResponse.VisitGetEma1dConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateEma1dConfig operation middleware
+func (sh *strictHandler) UpdateEma1dConfig(w http.ResponseWriter, r *http.Request) {
+	var request UpdateEma1dConfigRequestObject
+
+	var body UpdateEma1dConfigJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateEma1dConfig(ctx, request.(UpdateEma1dConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateEma1dConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateEma1dConfigResponseObject); ok {
+		if err := validResponse.VisitUpdateEma1dConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEma1dConfigHistory operation middleware
+func (sh *strictHandler) GetEma1dConfigHistory(w http.ResponseWriter, r *http.Request) {
+	var request GetEma1dConfigHistoryRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEma1dConfigHistory(ctx, request.(GetEma1dConfigHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEma1dConfigHistory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEma1dConfigHistoryResponseObject); ok {
+		if err := validResponse.VisitGetEma1dConfigHistoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListEma1dDailyChecks operation middleware
+func (sh *strictHandler) ListEma1dDailyChecks(w http.ResponseWriter, r *http.Request, params ListEma1dDailyChecksParams) {
+	var request ListEma1dDailyChecksRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListEma1dDailyChecks(ctx, request.(ListEma1dDailyChecksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListEma1dDailyChecks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListEma1dDailyChecksResponseObject); ok {
+		if err := validResponse.VisitListEma1dDailyChecksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEma1dEquity operation middleware
+func (sh *strictHandler) GetEma1dEquity(w http.ResponseWriter, r *http.Request, params GetEma1dEquityParams) {
+	var request GetEma1dEquityRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEma1dEquity(ctx, request.(GetEma1dEquityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEma1dEquity")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEma1dEquityResponseObject); ok {
+		if err := validResponse.VisitGetEma1dEquityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListEma1dPairs operation middleware
+func (sh *strictHandler) ListEma1dPairs(w http.ResponseWriter, r *http.Request) {
+	var request ListEma1dPairsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListEma1dPairs(ctx, request.(ListEma1dPairsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListEma1dPairs")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListEma1dPairsResponseObject); ok {
+		if err := validResponse.VisitListEma1dPairsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CheckEma1dPairs operation middleware
+func (sh *strictHandler) CheckEma1dPairs(w http.ResponseWriter, r *http.Request) {
+	var request CheckEma1dPairsRequestObject
+
+	var body CheckEma1dPairsJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CheckEma1dPairs(ctx, request.(CheckEma1dPairsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CheckEma1dPairs")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CheckEma1dPairsResponseObject); ok {
+		if err := validResponse.VisitCheckEma1dPairsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateEma1dPair operation middleware
+func (sh *strictHandler) UpdateEma1dPair(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdateEma1dPairRequestObject
+
+	request.Id = id
+
+	var body UpdateEma1dPairJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateEma1dPair(ctx, request.(UpdateEma1dPairRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateEma1dPair")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateEma1dPairResponseObject); ok {
+		if err := validResponse.VisitUpdateEma1dPairResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEma1dSignals operation middleware
+func (sh *strictHandler) GetEma1dSignals(w http.ResponseWriter, r *http.Request) {
+	var request GetEma1dSignalsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEma1dSignals(ctx, request.(GetEma1dSignalsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEma1dSignals")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEma1dSignalsResponseObject); ok {
+		if err := validResponse.VisitGetEma1dSignalsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEma1dStatus operation middleware
+func (sh *strictHandler) GetEma1dStatus(w http.ResponseWriter, r *http.Request) {
+	var request GetEma1dStatusRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEma1dStatus(ctx, request.(GetEma1dStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEma1dStatus")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEma1dStatusResponseObject); ok {
+		if err := validResponse.VisitGetEma1dStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListEma1dTodos operation middleware
+func (sh *strictHandler) ListEma1dTodos(w http.ResponseWriter, r *http.Request, params ListEma1dTodosParams) {
+	var request ListEma1dTodosRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListEma1dTodos(ctx, request.(ListEma1dTodosRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListEma1dTodos")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListEma1dTodosResponseObject); ok {
+		if err := validResponse.VisitListEma1dTodosResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateEma1dTodo operation middleware
+func (sh *strictHandler) CreateEma1dTodo(w http.ResponseWriter, r *http.Request) {
+	var request CreateEma1dTodoRequestObject
+
+	var body CreateEma1dTodoJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateEma1dTodo(ctx, request.(CreateEma1dTodoRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateEma1dTodo")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateEma1dTodoResponseObject); ok {
+		if err := validResponse.VisitCreateEma1dTodoResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CancelEma1dTodo operation middleware
+func (sh *strictHandler) CancelEma1dTodo(w http.ResponseWriter, r *http.Request, id Id) {
+	var request CancelEma1dTodoRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CancelEma1dTodo(ctx, request.(CancelEma1dTodoRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CancelEma1dTodo")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CancelEma1dTodoResponseObject); ok {
+		if err := validResponse.VisitCancelEma1dTodoResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RetryEma1dTodo operation middleware
+func (sh *strictHandler) RetryEma1dTodo(w http.ResponseWriter, r *http.Request, id Id) {
+	var request RetryEma1dTodoRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RetryEma1dTodo(ctx, request.(RetryEma1dTodoRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RetryEma1dTodo")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RetryEma1dTodoResponseObject); ok {
+		if err := validResponse.VisitRetryEma1dTodoResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListEma1dTrades operation middleware
+func (sh *strictHandler) ListEma1dTrades(w http.ResponseWriter, r *http.Request, params ListEma1dTradesParams) {
+	var request ListEma1dTradesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListEma1dTrades(ctx, request.(ListEma1dTradesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListEma1dTrades")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListEma1dTradesResponseObject); ok {
+		if err := validResponse.VisitListEma1dTradesResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -2046,42 +4395,87 @@ func (sh *strictHandler) GetSystemStatus(w http.ResponseWriter, r *http.Request)
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"i2Wbd6/mwfKO80zlRnmAr9yynC1/zP8zAA==",
+	"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",
+	"VnxZ+knbbKXvxqXbftj+3wA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

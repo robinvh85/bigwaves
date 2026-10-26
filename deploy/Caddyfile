@@ -1,0 +1,11 @@
+# Installed as /etc/caddy/Caddyfile by setup-debian.sh, which replaces __SITE__ with the public
+# address (e.g. bigwaves.example.com, or example.com:3333). Caddy obtains the TLS cert itself.
+__SITE__ {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8080
+
+	log {
+		output stderr
+		level WARN
+	}
+}

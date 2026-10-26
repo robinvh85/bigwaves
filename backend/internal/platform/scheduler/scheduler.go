@@ -57,6 +57,15 @@ type entry struct {
 	cronJob gocron.Job
 }
 
+// Quiet wraps an error the job has already reported itself: the run is recorded FAILED without
+// a second alert.
+func Quiet(err error) error { return quietError{err} }
+
+type quietError struct{ err error }
+
+func (q quietError) Error() string { return q.err.Error() }
+func (q quietError) Unwrap() error { return q.err }
+
 var ErrBusy = errors.New("job is already running")
 var ErrUnknownJob = errors.New("unknown job")
 
@@ -174,7 +183,8 @@ func (s *Scheduler) execute(e *entry, trigger string) error {
 		slog.Error("finish job run", "job", e.job.Name, "err", err)
 	}
 	slog.Info("job finished", "job", e.job.Name, "status", status, "dur_ms", time.Since(start).Milliseconds(), "msg", msg)
-	if runErr != nil && s.alerter != nil {
+	var quiet quietError
+	if runErr != nil && s.alerter != nil && !errors.As(runErr, &quiet) {
 		s.alerter.Report(finishCtx, "job "+e.job.Name, runErr)
 	}
 	s.events.Publish("job.finished", map[string]string{"job": e.job.Name, "status": status})

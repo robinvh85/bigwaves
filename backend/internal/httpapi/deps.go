@@ -3,7 +3,9 @@ package httpapi
 import (
 	"bigwaves/internal/account"
 	"bigwaves/internal/config"
+	"bigwaves/internal/ema1d"
 	"bigwaves/internal/marketdata"
+	"bigwaves/internal/platform/configstore"
 	"bigwaves/internal/platform/db"
 	"bigwaves/internal/platform/scheduler"
 )
@@ -15,4 +17,6 @@ type Deps struct {
 	Pairs     *marketdata.Service
 	Account   *account.Service
 	Scheduler *scheduler.Scheduler
+	EMA1D     *ema1d.Service
+	Configs   *configstore.Store
 }

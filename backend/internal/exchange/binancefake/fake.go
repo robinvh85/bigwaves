@@ -44,6 +44,24 @@ type order struct {
 	Time          int64
 }
 
+// Kline is one candle served by /api/v3/klines.
+type Kline struct {
+	Time                   int64 // open time, unix seconds
+	Open, High, Low, Close string
+}
+
+// SetKlines replaces the candles of a symbol and interval ("1d", "4h").
+func (e *Exchange) SetKlines(symbol, interval string, rows []Kline) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.klines[symbol+"|"+interval] = rows
+}
+
+type lagState struct {
+	qty   money.Dec
+	reads int
+}
+
 type loan struct {
 	Type      string
 	Asset     string
@@ -83,7 +101,13 @@ type Exchange struct {
 	nextID   int64
 	failures []*Failure
 	Calls    []string
-	Now      func() time.Time
+	// orderLog is the client order ids in placement order.
+	orderLog []string
+	// klines by "SYMBOL|interval" ("1d", "4h"), sorted by time.
+	klines map[string][]Kline
+	// lag hides a just-bought coin from the next N account reads (the account catching up).
+	lag map[string]*lagState
+	Now func() time.Time
 }
 
 func New(t testing.TB) *Exchange {
@@ -97,6 +121,8 @@ func New(t testing.TB) *Exchange {
 		DailyRates:  map[string]money.Dec{},
 		FeeRate:     money.MustParse("0.001"),
 		orders:      map[string]*order{},
+		lag:         map[string]*lagState{},
+		klines:      map[string][]Kline{},
 		nextID:      1000,
 		Now:         time.Now,
 	}
@@ -181,6 +207,42 @@ func (e *Exchange) Fail(f Failure) {
 	e.failures = append(e.failures, &f)
 }
 
+// LagNextBuy hides the coin of the next buy of asset from the next reads account reads.
+func (e *Exchange) LagNextBuy(asset string, reads int) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.lag[asset] = &lagState{reads: reads}
+}
+
+// OrderLog returns the client order ids in placement order.
+func (e *Exchange) OrderLog() []string {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return append([]string(nil), e.orderLog...)
+}
+
+// Loans returns how many BORROW and REPAY calls went through.
+func (e *Exchange) Loans() (borrows, repays int) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	for _, l := range e.loans {
+		if l.Type == "BORROW" {
+			borrows++
+		} else {
+			repays++
+		}
+	}
+	return
+}
+
+// Debt is borrowed plus interest of a cross-margin asset.
+func (e *Exchange) Debt(asset string) money.Dec {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	b := bal(e.Cross, asset)
+	return b.Borrowed.Add(b.Interest)
+}
+
 // OrderCount returns how many orders were placed.
 func (e *Exchange) OrderCount() int {
 	e.mu.Lock()
@@ -259,7 +321,7 @@ func (e *Exchange) route(w http.ResponseWriter, r *http.Request, q map[string][]
 	case "GET /api/v3/exchangeInfo":
 		e.exchangeInfo(w, get("symbol"), get("symbols"))
 	case "GET /api/v3/klines":
-		writeJSON(w, []any{})
+		e.serveKlines(w, get("symbol"), get("interval"), get("startTime"), get("limit"))
 	case "GET /api/v3/account":
 		e.spotAccount(w)
 	case "GET /sapi/v1/margin/account":
@@ -287,6 +349,29 @@ func (e *Exchange) route(w http.ResponseWriter, r *http.Request, q map[string][]
 	default:
 		writeErr(w, http.StatusNotFound, -1, "fake: no route "+r.Method+" "+r.URL.Path)
 	}
+}
+
+func (e *Exchange) serveKlines(w http.ResponseWriter, symbol, interval, start, limit string) {
+	startMs, _ := strconv.ParseInt(start, 10, 64)
+	n, _ := strconv.Atoi(limit)
+	if n <= 0 {
+		n = 500
+	}
+	step := int64(86400)
+	if interval == "4h" {
+		step = 4 * 3600
+	}
+	out := []any{}
+	for _, k := range e.klines[symbol+"|"+interval] {
+		if k.Time*1000 < startMs {
+			continue
+		}
+		out = append(out, []any{k.Time * 1000, k.Open, k.High, k.Low, k.Close, "0", (k.Time+step)*1000 - 1, "0", 0, "0", "0", "0"})
+		if len(out) == n {
+			break
+		}
+	}
+	writeJSON(w, out)
 }
 
 func (e *Exchange) tickers(w http.ResponseWriter, symbol string) {
@@ -348,8 +433,13 @@ func (e *Exchange) crossAccount(w http.ResponseWriter) {
 	out := []map[string]string{}
 	for a, b := range e.Cross {
 		net := b.Free.Add(b.Locked).Sub(b.Borrowed).Sub(b.Interest)
+		free := b.Free
+		if l, ok := e.lag[a]; ok && l.reads > 0 && l.qty.IsPositive() {
+			free = free.Sub(l.qty)
+			l.reads--
+		}
 		out = append(out, map[string]string{
-			"asset": a, "free": b.Free.String(), "locked": b.Locked.String(), "borrowed": b.Borrowed.String(),
+			"asset": a, "free": free.String(), "locked": b.Locked.String(), "borrowed": b.Borrowed.String(),
 			"interest": b.Interest.String(), "netAsset": net.String(),
 		})
 	}
@@ -397,6 +487,9 @@ func (e *Exchange) placeOrder(w http.ResponseWriter, path string, get func(strin
 		commission, commAsset = qty.Mul(e.FeeRate), sym.Base
 		bal(wallet, sym.Quote).Free = bal(wallet, sym.Quote).Free.Sub(quote)
 		bal(wallet, sym.Base).Free = bal(wallet, sym.Base).Free.Add(qty).Sub(commission)
+		if l, ok := e.lag[sym.Base]; ok && l.reads > 0 && account == "CROSS" {
+			l.qty = qty.Sub(commission)
+		}
 	case "SELL":
 		if bal(wallet, sym.Base).Free.LessThan(qty) {
 			writeErr(w, 400, -2010, "Account has insufficient balance for requested action.")
@@ -415,6 +508,7 @@ func (e *Exchange) placeOrder(w http.ResponseWriter, path string, get func(strin
 		o.ClientOrderID = fmt.Sprintf("auto_%d", o.OrderID)
 	}
 	e.orders[o.ClientOrderID] = o
+	e.orderLog = append(e.orderLog, o.ClientOrderID)
 	writeJSON(w, e.orderJSON(o, true))
 }
 

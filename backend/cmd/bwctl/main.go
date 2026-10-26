@@ -21,6 +21,7 @@ commands:
   user add <email>     allow an email to sign in
   job list             list scheduled jobs
   job run <name>       run a job now and wait for it
+  ema1d ...            EMA1D tools (bwctl ema1d for the list)
 `
 
 func main() {
@@ -69,6 +70,8 @@ func run(ctx context.Context, cmd string, args []string) error {
 		return nil
 	case cmd == "job" && len(args) == 2 && args[0] == "run":
 		return a.Scheduler.RunSync(args[1])
+	case cmd == "ema1d":
+		return runEma1d(ctx, a, args)
 	default:
 		fmt.Fprint(os.Stderr, usage)
 		return fmt.Errorf("unknown command: %s %v", cmd, args)

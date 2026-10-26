@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily bigwaves SQLite backup
+
+[Timer]
+# 03:30 Asia/Ho_Chi_Minh, after maintenance.retention (03:00).
+OnCalendar=*-*-* 03:30:00 Asia/Ho_Chi_Minh
+Persistent=true
+RandomizedDelaySec=2min
+
+[Install]
+WantedBy=timers.target

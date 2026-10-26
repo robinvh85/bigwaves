@@ -13,6 +13,7 @@ import (
 	"bigwaves/internal/account"
 	"bigwaves/internal/auth"
 	"bigwaves/internal/config"
+	"bigwaves/internal/ema1d"
 	"bigwaves/internal/exchange/binance"
 	"bigwaves/internal/marketdata"
 	"bigwaves/internal/platform/configstore"
@@ -36,6 +37,7 @@ type App struct {
 	Auth      *auth.Service
 	Pairs     *marketdata.Service
 	Account   *account.Service
+	EMA1D     *ema1d.Service
 }
 
 // New opens the database, applies migrations and builds every service.
@@ -68,7 +70,13 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	a.Pairs = &marketdata.Service{DB: d, Binance: a.Binance}
 	a.Account = &account.Service{DB: d, Binance: a.Binance}
 
+	a.EMA1D = &ema1d.Service{
+		DB: d, Binance: a.Binance, Configs: a.Configs, Notifier: a.Notifier, Events: a.Events, Pairs: a.Pairs,
+		ReportConfigured: cfg.Discord.ReportWebhook != "",
+	}
+
 	a.Scheduler.Register(a.Pairs.Jobs(a.Events)...)
+	a.Scheduler.Register(a.EMA1D.Jobs()...)
 	a.Scheduler.Register(a.maintenanceJob())
 	return a, nil
 }

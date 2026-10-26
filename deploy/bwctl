@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Wrapper installed as /usr/local/bin/bwctl: runs the operator CLI as the service user with the
+# production env, e.g. `sudo bwctl user add me@example.com`.
+set -euo pipefail
+exec sudo -u bigwaves bash -c 'set -a; . /etc/bigwaves/env; set +a; cd /var/lib/bigwaves; exec /opt/bigwaves/bin/bwctl "$@"' bwctl "$@"

@@ -31,6 +31,8 @@ func (a *App) Router() http.Handler {
 	})
 
 	a.Auth.Routes(r)
+	// Registered before /api/v1 so the legacy /api/ema1d paths are not caught by the SPA.
+	a.tokenRoutes(r)
 
 	r.Route("/api/v1", func(api chi.Router) {
 		api.NotFound(func(w http.ResponseWriter, r *http.Request) { httpx.WriteError(w, r, httpx.ErrNotFound) })
@@ -42,6 +44,7 @@ func (a *App) Router() http.Handler {
 				json.Use(middleware.Timeout(60 * time.Second))
 				httpapi.Mount(json, &httpapi.Server{Deps: httpapi.Deps{
 					Cfg: a.Cfg, DB: a.DB, Pairs: a.Pairs, Account: a.Account, Scheduler: a.Scheduler,
+					EMA1D: a.EMA1D, Configs: a.Configs,
 				}})
 			})
 		})

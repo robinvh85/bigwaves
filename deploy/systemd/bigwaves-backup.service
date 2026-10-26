@@ -1,0 +1,15 @@
+[Unit]
+Description=bigwaves SQLite backup (VACUUM INTO)
+
+[Service]
+Type=oneshot
+User=bigwaves
+Group=bigwaves
+EnvironmentFile=/etc/bigwaves/env
+ExecStart=/opt/bigwaves/bin/backup.sh
+Nice=10
+IOSchedulingClass=idle
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/bigwaves

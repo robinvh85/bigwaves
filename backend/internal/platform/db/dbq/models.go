@@ -9,6 +9,13 @@ import (
 	"bigwaves/internal/platform/money"
 )
 
+type AppState struct {
+	Key       string
+	Value     dbtype.JSON
+	ExpiresAt *dbtype.Time
+	UpdatedAt dbtype.Time
+}
+
 type Coin struct {
 	ID          int64
 	Name        string
@@ -26,6 +33,123 @@ type ConfigChange struct {
 	CreatedAt dbtype.Time
 }
 
+type Ema1dCandle struct {
+	PairID   int64
+	Interval string
+	OpenTime int64
+	Open     float64
+	High     float64
+	Low      float64
+	Close    float64
+}
+
+type Ema1dDailyCheck struct {
+	SignalDate string
+	Status     string
+	RunID      string
+	Attempts   int64
+	Rows       dbtype.JSON
+	SyncParams dbtype.JSON
+	SyncResult dbtype.JSON
+	Report     string
+	LastError  string
+	SyncedAt   *dbtype.Time
+	SentAt     *dbtype.Time
+	CreatedAt  dbtype.Time
+	UpdatedAt  dbtype.Time
+}
+
+type Ema1dEquitySnapshot struct {
+	Date              string
+	EquityUsdt        money.Dec
+	MarginLevel       *money.Dec
+	OpenLongNotional  money.Dec
+	OpenShortNotional money.Dec
+	CreatedAt         dbtype.Time
+}
+
+type Ema1dPair struct {
+	ID             int64
+	PairID         int64
+	PairGroup      string
+	AllowLong      bool
+	AllowShort     bool
+	ShortSupported bool
+	Status         string
+	AddedOn        string
+	RemovedOn      *string
+	LongExitRule   *string
+	SignalFrom     *string
+	CheckedAt      *dbtype.Time
+	CheckNote      string
+	CreatedAt      dbtype.Time
+	UpdatedAt      dbtype.Time
+}
+
+type Ema1dPosition struct {
+	ID               int64
+	Ema1dPairID      int64
+	PairID           int64
+	Side             string
+	Status           string
+	SignalDate       string
+	ExitRule         *string
+	Amount           money.Dec
+	OpenPrice        *money.Dec
+	ClosePrice       *money.Dec
+	RefOpenPrice     *money.Dec
+	RefClosePrice    *money.Dec
+	SizePercent      money.Dec
+	EquityAtOpen     money.Dec
+	NotionalUsdt     money.Dec
+	FeeUsdt          money.Dec
+	InterestPaid     money.Dec
+	InterestUsdt     money.Dec
+	RealizedProfit   money.Dec
+	UnrealizedProfit money.Dec
+	OpenOrderID      string
+	CloseOrderID     string
+	LegacyTradeID    *int64
+	OpenAt           *dbtype.Time
+	CloseAt          *dbtype.Time
+	CreatedAt        dbtype.Time
+	UpdatedAt        dbtype.Time
+}
+
+type Ema1dSync struct {
+	ID         int64
+	RunID      string
+	SignalDate string
+	RawQuery   string
+	Parsed     dbtype.JSON
+	Result     dbtype.JSON
+	DryRun     bool
+	CreatedAt  dbtype.Time
+}
+
+type Ema1dTodo struct {
+	ID               int64
+	Ema1dPairID      int64
+	Action           string
+	Side             string
+	SignalDate       string
+	RefDate          *string
+	RefPrice         *money.Dec
+	ExitRule         *string
+	Source           string
+	Ema1dSyncID      *int64
+	DependsOnID      *int64
+	PositionID       *int64
+	Status           string
+	Attempts         int64
+	FirstAttemptedAt *dbtype.Time
+	RunAfter         *dbtype.Time
+	LastError        string
+	Step             *string
+	CreatedAt        dbtype.Time
+	UpdatedAt        dbtype.Time
+}
+
 type ErrorEvent struct {
 	Fingerprint string
 	Source      string
@@ -34,6 +158,26 @@ type ErrorEvent struct {
 	FirstSeenAt dbtype.Time
 	LastSeenAt  dbtype.Time
 	NotifiedAt  *dbtype.Time
+}
+
+type ExchangeOrder struct {
+	ID              int64
+	ClientOrderID   string
+	Strategy        string
+	RefID           *int64
+	Symbol          string
+	Account         string
+	Side            string
+	ExchangeOrderID *int64
+	Status          string
+	ExecutedQty     money.Dec
+	QuoteQty        money.Dec
+	AvgPrice        money.Dec
+	NetQty          money.Dec
+	FeeUsdt         money.Dec
+	Raw             dbtype.JSON
+	ExecutedAt      dbtype.Time
+	CreatedAt       dbtype.Time
 }
 
 type JobRun struct {

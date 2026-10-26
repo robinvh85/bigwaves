@@ -1,0 +1,39 @@
+[Unit]
+Description=bigwaves (API + frontend + scheduler)
+Documentation=file:///opt/bigwaves/deploy/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bigwaves
+Group=bigwaves
+EnvironmentFile=/etc/bigwaves/env
+# Soft heap limit so the Go GC works harder before the droplet starts swapping.
+Environment=GOMEMLIMIT=256MiB
+WorkingDirectory=/var/lib/bigwaves
+ExecStart=/opt/bigwaves/bin/bigwaves
+Restart=on-failure
+RestartSec=5s
+# SIGTERM -> HTTP drain (30s) + wait for running jobs. Give it room before SIGKILL.
+KillSignal=SIGTERM
+TimeoutStopSec=120s
+
+# Hardening: the process only writes to its data dir.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadWritePaths=/var/lib/bigwaves
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
