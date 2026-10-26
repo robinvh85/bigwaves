@@ -26,6 +26,69 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for DcaSettingAccount.
+const (
+	CROSS    DcaSettingAccount = "CROSS"
+	ISOLATED DcaSettingAccount = "ISOLATED"
+	SPOT     DcaSettingAccount = "SPOT"
+)
+
+// Valid indicates whether the value is a known member of the DcaSettingAccount enum.
+func (e DcaSettingAccount) Valid() bool {
+	switch e {
+	case CROSS:
+		return true
+	case ISOLATED:
+		return true
+	case SPOT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DcaSettingStatus.
+const (
+	DcaSettingStatusACTIVE   DcaSettingStatus = "ACTIVE"
+	DcaSettingStatusDONE     DcaSettingStatus = "DONE"
+	DcaSettingStatusINACTIVE DcaSettingStatus = "INACTIVE"
+)
+
+// Valid indicates whether the value is a known member of the DcaSettingStatus enum.
+func (e DcaSettingStatus) Valid() bool {
+	switch e {
+	case DcaSettingStatusACTIVE:
+		return true
+	case DcaSettingStatusDONE:
+		return true
+	case DcaSettingStatusINACTIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DcaTradeStatus.
+const (
+	DcaTradeStatusCLOSED  DcaTradeStatus = "CLOSED"
+	DcaTradeStatusOPEN    DcaTradeStatus = "OPEN"
+	DcaTradeStatusOPENING DcaTradeStatus = "OPENING"
+)
+
+// Valid indicates whether the value is a known member of the DcaTradeStatus enum.
+func (e DcaTradeStatus) Valid() bool {
+	switch e {
+	case DcaTradeStatusCLOSED:
+		return true
+	case DcaTradeStatusOPEN:
+		return true
+	case DcaTradeStatusOPENING:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Ema1dDailyCheckStatus.
 const (
 	Ema1dDailyCheckStatusFAILED  Ema1dDailyCheckStatus = "FAILED"
@@ -443,6 +506,48 @@ func (e TransferUsdtJSONBodyDirection) Valid() bool {
 	}
 }
 
+// Defines values for ListDcaSettingsParamsStatus.
+const (
+	ListDcaSettingsParamsStatusACTIVE   ListDcaSettingsParamsStatus = "ACTIVE"
+	ListDcaSettingsParamsStatusDONE     ListDcaSettingsParamsStatus = "DONE"
+	ListDcaSettingsParamsStatusINACTIVE ListDcaSettingsParamsStatus = "INACTIVE"
+)
+
+// Valid indicates whether the value is a known member of the ListDcaSettingsParamsStatus enum.
+func (e ListDcaSettingsParamsStatus) Valid() bool {
+	switch e {
+	case ListDcaSettingsParamsStatusACTIVE:
+		return true
+	case ListDcaSettingsParamsStatusDONE:
+		return true
+	case ListDcaSettingsParamsStatusINACTIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UpdateDcaSettingJSONBodyStatus.
+const (
+	UpdateDcaSettingJSONBodyStatusACTIVE   UpdateDcaSettingJSONBodyStatus = "ACTIVE"
+	UpdateDcaSettingJSONBodyStatusDONE     UpdateDcaSettingJSONBodyStatus = "DONE"
+	UpdateDcaSettingJSONBodyStatusINACTIVE UpdateDcaSettingJSONBodyStatus = "INACTIVE"
+)
+
+// Valid indicates whether the value is a known member of the UpdateDcaSettingJSONBodyStatus enum.
+func (e UpdateDcaSettingJSONBodyStatus) Valid() bool {
+	switch e {
+	case UpdateDcaSettingJSONBodyStatusACTIVE:
+		return true
+	case UpdateDcaSettingJSONBodyStatusDONE:
+		return true
+	case UpdateDcaSettingJSONBodyStatusINACTIVE:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListEma1dTradesParamsStatus.
 const (
 	Closed ListEma1dTradesParamsStatus = "closed"
@@ -508,6 +613,84 @@ type CreatePairRequest struct {
 
 	// Name Example: SUNUSDT
 	Name string `json:"name"`
+}
+
+// DcaConfig defines model for DcaConfig.
+type DcaConfig struct {
+	// Enabled The price check places orders
+	Enabled bool `json:"enabled"`
+
+	// MaxCapitalUsdt USDT held in open rungs across all ladders; 0 = no cap
+	MaxCapitalUsdt Decimal `json:"maxCapitalUsdt"`
+}
+
+// DcaConfigEnvelope defines model for DcaConfigEnvelope.
+type DcaConfigEnvelope struct {
+	Config  DcaConfig `json:"config"`
+	Version int64     `json:"version"`
+}
+
+// DcaSetting defines model for DcaSetting.
+type DcaSetting struct {
+	Account          DcaSettingAccount `json:"account"`
+	CapitalUsdt      Decimal           `json:"capitalUsdt"`
+	CreatedAt        time.Time         `json:"createdAt"`
+	CurrentPrice     *Decimal          `json:"currentPrice,omitempty"`
+	HeldAmount       Decimal           `json:"heldAmount"`
+	HoldingCount     int               `json:"holdingCount"`
+	Id               int64             `json:"id"`
+	MinNotional      *Decimal          `json:"minNotional,omitempty"`
+	NextBuyPrice     *Decimal          `json:"nextBuyPrice,omitempty"`
+	NextSellPrice    *Decimal          `json:"nextSellPrice,omitempty"`
+	Note             string            `json:"note"`
+	PairId           int64             `json:"pairId"`
+	PairName         string            `json:"pairName"`
+	RealizedProfit   Decimal           `json:"realizedProfit"`
+	Status           DcaSettingStatus  `json:"status"`
+	StepSize         *Decimal          `json:"stepSize,omitempty"`
+	TradeCount       int               `json:"tradeCount"`
+	Trades           *[]DcaTrade       `json:"trades,omitempty"`
+	UnrealizedProfit Decimal           `json:"unrealizedProfit"`
+	WaitingCount     int               `json:"waitingCount"`
+}
+
+// DcaSettingAccount defines model for DcaSetting.Account.
+type DcaSettingAccount string
+
+// DcaSettingStatus defines model for DcaSetting.Status.
+type DcaSettingStatus string
+
+// DcaTrade defines model for DcaTrade.
+type DcaTrade struct {
+	Amount           Decimal        `json:"amount"`
+	BuyPrice         Decimal        `json:"buyPrice"`
+	CloseAt          *time.Time     `json:"closeAt,omitempty"`
+	ClosePrice       *Decimal       `json:"closePrice,omitempty"`
+	CostUsdt         Decimal        `json:"costUsdt"`
+	CreatedAt        time.Time      `json:"createdAt"`
+	FeeUsdt          Decimal        `json:"feeUsdt"`
+	HeldAmount       Decimal        `json:"heldAmount"`
+	Id               int64          `json:"id"`
+	LastError        string         `json:"lastError"`
+	OpenAt           *time.Time     `json:"openAt,omitempty"`
+	OpenPrice        *Decimal       `json:"openPrice,omitempty"`
+	RealizedProfit   Decimal        `json:"realizedProfit"`
+	SellPrice        Decimal        `json:"sellPrice"`
+	SettingId        int64          `json:"settingId"`
+	Status           DcaTradeStatus `json:"status"`
+	UnrealizedProfit Decimal        `json:"unrealizedProfit"`
+}
+
+// DcaTradeStatus defines model for DcaTrade.Status.
+type DcaTradeStatus string
+
+// DcaTradeInput defines model for DcaTradeInput.
+type DcaTradeInput struct {
+	Amount   *Decimal `json:"amount,omitempty"`
+	BuyPrice *Decimal `json:"buyPrice,omitempty"`
+
+	// SellPrice 0 = hold, no automatic sell
+	SellPrice *Decimal `json:"sellPrice,omitempty"`
 }
 
 // Decimal defines model for Decimal.
@@ -987,6 +1170,35 @@ type UpdateCoinJSONBody struct {
 	Description string `json:"description"`
 }
 
+// UpdateDcaConfigJSONBody defines parameters for UpdateDcaConfig.
+type UpdateDcaConfigJSONBody struct {
+	Config  DcaConfig `json:"config"`
+	Version int64     `json:"version"`
+}
+
+// ListDcaSettingsParams defines parameters for ListDcaSettings.
+type ListDcaSettingsParams struct {
+	Status *ListDcaSettingsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// ListDcaSettingsParamsStatus defines parameters for ListDcaSettings.
+type ListDcaSettingsParamsStatus string
+
+// CreateDcaSettingJSONBody defines parameters for CreateDcaSetting.
+type CreateDcaSettingJSONBody struct {
+	Note   *string `json:"note,omitempty"`
+	PairId int64   `json:"pairId"`
+}
+
+// UpdateDcaSettingJSONBody defines parameters for UpdateDcaSetting.
+type UpdateDcaSettingJSONBody struct {
+	Note   *string                         `json:"note,omitempty"`
+	Status *UpdateDcaSettingJSONBodyStatus `json:"status,omitempty"`
+}
+
+// UpdateDcaSettingJSONBodyStatus defines parameters for UpdateDcaSetting.
+type UpdateDcaSettingJSONBodyStatus string
+
 // UpdateEma1dConfigJSONBody defines parameters for UpdateEma1dConfig.
 type UpdateEma1dConfigJSONBody struct {
 	Config  Ema1dConfig `json:"config"`
@@ -1050,6 +1262,21 @@ type TransferUsdtJSONRequestBody TransferUsdtJSONBody
 // UpdateCoinJSONRequestBody defines body for UpdateCoin for application/json ContentType.
 type UpdateCoinJSONRequestBody UpdateCoinJSONBody
 
+// UpdateDcaConfigJSONRequestBody defines body for UpdateDcaConfig for application/json ContentType.
+type UpdateDcaConfigJSONRequestBody UpdateDcaConfigJSONBody
+
+// CreateDcaSettingJSONRequestBody defines body for CreateDcaSetting for application/json ContentType.
+type CreateDcaSettingJSONRequestBody CreateDcaSettingJSONBody
+
+// UpdateDcaSettingJSONRequestBody defines body for UpdateDcaSetting for application/json ContentType.
+type UpdateDcaSettingJSONRequestBody UpdateDcaSettingJSONBody
+
+// CreateDcaTradeJSONRequestBody defines body for CreateDcaTrade for application/json ContentType.
+type CreateDcaTradeJSONRequestBody = DcaTradeInput
+
+// UpdateDcaTradeJSONRequestBody defines body for UpdateDcaTrade for application/json ContentType.
+type UpdateDcaTradeJSONRequestBody = DcaTradeInput
+
 // UpdateEma1dConfigJSONRequestBody defines body for UpdateEma1dConfig for application/json ContentType.
 type UpdateEma1dConfigJSONRequestBody UpdateEma1dConfigJSONBody
 
@@ -1085,6 +1312,45 @@ type ServerInterface interface {
 	// UpdateCoin Edit the coin's markdown description
 	// (PATCH /coins/{id})
 	UpdateCoin(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /dca/config)
+	GetDcaConfig(w http.ResponseWriter, r *http.Request)
+
+	// (PATCH /dca/config)
+	UpdateDcaConfig(w http.ResponseWriter, r *http.Request)
+
+	// (GET /dca/config/history)
+	GetDcaConfigHistory(w http.ResponseWriter, r *http.Request)
+
+	// (GET /dca/settings)
+	ListDcaSettings(w http.ResponseWriter, r *http.Request, params ListDcaSettingsParams)
+
+	// (POST /dca/settings)
+	CreateDcaSetting(w http.ResponseWriter, r *http.Request)
+
+	// (DELETE /dca/settings/{id})
+	DeleteDcaSetting(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /dca/settings/{id})
+	GetDcaSetting(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (PATCH /dca/settings/{id})
+	UpdateDcaSetting(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (POST /dca/settings/{id}/trades)
+	CreateDcaTrade(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (DELETE /dca/trades/{id})
+	DeleteDcaTrade(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (PATCH /dca/trades/{id})
+	UpdateDcaTrade(w http.ResponseWriter, r *http.Request, id Id)
+	// ForceBuyDcaTrade Buy a waiting rung now, at market
+	// (POST /dca/trades/{id}/buy)
+	ForceBuyDcaTrade(w http.ResponseWriter, r *http.Request, id Id)
+	// ForceSellDcaTrade Sell a held rung now, at market
+	// (POST /dca/trades/{id}/sell)
+	ForceSellDcaTrade(w http.ResponseWriter, r *http.Request, id Id)
 
 	// (GET /ema1d/config)
 	GetEma1dConfig(w http.ResponseWriter, r *http.Request)
@@ -1192,6 +1458,73 @@ func (_ Unimplemented) TransferUsdt(w http.ResponseWriter, r *http.Request) {
 // UpdateCoin Edit the coin's markdown description
 // (PATCH /coins/{id})
 func (_ Unimplemented) UpdateCoin(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /dca/config)
+func (_ Unimplemented) GetDcaConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /dca/config)
+func (_ Unimplemented) UpdateDcaConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /dca/config/history)
+func (_ Unimplemented) GetDcaConfigHistory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /dca/settings)
+func (_ Unimplemented) ListDcaSettings(w http.ResponseWriter, r *http.Request, params ListDcaSettingsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /dca/settings)
+func (_ Unimplemented) CreateDcaSetting(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (DELETE /dca/settings/{id})
+func (_ Unimplemented) DeleteDcaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /dca/settings/{id})
+func (_ Unimplemented) GetDcaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /dca/settings/{id})
+func (_ Unimplemented) UpdateDcaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /dca/settings/{id}/trades)
+func (_ Unimplemented) CreateDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (DELETE /dca/trades/{id})
+func (_ Unimplemented) DeleteDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /dca/trades/{id})
+func (_ Unimplemented) UpdateDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ForceBuyDcaTrade Buy a waiting rung now, at market
+// (POST /dca/trades/{id}/buy)
+func (_ Unimplemented) ForceBuyDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ForceSellDcaTrade Sell a held rung now, at market
+// (POST /dca/trades/{id}/sell)
+func (_ Unimplemented) ForceSellDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1431,6 +1764,303 @@ func (siw *ServerInterfaceWrapper) UpdateCoin(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateCoin(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetDcaConfig operation middleware
+func (siw *ServerInterfaceWrapper) GetDcaConfig(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetDcaConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateDcaConfig operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDcaConfig(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateDcaConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetDcaConfigHistory operation middleware
+func (siw *ServerInterfaceWrapper) GetDcaConfigHistory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetDcaConfigHistory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListDcaSettings operation middleware
+func (siw *ServerInterfaceWrapper) ListDcaSettings(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListDcaSettingsParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListDcaSettings(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDcaSetting operation middleware
+func (siw *ServerInterfaceWrapper) CreateDcaSetting(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDcaSetting(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteDcaSetting operation middleware
+func (siw *ServerInterfaceWrapper) DeleteDcaSetting(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteDcaSetting(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetDcaSetting operation middleware
+func (siw *ServerInterfaceWrapper) GetDcaSetting(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetDcaSetting(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateDcaSetting operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDcaSetting(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateDcaSetting(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDcaTrade operation middleware
+func (siw *ServerInterfaceWrapper) CreateDcaTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDcaTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteDcaTrade operation middleware
+func (siw *ServerInterfaceWrapper) DeleteDcaTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteDcaTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateDcaTrade operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDcaTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateDcaTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ForceBuyDcaTrade operation middleware
+func (siw *ServerInterfaceWrapper) ForceBuyDcaTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ForceBuyDcaTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ForceSellDcaTrade operation middleware
+func (siw *ServerInterfaceWrapper) ForceSellDcaTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ForceSellDcaTrade(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2252,6 +2882,45 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/ema1d/config/history", wrapper.GetEma1dConfigHistory)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/dca/settings", wrapper.ListDcaSettings)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/dca/settings", wrapper.CreateDcaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/dca/settings/{id}", wrapper.DeleteDcaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/dca/settings/{id}", wrapper.GetDcaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/dca/settings/{id}", wrapper.UpdateDcaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/dca/settings/{id}/trades", wrapper.CreateDcaTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/dca/trades/{id}", wrapper.DeleteDcaTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/dca/trades/{id}", wrapper.UpdateDcaTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/dca/trades/{id}/buy", wrapper.ForceBuyDcaTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/dca/trades/{id}/sell", wrapper.ForceSellDcaTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/dca/config", wrapper.GetDcaConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/dca/config", wrapper.UpdateDcaConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/dca/config/history", wrapper.GetDcaConfigHistory)
+	})
 
 	return r
 }
@@ -2443,6 +3112,506 @@ type UpdateCoindefaultJSONResponse struct {
 }
 
 func (response UpdateCoindefaultJSONResponse) VisitUpdateCoinResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDcaConfigRequestObject struct {
+}
+
+type GetDcaConfigResponseObject interface {
+	VisitGetDcaConfigResponse(w http.ResponseWriter) error
+}
+
+type GetDcaConfig200JSONResponse DcaConfigEnvelope
+
+func (response GetDcaConfig200JSONResponse) VisitGetDcaConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDcaConfigdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetDcaConfigdefaultJSONResponse) VisitGetDcaConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDcaConfigRequestObject struct {
+	Body *UpdateDcaConfigJSONRequestBody
+}
+
+type UpdateDcaConfigResponseObject interface {
+	VisitUpdateDcaConfigResponse(w http.ResponseWriter) error
+}
+
+type UpdateDcaConfig200JSONResponse DcaConfigEnvelope
+
+func (response UpdateDcaConfig200JSONResponse) VisitUpdateDcaConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDcaConfigdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateDcaConfigdefaultJSONResponse) VisitUpdateDcaConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDcaConfigHistoryRequestObject struct {
+}
+
+type GetDcaConfigHistoryResponseObject interface {
+	VisitGetDcaConfigHistoryResponse(w http.ResponseWriter) error
+}
+
+type GetDcaConfigHistory200JSONResponse struct {
+	Items []ConfigChange `json:"items"`
+}
+
+func (response GetDcaConfigHistory200JSONResponse) VisitGetDcaConfigHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDcaConfigHistorydefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetDcaConfigHistorydefaultJSONResponse) VisitGetDcaConfigHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDcaSettingsRequestObject struct {
+	Params ListDcaSettingsParams
+}
+
+type ListDcaSettingsResponseObject interface {
+	VisitListDcaSettingsResponse(w http.ResponseWriter) error
+}
+
+type ListDcaSettings200JSONResponse struct {
+	Items []DcaSetting `json:"items"`
+}
+
+func (response ListDcaSettings200JSONResponse) VisitListDcaSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDcaSettingsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListDcaSettingsdefaultJSONResponse) VisitListDcaSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDcaSettingRequestObject struct {
+	Body *CreateDcaSettingJSONRequestBody
+}
+
+type CreateDcaSettingResponseObject interface {
+	VisitCreateDcaSettingResponse(w http.ResponseWriter) error
+}
+
+type CreateDcaSetting201JSONResponse DcaSetting
+
+func (response CreateDcaSetting201JSONResponse) VisitCreateDcaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDcaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CreateDcaSettingdefaultJSONResponse) VisitCreateDcaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteDcaSettingRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type DeleteDcaSettingResponseObject interface {
+	VisitDeleteDcaSettingResponse(w http.ResponseWriter) error
+}
+
+type DeleteDcaSetting204Response struct {
+}
+
+func (response DeleteDcaSetting204Response) VisitDeleteDcaSettingResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteDcaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response DeleteDcaSettingdefaultJSONResponse) VisitDeleteDcaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDcaSettingRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type GetDcaSettingResponseObject interface {
+	VisitGetDcaSettingResponse(w http.ResponseWriter) error
+}
+
+type GetDcaSetting200JSONResponse DcaSetting
+
+func (response GetDcaSetting200JSONResponse) VisitGetDcaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDcaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetDcaSettingdefaultJSONResponse) VisitGetDcaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDcaSettingRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdateDcaSettingJSONRequestBody
+}
+
+type UpdateDcaSettingResponseObject interface {
+	VisitUpdateDcaSettingResponse(w http.ResponseWriter) error
+}
+
+type UpdateDcaSetting200JSONResponse DcaSetting
+
+func (response UpdateDcaSetting200JSONResponse) VisitUpdateDcaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDcaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateDcaSettingdefaultJSONResponse) VisitUpdateDcaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDcaTradeRequestObject struct {
+	Id   Id `json:"id"`
+	Body *CreateDcaTradeJSONRequestBody
+}
+
+type CreateDcaTradeResponseObject interface {
+	VisitCreateDcaTradeResponse(w http.ResponseWriter) error
+}
+
+type CreateDcaTrade201JSONResponse DcaTrade
+
+func (response CreateDcaTrade201JSONResponse) VisitCreateDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDcaTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CreateDcaTradedefaultJSONResponse) VisitCreateDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteDcaTradeRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type DeleteDcaTradeResponseObject interface {
+	VisitDeleteDcaTradeResponse(w http.ResponseWriter) error
+}
+
+type DeleteDcaTrade204Response struct {
+}
+
+func (response DeleteDcaTrade204Response) VisitDeleteDcaTradeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteDcaTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response DeleteDcaTradedefaultJSONResponse) VisitDeleteDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDcaTradeRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdateDcaTradeJSONRequestBody
+}
+
+type UpdateDcaTradeResponseObject interface {
+	VisitUpdateDcaTradeResponse(w http.ResponseWriter) error
+}
+
+type UpdateDcaTrade200JSONResponse DcaTrade
+
+func (response UpdateDcaTrade200JSONResponse) VisitUpdateDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDcaTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateDcaTradedefaultJSONResponse) VisitUpdateDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ForceBuyDcaTradeRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type ForceBuyDcaTradeResponseObject interface {
+	VisitForceBuyDcaTradeResponse(w http.ResponseWriter) error
+}
+
+type ForceBuyDcaTrade200JSONResponse DcaTrade
+
+func (response ForceBuyDcaTrade200JSONResponse) VisitForceBuyDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ForceBuyDcaTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ForceBuyDcaTradedefaultJSONResponse) VisitForceBuyDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ForceSellDcaTradeRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type ForceSellDcaTradeResponseObject interface {
+	VisitForceSellDcaTradeResponse(w http.ResponseWriter) error
+}
+
+type ForceSellDcaTrade200JSONResponse DcaTrade
+
+func (response ForceSellDcaTrade200JSONResponse) VisitForceSellDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ForceSellDcaTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ForceSellDcaTradedefaultJSONResponse) VisitForceSellDcaTradeResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -3451,6 +4620,45 @@ type StrictServerInterface interface {
 	// (PATCH /coins/{id})
 	UpdateCoin(ctx context.Context, request UpdateCoinRequestObject) (UpdateCoinResponseObject, error)
 
+	// (GET /dca/config)
+	GetDcaConfig(ctx context.Context, request GetDcaConfigRequestObject) (GetDcaConfigResponseObject, error)
+
+	// (PATCH /dca/config)
+	UpdateDcaConfig(ctx context.Context, request UpdateDcaConfigRequestObject) (UpdateDcaConfigResponseObject, error)
+
+	// (GET /dca/config/history)
+	GetDcaConfigHistory(ctx context.Context, request GetDcaConfigHistoryRequestObject) (GetDcaConfigHistoryResponseObject, error)
+
+	// (GET /dca/settings)
+	ListDcaSettings(ctx context.Context, request ListDcaSettingsRequestObject) (ListDcaSettingsResponseObject, error)
+
+	// (POST /dca/settings)
+	CreateDcaSetting(ctx context.Context, request CreateDcaSettingRequestObject) (CreateDcaSettingResponseObject, error)
+
+	// (DELETE /dca/settings/{id})
+	DeleteDcaSetting(ctx context.Context, request DeleteDcaSettingRequestObject) (DeleteDcaSettingResponseObject, error)
+
+	// (GET /dca/settings/{id})
+	GetDcaSetting(ctx context.Context, request GetDcaSettingRequestObject) (GetDcaSettingResponseObject, error)
+
+	// (PATCH /dca/settings/{id})
+	UpdateDcaSetting(ctx context.Context, request UpdateDcaSettingRequestObject) (UpdateDcaSettingResponseObject, error)
+
+	// (POST /dca/settings/{id}/trades)
+	CreateDcaTrade(ctx context.Context, request CreateDcaTradeRequestObject) (CreateDcaTradeResponseObject, error)
+
+	// (DELETE /dca/trades/{id})
+	DeleteDcaTrade(ctx context.Context, request DeleteDcaTradeRequestObject) (DeleteDcaTradeResponseObject, error)
+
+	// (PATCH /dca/trades/{id})
+	UpdateDcaTrade(ctx context.Context, request UpdateDcaTradeRequestObject) (UpdateDcaTradeResponseObject, error)
+	// ForceBuyDcaTrade Buy a waiting rung now, at market
+	// (POST /dca/trades/{id}/buy)
+	ForceBuyDcaTrade(ctx context.Context, request ForceBuyDcaTradeRequestObject) (ForceBuyDcaTradeResponseObject, error)
+	// ForceSellDcaTrade Sell a held rung now, at market
+	// (POST /dca/trades/{id}/sell)
+	ForceSellDcaTrade(ctx context.Context, request ForceSellDcaTradeRequestObject) (ForceSellDcaTradeResponseObject, error)
+
 	// (GET /ema1d/config)
 	GetEma1dConfig(ctx context.Context, request GetEma1dConfigRequestObject) (GetEma1dConfigResponseObject, error)
 	// UpdateEma1dConfig Save a new config; fails with 409 when version is stale
@@ -3711,6 +4919,371 @@ func (sh *strictHandler) UpdateCoin(w http.ResponseWriter, r *http.Request, id I
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateCoinResponseObject); ok {
 		if err := validResponse.VisitUpdateCoinResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetDcaConfig operation middleware
+func (sh *strictHandler) GetDcaConfig(w http.ResponseWriter, r *http.Request) {
+	var request GetDcaConfigRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetDcaConfig(ctx, request.(GetDcaConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetDcaConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetDcaConfigResponseObject); ok {
+		if err := validResponse.VisitGetDcaConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateDcaConfig operation middleware
+func (sh *strictHandler) UpdateDcaConfig(w http.ResponseWriter, r *http.Request) {
+	var request UpdateDcaConfigRequestObject
+
+	var body UpdateDcaConfigJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateDcaConfig(ctx, request.(UpdateDcaConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateDcaConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateDcaConfigResponseObject); ok {
+		if err := validResponse.VisitUpdateDcaConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetDcaConfigHistory operation middleware
+func (sh *strictHandler) GetDcaConfigHistory(w http.ResponseWriter, r *http.Request) {
+	var request GetDcaConfigHistoryRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetDcaConfigHistory(ctx, request.(GetDcaConfigHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetDcaConfigHistory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetDcaConfigHistoryResponseObject); ok {
+		if err := validResponse.VisitGetDcaConfigHistoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListDcaSettings operation middleware
+func (sh *strictHandler) ListDcaSettings(w http.ResponseWriter, r *http.Request, params ListDcaSettingsParams) {
+	var request ListDcaSettingsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListDcaSettings(ctx, request.(ListDcaSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListDcaSettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListDcaSettingsResponseObject); ok {
+		if err := validResponse.VisitListDcaSettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateDcaSetting operation middleware
+func (sh *strictHandler) CreateDcaSetting(w http.ResponseWriter, r *http.Request) {
+	var request CreateDcaSettingRequestObject
+
+	var body CreateDcaSettingJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateDcaSetting(ctx, request.(CreateDcaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateDcaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateDcaSettingResponseObject); ok {
+		if err := validResponse.VisitCreateDcaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteDcaSetting operation middleware
+func (sh *strictHandler) DeleteDcaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	var request DeleteDcaSettingRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteDcaSetting(ctx, request.(DeleteDcaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteDcaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteDcaSettingResponseObject); ok {
+		if err := validResponse.VisitDeleteDcaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetDcaSetting operation middleware
+func (sh *strictHandler) GetDcaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	var request GetDcaSettingRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetDcaSetting(ctx, request.(GetDcaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetDcaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetDcaSettingResponseObject); ok {
+		if err := validResponse.VisitGetDcaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateDcaSetting operation middleware
+func (sh *strictHandler) UpdateDcaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdateDcaSettingRequestObject
+
+	request.Id = id
+
+	var body UpdateDcaSettingJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateDcaSetting(ctx, request.(UpdateDcaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateDcaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateDcaSettingResponseObject); ok {
+		if err := validResponse.VisitUpdateDcaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateDcaTrade operation middleware
+func (sh *strictHandler) CreateDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request CreateDcaTradeRequestObject
+
+	request.Id = id
+
+	var body CreateDcaTradeJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateDcaTrade(ctx, request.(CreateDcaTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateDcaTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateDcaTradeResponseObject); ok {
+		if err := validResponse.VisitCreateDcaTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteDcaTrade operation middleware
+func (sh *strictHandler) DeleteDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request DeleteDcaTradeRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteDcaTrade(ctx, request.(DeleteDcaTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteDcaTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteDcaTradeResponseObject); ok {
+		if err := validResponse.VisitDeleteDcaTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateDcaTrade operation middleware
+func (sh *strictHandler) UpdateDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdateDcaTradeRequestObject
+
+	request.Id = id
+
+	var body UpdateDcaTradeJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateDcaTrade(ctx, request.(UpdateDcaTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateDcaTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateDcaTradeResponseObject); ok {
+		if err := validResponse.VisitUpdateDcaTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ForceBuyDcaTrade operation middleware
+func (sh *strictHandler) ForceBuyDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request ForceBuyDcaTradeRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ForceBuyDcaTrade(ctx, request.(ForceBuyDcaTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ForceBuyDcaTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ForceBuyDcaTradeResponseObject); ok {
+		if err := validResponse.VisitForceBuyDcaTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ForceSellDcaTrade operation middleware
+func (sh *strictHandler) ForceSellDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request ForceSellDcaTradeRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ForceSellDcaTrade(ctx, request.(ForceSellDcaTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ForceSellDcaTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ForceSellDcaTradeResponseObject); ok {
+		if err := validResponse.VisitForceSellDcaTradeResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4395,87 +5968,97 @@ func (sh *strictHandler) GetSystemStatus(w http.ResponseWriter, r *http.Request)
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"VnxZ+knbbKXvxqXbftj+3wA=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

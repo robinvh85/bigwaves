@@ -14,6 +14,7 @@ tags:
   - name: account
   - name: jobs
   - name: ema1d
+  - name: dca
 paths:
   /me:
     get:
@@ -543,6 +544,207 @@ paths:
                   items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
         default: { $ref: "#/components/responses/Error" }
 
+  /dca/settings:
+    get:
+      tags: [dca]
+      operationId: listDcaSettings
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [ACTIVE, INACTIVE, DONE] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/DcaSetting" } }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      tags: [dca]
+      operationId: createDcaSetting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pairId]
+              properties:
+                pairId: { type: integer, format: int64 }
+                note: { type: string }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaSetting" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /dca/settings/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [dca]
+      operationId: getDcaSetting
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaSetting" }
+        default: { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [dca]
+      operationId: updateDcaSetting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [ACTIVE, INACTIVE, DONE] }
+                note: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaSetting" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [dca]
+      operationId: deleteDcaSetting
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Error" }
+
+  /dca/settings/{id}/trades:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [dca]
+      operationId: createDcaTrade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DcaTradeInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaTrade" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /dca/trades/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    patch:
+      tags: [dca]
+      operationId: updateDcaTrade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DcaTradeInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaTrade" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [dca]
+      operationId: deleteDcaTrade
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Error" }
+
+  /dca/trades/{id}/buy:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [dca]
+      operationId: forceBuyDcaTrade
+      summary: Buy a waiting rung now, at market
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaTrade" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /dca/trades/{id}/sell:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [dca]
+      operationId: forceSellDcaTrade
+      summary: Sell a held rung now, at market
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaTrade" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /dca/config:
+    get:
+      tags: [dca]
+      operationId: getDcaConfig
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaConfigEnvelope" }
+        default: { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [dca]
+      operationId: updateDcaConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, config]
+              properties:
+                version: { type: integer, format: int64 }
+                config: { $ref: "#/components/schemas/DcaConfig" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DcaConfigEnvelope" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /dca/config/history:
+    get:
+      tags: [dca]
+      operationId: getDcaConfigHistory
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   parameters:
     Id:
@@ -1029,3 +1231,75 @@ components:
         lastError: { type: string }
         syncedAt: { type: string, format: date-time }
         sentAt: { type: string, format: date-time }
+
+    DcaConfig:
+      type: object
+      required: [enabled, maxCapitalUsdt]
+      properties:
+        enabled: { type: boolean, description: The price check places orders }
+        maxCapitalUsdt:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: USDT held in open rungs across all ladders; 0 = no cap
+
+    DcaConfigEnvelope:
+      type: object
+      required: [config, version]
+      properties:
+        config: { $ref: "#/components/schemas/DcaConfig" }
+        version: { type: integer, format: int64 }
+
+    DcaTradeInput:
+      type: object
+      properties:
+        buyPrice: { $ref: "#/components/schemas/Decimal" }
+        sellPrice:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: 0 = hold, no automatic sell
+        amount: { $ref: "#/components/schemas/Decimal" }
+
+    DcaTrade:
+      type: object
+      required: [id, settingId, status, buyPrice, sellPrice, amount, heldAmount, costUsdt, feeUsdt, realizedProfit, unrealizedProfit, lastError, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        settingId: { type: integer, format: int64 }
+        status: { type: string, enum: [OPENING, OPEN, CLOSED] }
+        buyPrice: { $ref: "#/components/schemas/Decimal" }
+        sellPrice: { $ref: "#/components/schemas/Decimal" }
+        amount: { $ref: "#/components/schemas/Decimal" }
+        heldAmount: { $ref: "#/components/schemas/Decimal" }
+        openPrice: { $ref: "#/components/schemas/Decimal" }
+        closePrice: { $ref: "#/components/schemas/Decimal" }
+        costUsdt: { $ref: "#/components/schemas/Decimal" }
+        feeUsdt: { $ref: "#/components/schemas/Decimal" }
+        realizedProfit: { $ref: "#/components/schemas/Decimal" }
+        unrealizedProfit: { $ref: "#/components/schemas/Decimal" }
+        lastError: { type: string }
+        openAt: { type: string, format: date-time }
+        closeAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    DcaSetting:
+      type: object
+      required: [id, pairId, pairName, status, note, account, tradeCount, waitingCount, holdingCount, heldAmount, capitalUsdt, realizedProfit, unrealizedProfit, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        pairId: { type: integer, format: int64 }
+        pairName: { type: string }
+        status: { type: string, enum: [ACTIVE, INACTIVE, DONE] }
+        note: { type: string }
+        currentPrice: { $ref: "#/components/schemas/Decimal" }
+        stepSize: { $ref: "#/components/schemas/Decimal" }
+        minNotional: { $ref: "#/components/schemas/Decimal" }
+        account: { type: string, enum: [SPOT, CROSS, ISOLATED] }
+        tradeCount: { type: integer }
+        waitingCount: { type: integer }
+        holdingCount: { type: integer }
+        heldAmount: { $ref: "#/components/schemas/Decimal" }
+        capitalUsdt: { $ref: "#/components/schemas/Decimal" }
+        realizedProfit: { $ref: "#/components/schemas/Decimal" }
+        unrealizedProfit: { $ref: "#/components/schemas/Decimal" }
+        nextBuyPrice: { $ref: "#/components/schemas/Decimal" }
+        nextSellPrice: { $ref: "#/components/schemas/Decimal" }
+        createdAt: { type: string, format: date-time }
+        trades: { type: array, items: { $ref: "#/components/schemas/DcaTrade" } }

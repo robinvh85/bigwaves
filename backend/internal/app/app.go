@@ -13,6 +13,7 @@ import (
 	"bigwaves/internal/account"
 	"bigwaves/internal/auth"
 	"bigwaves/internal/config"
+	"bigwaves/internal/dca"
 	"bigwaves/internal/ema1d"
 	"bigwaves/internal/exchange/binance"
 	"bigwaves/internal/marketdata"
@@ -38,6 +39,7 @@ type App struct {
 	Pairs     *marketdata.Service
 	Account   *account.Service
 	EMA1D     *ema1d.Service
+	DCA       *dca.Service
 }
 
 // New opens the database, applies migrations and builds every service.
@@ -76,7 +78,9 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	}
 
 	a.Scheduler.Register(a.Pairs.Jobs(a.Events)...)
+	a.DCA = &dca.Service{DB: d, Binance: a.Binance, Configs: a.Configs, Notifier: a.Notifier, Alerter: a.Alerter, Events: a.Events}
 	a.Scheduler.Register(a.EMA1D.Jobs()...)
+	a.Scheduler.Register(a.DCA.Jobs()...)
 	a.Scheduler.Register(a.maintenanceJob())
 	return a, nil
 }

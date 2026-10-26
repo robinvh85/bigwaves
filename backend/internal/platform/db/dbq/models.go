@@ -33,6 +33,41 @@ type ConfigChange struct {
 	CreatedAt dbtype.Time
 }
 
+type DcaSetting struct {
+	ID        int64
+	PairID    int64
+	Status    string
+	Note      string
+	CreatedAt dbtype.Time
+	UpdatedAt dbtype.Time
+}
+
+type DcaTrade struct {
+	ID               int64
+	DcaSettingID     int64
+	Status           string
+	BuyPrice         money.Dec
+	SellPrice        money.Dec
+	Amount           money.Dec
+	HeldAmount       money.Dec
+	OpenPrice        *money.Dec
+	ClosePrice       *money.Dec
+	BuyQuote         money.Dec
+	SellQuote        money.Dec
+	FeeUsdt          money.Dec
+	ExtraFeeUsdt     money.Dec
+	RealizedProfit   money.Dec
+	UnrealizedProfit money.Dec
+	OpenOrderID      string
+	CloseOrderID     string
+	LastError        string
+	LegacyTradeID    *int64
+	OpenAt           *dbtype.Time
+	CloseAt          *dbtype.Time
+	CreatedAt        dbtype.Time
+	UpdatedAt        dbtype.Time
+}
+
 type Ema1dCandle struct {
 	PairID   int64
 	Interval string

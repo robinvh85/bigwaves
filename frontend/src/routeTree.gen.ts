@@ -18,6 +18,7 @@ import { Route as AppEma1dRouteRouteImport } from './routes/_app/ema1d/route'
 import { Route as AppAdminJobsRouteImport } from './routes/_app/admin/jobs'
 import { Route as AppAdminPairsRouteImport } from './routes/_app/admin/pairs'
 import { Route as AppDcaIndexRouteImport } from './routes/_app/dca/index'
+import { Route as AppDcaIdRouteImport } from './routes/_app/dca/$id'
 import { Route as AppDcaConfigRouteImport } from './routes/_app/dca/config'
 import { Route as AppEma1dIndexRouteImport } from './routes/_app/ema1d/index'
 import { Route as AppEma1dConfigRouteImport } from './routes/_app/ema1d/config'
@@ -70,6 +71,11 @@ const AppDcaIndexRoute = AppDcaIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppDcaRouteRoute,
 } as any)
+const AppDcaIdRoute = AppDcaIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppDcaRouteRoute,
+} as any)
 const AppDcaConfigRoute = AppDcaConfigRouteImport.update({
   id: '/config',
   path: '/config',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/ema1d': typeof AppEma1dRouteRouteWithChildren
   '/admin/jobs': typeof AppAdminJobsRoute
   '/admin/pairs': typeof AppAdminPairsRoute
+  '/dca/$id': typeof AppDcaIdRoute
   '/dca/config': typeof AppDcaConfigRoute
   '/ema1d/config': typeof AppEma1dConfigRoute
   '/ema1d/equity': typeof AppEma1dEquityRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/admin/jobs': typeof AppAdminJobsRoute
   '/admin/pairs': typeof AppAdminPairsRoute
+  '/dca/$id': typeof AppDcaIdRoute
   '/dca/config': typeof AppDcaConfigRoute
   '/ema1d/config': typeof AppEma1dConfigRoute
   '/ema1d/equity': typeof AppEma1dEquityRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/admin/jobs': typeof AppAdminJobsRoute
   '/_app/admin/pairs': typeof AppAdminPairsRoute
+  '/_app/dca/$id': typeof AppDcaIdRoute
   '/_app/dca/config': typeof AppDcaConfigRoute
   '/_app/ema1d/config': typeof AppEma1dConfigRoute
   '/_app/ema1d/equity': typeof AppEma1dEquityRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/ema1d'
     | '/admin/jobs'
     | '/admin/pairs'
+    | '/dca/$id'
     | '/dca/config'
     | '/ema1d/config'
     | '/ema1d/equity'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/jobs'
     | '/admin/pairs'
+    | '/dca/$id'
     | '/dca/config'
     | '/ema1d/config'
     | '/ema1d/equity'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/admin/jobs'
     | '/_app/admin/pairs'
+    | '/_app/dca/$id'
     | '/_app/dca/config'
     | '/_app/ema1d/config'
     | '/_app/ema1d/equity'
@@ -280,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDcaIndexRouteImport
       parentRoute: typeof AppDcaRouteRoute
     }
+    '/_app/dca/$id': {
+      id: '/_app/dca/$id'
+      path: '/$id'
+      fullPath: '/dca/$id'
+      preLoaderRoute: typeof AppDcaIdRouteImport
+      parentRoute: typeof AppDcaRouteRoute
+    }
     '/_app/dca/config': {
       id: '/_app/dca/config'
       path: '/config'
@@ -347,11 +366,13 @@ const AppAdminRouteRouteWithChildren = AppAdminRouteRoute._addFileChildren(
 )
 
 interface AppDcaRouteRouteChildren {
+  AppDcaIdRoute: typeof AppDcaIdRoute
   AppDcaConfigRoute: typeof AppDcaConfigRoute
   AppDcaIndexRoute: typeof AppDcaIndexRoute
 }
 
 const AppDcaRouteRouteChildren: AppDcaRouteRouteChildren = {
+  AppDcaIdRoute: AppDcaIdRoute,
   AppDcaConfigRoute: AppDcaConfigRoute,
   AppDcaIndexRoute: AppDcaIndexRoute,
 }

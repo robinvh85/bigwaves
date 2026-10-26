@@ -432,6 +432,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dca/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listDcaSettings"];
+        put?: never;
+        post: operations["createDcaSetting"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dca/settings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get: operations["getDcaSetting"];
+        put?: never;
+        post?: never;
+        delete: operations["deleteDcaSetting"];
+        options?: never;
+        head?: never;
+        patch: operations["updateDcaSetting"];
+        trace?: never;
+    };
+    "/dca/settings/{id}/trades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createDcaTrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dca/trades/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteDcaTrade"];
+        options?: never;
+        head?: never;
+        patch: operations["updateDcaTrade"];
+        trace?: never;
+    };
+    "/dca/trades/{id}/buy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Buy a waiting rung now, at market */
+        post: operations["forceBuyDcaTrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dca/trades/{id}/sell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sell a held rung now, at market */
+        post: operations["forceSellDcaTrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dca/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getDcaConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateDcaConfig"];
+        trace?: never;
+    };
+    "/dca/config/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getDcaConfigHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -864,6 +1004,75 @@ export interface components {
             syncedAt?: string;
             /** Format: date-time */
             sentAt?: string;
+        };
+        DcaConfig: {
+            /** @description The price check places orders */
+            enabled: boolean;
+            /** @description USDT held in open rungs across all ladders; 0 = no cap */
+            maxCapitalUsdt: components["schemas"]["Decimal"];
+        };
+        DcaConfigEnvelope: {
+            config: components["schemas"]["DcaConfig"];
+            /** Format: int64 */
+            version: number;
+        };
+        DcaTradeInput: {
+            buyPrice?: components["schemas"]["Decimal"];
+            /** @description 0 = hold, no automatic sell */
+            sellPrice?: components["schemas"]["Decimal"];
+            amount?: components["schemas"]["Decimal"];
+        };
+        DcaTrade: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            settingId: number;
+            /** @enum {string} */
+            status: "OPENING" | "OPEN" | "CLOSED";
+            buyPrice: components["schemas"]["Decimal"];
+            sellPrice: components["schemas"]["Decimal"];
+            amount: components["schemas"]["Decimal"];
+            heldAmount: components["schemas"]["Decimal"];
+            openPrice?: components["schemas"]["Decimal"];
+            closePrice?: components["schemas"]["Decimal"];
+            costUsdt: components["schemas"]["Decimal"];
+            feeUsdt: components["schemas"]["Decimal"];
+            realizedProfit: components["schemas"]["Decimal"];
+            unrealizedProfit: components["schemas"]["Decimal"];
+            lastError: string;
+            /** Format: date-time */
+            openAt?: string;
+            /** Format: date-time */
+            closeAt?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        DcaSetting: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            pairId: number;
+            pairName: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE" | "DONE";
+            note: string;
+            currentPrice?: components["schemas"]["Decimal"];
+            stepSize?: components["schemas"]["Decimal"];
+            minNotional?: components["schemas"]["Decimal"];
+            /** @enum {string} */
+            account: "SPOT" | "CROSS" | "ISOLATED";
+            tradeCount: number;
+            waitingCount: number;
+            holdingCount: number;
+            heldAmount: components["schemas"]["Decimal"];
+            capitalUsdt: components["schemas"]["Decimal"];
+            realizedProfit: components["schemas"]["Decimal"];
+            unrealizedProfit: components["schemas"]["Decimal"];
+            nextBuyPrice?: components["schemas"]["Decimal"];
+            nextSellPrice?: components["schemas"]["Decimal"];
+            /** Format: date-time */
+            createdAt: string;
+            trades?: components["schemas"]["DcaTrade"][];
         };
     };
     responses: {
@@ -1603,6 +1812,329 @@ export interface operations {
         };
     };
     getEma1dConfigHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConfigChange"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listDcaSettings: {
+        parameters: {
+            query?: {
+                status?: "ACTIVE" | "INACTIVE" | "DONE";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DcaSetting"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createDcaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: int64 */
+                    pairId: number;
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaSetting"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getDcaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaSetting"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteDcaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateDcaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status?: "ACTIVE" | "INACTIVE" | "DONE";
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaSetting"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createDcaTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DcaTradeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteDcaTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateDcaTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DcaTradeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    forceBuyDcaTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    forceSellDcaTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getDcaConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaConfigEnvelope"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateDcaConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: int64 */
+                    version: number;
+                    config: components["schemas"]["DcaConfig"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DcaConfigEnvelope"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getDcaConfigHistory: {
         parameters: {
             query?: never;
             header?: never;
