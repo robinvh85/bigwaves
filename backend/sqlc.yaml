@@ -1,0 +1,33 @@
+version: "2"
+sql:
+  - engine: sqlite
+    schema: internal/platform/db/migrations
+    queries: internal/platform/db/queries
+    gen:
+      go:
+        package: dbq
+        out: internal/platform/db/dbq
+        emit_json_tags: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
+        overrides:
+          - db_type: DECIMAL_TEXT
+            go_type: bigwaves/internal/platform/money.Dec
+          - db_type: DECIMAL_TEXT
+            nullable: true
+            go_type:
+              import: bigwaves/internal/platform/money
+              type: Dec
+              pointer: true
+          - db_type: TIMESTAMP_TEXT
+            go_type: bigwaves/internal/platform/dbtype.Time
+          - db_type: TIMESTAMP_TEXT
+            nullable: true
+            go_type:
+              import: bigwaves/internal/platform/dbtype
+              type: Time
+              pointer: true
+          - db_type: JSON_TEXT
+            go_type: bigwaves/internal/platform/dbtype.JSON
+          - db_type: BOOLEAN
+            go_type: bool

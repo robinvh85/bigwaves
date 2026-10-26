@@ -9,15 +9,141 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"time"
+
+	"bigwaves/internal/platform/money"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
+	"github.com/oapi-codegen/runtime"
 )
+
+// Defines values for JobRunTrigger.
+const (
+	Manual   JobRunTrigger = "manual"
+	Schedule JobRunTrigger = "schedule"
+)
+
+// Valid indicates whether the value is a known member of the JobRunTrigger enum.
+func (e JobRunTrigger) Valid() bool {
+	switch e {
+	case Manual:
+		return true
+	case Schedule:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for JobRunStatus.
+const (
+	FAILED  JobRunStatus = "FAILED"
+	OK      JobRunStatus = "OK"
+	RUNNING JobRunStatus = "RUNNING"
+	SKIPPED JobRunStatus = "SKIPPED"
+)
+
+// Valid indicates whether the value is a known member of the JobRunStatus enum.
+func (e JobRunStatus) Valid() bool {
+	switch e {
+	case FAILED:
+		return true
+	case OK:
+		return true
+	case RUNNING:
+		return true
+	case SKIPPED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PairStatus.
+const (
+	ACTIVE   PairStatus = "ACTIVE"
+	DISABLED PairStatus = "DISABLED"
+)
+
+// Valid indicates whether the value is a known member of the PairStatus enum.
+func (e PairStatus) Valid() bool {
+	switch e {
+	case ACTIVE:
+		return true
+	case DISABLED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TransferUsdtJSONBodyDirection.
+const (
+	CROSSTOSPOT TransferUsdtJSONBodyDirection = "CROSS_TO_SPOT"
+	SPOTTOCROSS TransferUsdtJSONBodyDirection = "SPOT_TO_CROSS"
+)
+
+// Valid indicates whether the value is a known member of the TransferUsdtJSONBodyDirection enum.
+func (e TransferUsdtJSONBodyDirection) Valid() bool {
+	switch e {
+	case CROSSTOSPOT:
+		return true
+	case SPOTTOCROSS:
+		return true
+	default:
+		return false
+	}
+}
+
+// AmountRequest defines model for AmountRequest.
+type AmountRequest struct {
+	Amount Decimal `json:"amount"`
+}
+
+// Balances defines model for Balances.
+type Balances struct {
+	// CrossDebtUsdt Every borrowed asset valued in USDT
+	CrossDebtUsdt  Decimal `json:"crossDebtUsdt"`
+	CrossTotalUsdt Decimal `json:"crossTotalUsdt"`
+
+	// CrossUsdtDebt USDT borrowed plus interest
+	CrossUsdtDebt Decimal   `json:"crossUsdtDebt"`
+	CrossUsdtFree Decimal   `json:"crossUsdtFree"`
+	FetchedAt     time.Time `json:"fetchedAt"`
+	MarginLevel   Decimal   `json:"marginLevel"`
+	NetTotalUsdt  Decimal   `json:"netTotalUsdt"`
+	SpotTotalUsdt Decimal   `json:"spotTotalUsdt"`
+	SpotUsdtFree  Decimal   `json:"spotUsdtFree"`
+}
+
+// Coin defines model for Coin.
+type Coin struct {
+	// Description Markdown
+	Description string `json:"description"`
+	Id          int64  `json:"id"`
+
+	// Name Example: SUN
+	Name string `json:"name"`
+}
+
+// CreatePairRequest defines model for CreatePairRequest.
+type CreatePairRequest struct {
+	IsIsolated *bool `json:"isIsolated,omitempty"`
+	IsSpot     *bool `json:"isSpot,omitempty"`
+
+	// Name Example: SUNUSDT
+	Name string `json:"name"`
+}
+
+// Decimal defines model for Decimal.
+type Decimal = money.Dec
 
 // ErrorDetail defines model for ErrorDetail.
 type ErrorDetail struct {
@@ -32,29 +158,278 @@ type ErrorResponse struct {
 	Error ErrorDetail `json:"error"`
 }
 
+// JobRun defines model for JobRun.
+type JobRun struct {
+	FinishedAt *time.Time    `json:"finishedAt,omitempty"`
+	Id         int64         `json:"id"`
+	Job        string        `json:"job"`
+	Message    string        `json:"message"`
+	StartedAt  time.Time     `json:"startedAt"`
+	Status     JobRunStatus  `json:"status"`
+	Trigger    JobRunTrigger `json:"trigger"`
+}
+
+// JobRunTrigger defines model for JobRun.Trigger.
+type JobRunTrigger string
+
+// JobRunStatus defines model for JobRunStatus.
+type JobRunStatus string
+
+// JobStatus defines model for JobStatus.
+type JobStatus struct {
+	Cron        string     `json:"cron"`
+	Description string     `json:"description"`
+	LastRun     *JobRun    `json:"lastRun,omitempty"`
+	Name        string     `json:"name"`
+	NextRunAt   *time.Time `json:"nextRunAt,omitempty"`
+	Running     bool       `json:"running"`
+}
+
+// Pair defines model for Pair.
+type Pair struct {
+	Coin         Coin       `json:"coin"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	CurrentPrice *Decimal   `json:"currentPrice,omitempty"`
+	DeletedAt    *time.Time `json:"deletedAt,omitempty"`
+	Id           int64      `json:"id"`
+
+	// InterestRate Yearly borrow rate of the base asset, in percent
+	InterestRate *Decimal `json:"interestRate,omitempty"`
+	IsIsolated   bool     `json:"isIsolated"`
+	IsSpot       bool     `json:"isSpot"`
+	MinNotional  *Decimal `json:"minNotional,omitempty"`
+
+	// Name Example: SUNUSDT
+	Name           string     `json:"name"`
+	PriceUpdatedAt *time.Time `json:"priceUpdatedAt,omitempty"`
+
+	// QuoteAsset Example: USDT
+	QuoteAsset string     `json:"quoteAsset"`
+	Status     PairStatus `json:"status"`
+	StepSize   *Decimal   `json:"stepSize,omitempty"`
+}
+
+// PairStatus defines model for PairStatus.
+type PairStatus string
+
+// SystemStatus defines model for SystemStatus.
+type SystemStatus struct {
+	Env              string `json:"env"`
+	SchedulerEnabled bool   `json:"schedulerEnabled"`
+
+	// TradingEnabled When false no order, borrow, repay or transfer reaches Binance
+	TradingEnabled bool `json:"tradingEnabled"`
+}
+
+// TransferResult defines model for TransferResult.
+type TransferResult struct {
+	TranId int64 `json:"tranId"`
+}
+
+// UpdatePairRequest defines model for UpdatePairRequest.
+type UpdatePairRequest struct {
+	IsIsolated *bool       `json:"isIsolated,omitempty"`
+	IsSpot     *bool       `json:"isSpot,omitempty"`
+	Status     *PairStatus `json:"status,omitempty"`
+}
+
 // User defines model for User.
 type User struct {
 	Email string `json:"email"`
 	Id    int64  `json:"id"`
 }
 
+// Id defines model for Id.
+type Id = int64
+
+// JobName defines model for JobName.
+type JobName = string
+
 // Error defines model for Error.
 type Error = ErrorResponse
 
+// GetBalancesParams defines parameters for GetBalances.
+type GetBalancesParams struct {
+	// Refresh Bypass the 30-second cache
+	Refresh *bool `form:"refresh,omitempty" json:"refresh,omitempty"`
+}
+
+// TransferUsdtJSONBody defines parameters for TransferUsdt.
+type TransferUsdtJSONBody struct {
+	Amount    Decimal                       `json:"amount"`
+	Direction TransferUsdtJSONBodyDirection `json:"direction"`
+}
+
+// TransferUsdtJSONBodyDirection defines parameters for TransferUsdt.
+type TransferUsdtJSONBodyDirection string
+
+// UpdateCoinJSONBody defines parameters for UpdateCoin.
+type UpdateCoinJSONBody struct {
+	Description string `json:"description"`
+}
+
+// ListJobRunsParams defines parameters for ListJobRuns.
+type ListJobRunsParams struct {
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListPairsParams defines parameters for ListPairs.
+type ListPairsParams struct {
+	Status         *PairStatus `form:"status,omitempty" json:"status,omitempty"`
+	IncludeDeleted *bool       `form:"includeDeleted,omitempty" json:"includeDeleted,omitempty"`
+}
+
+// BorrowUsdtJSONRequestBody defines body for BorrowUsdt for application/json ContentType.
+type BorrowUsdtJSONRequestBody = AmountRequest
+
+// RepayUsdtJSONRequestBody defines body for RepayUsdt for application/json ContentType.
+type RepayUsdtJSONRequestBody = AmountRequest
+
+// TransferUsdtJSONRequestBody defines body for TransferUsdt for application/json ContentType.
+type TransferUsdtJSONRequestBody TransferUsdtJSONBody
+
+// UpdateCoinJSONRequestBody defines body for UpdateCoin for application/json ContentType.
+type UpdateCoinJSONRequestBody UpdateCoinJSONBody
+
+// CreatePairJSONRequestBody defines body for CreatePair for application/json ContentType.
+type CreatePairJSONRequestBody = CreatePairRequest
+
+// UpdatePairJSONRequestBody defines body for UpdatePair for application/json ContentType.
+type UpdatePairJSONRequestBody = UpdatePairRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (GET /account/balances)
+	GetBalances(w http.ResponseWriter, r *http.Request, params GetBalancesParams)
+	// BorrowUsdt Borrow USDT on cross margin
+	// (POST /account/borrow)
+	BorrowUsdt(w http.ResponseWriter, r *http.Request)
+	// RepayUsdt Repay USDT on cross margin
+	// (POST /account/repay)
+	RepayUsdt(w http.ResponseWriter, r *http.Request)
+	// TransferUsdt Move USDT between spot and cross margin
+	// (POST /account/transfer)
+	TransferUsdt(w http.ResponseWriter, r *http.Request)
+	// UpdateCoin Edit the coin's markdown description
+	// (PATCH /coins/{id})
+	UpdateCoin(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /jobs)
+	ListJobs(w http.ResponseWriter, r *http.Request)
+	// RunJob Start the job now, in the background
+	// (POST /jobs/{name}/run)
+	RunJob(w http.ResponseWriter, r *http.Request, name JobName)
+
+	// (GET /jobs/{name}/runs)
+	ListJobRuns(w http.ResponseWriter, r *http.Request, name JobName, params ListJobRunsParams)
 	// GetMe Current signed-in user
 	// (GET /me)
 	GetMe(w http.ResponseWriter, r *http.Request)
+
+	// (GET /pairs)
+	ListPairs(w http.ResponseWriter, r *http.Request, params ListPairsParams)
+	// CreatePair Add a pair by its Binance symbol; coin and filters come from Binance
+	// (POST /pairs)
+	CreatePair(w http.ResponseWriter, r *http.Request)
+
+	// (DELETE /pairs/{id})
+	DeletePair(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /pairs/{id})
+	GetPair(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (PATCH /pairs/{id})
+	UpdatePair(w http.ResponseWriter, r *http.Request, id Id)
+	// GetSystemStatus Safety switches and environment, for the status indicators in the top bar
+	// (GET /system)
+	GetSystemStatus(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
 
+// (GET /account/balances)
+func (_ Unimplemented) GetBalances(w http.ResponseWriter, r *http.Request, params GetBalancesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// BorrowUsdt Borrow USDT on cross margin
+// (POST /account/borrow)
+func (_ Unimplemented) BorrowUsdt(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RepayUsdt Repay USDT on cross margin
+// (POST /account/repay)
+func (_ Unimplemented) RepayUsdt(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// TransferUsdt Move USDT between spot and cross margin
+// (POST /account/transfer)
+func (_ Unimplemented) TransferUsdt(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateCoin Edit the coin's markdown description
+// (PATCH /coins/{id})
+func (_ Unimplemented) UpdateCoin(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /jobs)
+func (_ Unimplemented) ListJobs(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RunJob Start the job now, in the background
+// (POST /jobs/{name}/run)
+func (_ Unimplemented) RunJob(w http.ResponseWriter, r *http.Request, name JobName) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /jobs/{name}/runs)
+func (_ Unimplemented) ListJobRuns(w http.ResponseWriter, r *http.Request, name JobName, params ListJobRunsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // GetMe Current signed-in user
 // (GET /me)
 func (_ Unimplemented) GetMe(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /pairs)
+func (_ Unimplemented) ListPairs(w http.ResponseWriter, r *http.Request, params ListPairsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreatePair Add a pair by its Binance symbol; coin and filters come from Binance
+// (POST /pairs)
+func (_ Unimplemented) CreatePair(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (DELETE /pairs/{id})
+func (_ Unimplemented) DeletePair(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /pairs/{id})
+func (_ Unimplemented) GetPair(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /pairs/{id})
+func (_ Unimplemented) UpdatePair(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetSystemStatus Safety switches and environment, for the status indicators in the top bar
+// (GET /system)
+func (_ Unimplemented) GetSystemStatus(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -67,11 +442,346 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// GetBalances operation middleware
+func (siw *ServerInterfaceWrapper) GetBalances(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetBalancesParams
+
+	// ------------- Optional query parameter "refresh" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "refresh", r.URL.Query(), &params.Refresh, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "refresh"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "refresh", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetBalances(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// BorrowUsdt operation middleware
+func (siw *ServerInterfaceWrapper) BorrowUsdt(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.BorrowUsdt(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RepayUsdt operation middleware
+func (siw *ServerInterfaceWrapper) RepayUsdt(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RepayUsdt(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// TransferUsdt operation middleware
+func (siw *ServerInterfaceWrapper) TransferUsdt(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TransferUsdt(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateCoin operation middleware
+func (siw *ServerInterfaceWrapper) UpdateCoin(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateCoin(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListJobs operation middleware
+func (siw *ServerInterfaceWrapper) ListJobs(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListJobs(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RunJob operation middleware
+func (siw *ServerInterfaceWrapper) RunJob(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "name" -------------
+	var name JobName
+
+	err = runtime.BindStyledParameterWithOptions("simple", "name", chi.URLParam(r, "name"), &name, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RunJob(w, r, name)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListJobRuns operation middleware
+func (siw *ServerInterfaceWrapper) ListJobRuns(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "name" -------------
+	var name JobName
+
+	err = runtime.BindStyledParameterWithOptions("simple", "name", chi.URLParam(r, "name"), &name, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListJobRunsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListJobRuns(w, r, name, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetMe operation middleware
 func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMe(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListPairs operation middleware
+func (siw *ServerInterfaceWrapper) ListPairs(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListPairsParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "includeDeleted" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "includeDeleted", r.URL.Query(), &params.IncludeDeleted, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "includeDeleted"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "includeDeleted", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListPairs(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePair operation middleware
+func (siw *ServerInterfaceWrapper) CreatePair(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePair(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeletePair operation middleware
+func (siw *ServerInterfaceWrapper) DeletePair(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeletePair(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPair operation middleware
+func (siw *ServerInterfaceWrapper) GetPair(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPair(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdatePair operation middleware
+func (siw *ServerInterfaceWrapper) UpdatePair(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdatePair(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSystemStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetSystemStatus(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSystemStatus(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -197,11 +907,364 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/me", wrapper.GetMe)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/system", wrapper.GetSystemStatus)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/pairs", wrapper.ListPairs)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/pairs", wrapper.CreatePair)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/pairs/{id}", wrapper.DeletePair)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/pairs/{id}", wrapper.GetPair)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/pairs/{id}", wrapper.UpdatePair)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/coins/{id}", wrapper.UpdateCoin)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/account/balances", wrapper.GetBalances)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/account/borrow", wrapper.BorrowUsdt)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/account/repay", wrapper.RepayUsdt)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/account/transfer", wrapper.TransferUsdt)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/jobs", wrapper.ListJobs)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/jobs/{name}/runs", wrapper.ListJobRuns)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/jobs/{name}/run", wrapper.RunJob)
+	})
 
 	return r
 }
 
 type ErrorJSONResponse ErrorResponse
+
+type GetBalancesRequestObject struct {
+	Params GetBalancesParams
+}
+
+type GetBalancesResponseObject interface {
+	VisitGetBalancesResponse(w http.ResponseWriter) error
+}
+
+type GetBalances200JSONResponse Balances
+
+func (response GetBalances200JSONResponse) VisitGetBalancesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetBalancesdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetBalancesdefaultJSONResponse) VisitGetBalancesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type BorrowUsdtRequestObject struct {
+	Body *BorrowUsdtJSONRequestBody
+}
+
+type BorrowUsdtResponseObject interface {
+	VisitBorrowUsdtResponse(w http.ResponseWriter) error
+}
+
+type BorrowUsdt200JSONResponse TransferResult
+
+func (response BorrowUsdt200JSONResponse) VisitBorrowUsdtResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type BorrowUsdtdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response BorrowUsdtdefaultJSONResponse) VisitBorrowUsdtResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RepayUsdtRequestObject struct {
+	Body *RepayUsdtJSONRequestBody
+}
+
+type RepayUsdtResponseObject interface {
+	VisitRepayUsdtResponse(w http.ResponseWriter) error
+}
+
+type RepayUsdt200JSONResponse TransferResult
+
+func (response RepayUsdt200JSONResponse) VisitRepayUsdtResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RepayUsdtdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response RepayUsdtdefaultJSONResponse) VisitRepayUsdtResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TransferUsdtRequestObject struct {
+	Body *TransferUsdtJSONRequestBody
+}
+
+type TransferUsdtResponseObject interface {
+	VisitTransferUsdtResponse(w http.ResponseWriter) error
+}
+
+type TransferUsdt200JSONResponse TransferResult
+
+func (response TransferUsdt200JSONResponse) VisitTransferUsdtResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TransferUsdtdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response TransferUsdtdefaultJSONResponse) VisitTransferUsdtResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCoinRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdateCoinJSONRequestBody
+}
+
+type UpdateCoinResponseObject interface {
+	VisitUpdateCoinResponse(w http.ResponseWriter) error
+}
+
+type UpdateCoin200JSONResponse Coin
+
+func (response UpdateCoin200JSONResponse) VisitUpdateCoinResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCoindefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateCoindefaultJSONResponse) VisitUpdateCoinResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListJobsRequestObject struct {
+}
+
+type ListJobsResponseObject interface {
+	VisitListJobsResponse(w http.ResponseWriter) error
+}
+
+type ListJobs200JSONResponse struct {
+	Items []JobStatus `json:"items"`
+}
+
+func (response ListJobs200JSONResponse) VisitListJobsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListJobsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListJobsdefaultJSONResponse) VisitListJobsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RunJobRequestObject struct {
+	Name JobName `json:"name"`
+}
+
+type RunJobResponseObject interface {
+	VisitRunJobResponse(w http.ResponseWriter) error
+}
+
+type RunJob202Response struct {
+}
+
+func (response RunJob202Response) VisitRunJobResponse(w http.ResponseWriter) error {
+	w.WriteHeader(202)
+	return nil
+}
+
+type RunJobdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response RunJobdefaultJSONResponse) VisitRunJobResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListJobRunsRequestObject struct {
+	Name   JobName `json:"name"`
+	Params ListJobRunsParams
+}
+
+type ListJobRunsResponseObject interface {
+	VisitListJobRunsResponse(w http.ResponseWriter) error
+}
+
+type ListJobRuns200JSONResponse struct {
+	Items []JobRun `json:"items"`
+}
+
+func (response ListJobRuns200JSONResponse) VisitListJobRunsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListJobRunsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListJobRunsdefaultJSONResponse) VisitListJobRunsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type GetMeRequestObject struct {
 }
@@ -224,25 +1287,300 @@ func (response GetMe200JSONResponse) VisitGetMeResponse(w http.ResponseWriter) e
 	return err
 }
 
-type GetMe401JSONResponse struct{ ErrorJSONResponse }
+type GetMedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
 
-func (response GetMe401JSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+func (response GetMedefaultJSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPairsRequestObject struct {
+	Params ListPairsParams
+}
+
+type ListPairsResponseObject interface {
+	VisitListPairsResponse(w http.ResponseWriter) error
+}
+
+type ListPairs200JSONResponse struct {
+	Items []Pair `json:"items"`
+}
+
+func (response ListPairs200JSONResponse) VisitListPairsResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
 		return err
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(401)
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPairsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListPairsdefaultJSONResponse) VisitListPairsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePairRequestObject struct {
+	Body *CreatePairJSONRequestBody
+}
+
+type CreatePairResponseObject interface {
+	VisitCreatePairResponse(w http.ResponseWriter) error
+}
+
+type CreatePair201JSONResponse Pair
+
+func (response CreatePair201JSONResponse) VisitCreatePairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePairdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CreatePairdefaultJSONResponse) VisitCreatePairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeletePairRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type DeletePairResponseObject interface {
+	VisitDeletePairResponse(w http.ResponseWriter) error
+}
+
+type DeletePair204Response struct {
+}
+
+func (response DeletePair204Response) VisitDeletePairResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeletePairdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response DeletePairdefaultJSONResponse) VisitDeletePairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPairRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type GetPairResponseObject interface {
+	VisitGetPairResponse(w http.ResponseWriter) error
+}
+
+type GetPair200JSONResponse Pair
+
+func (response GetPair200JSONResponse) VisitGetPairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPairdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetPairdefaultJSONResponse) VisitGetPairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePairRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdatePairJSONRequestBody
+}
+
+type UpdatePairResponseObject interface {
+	VisitUpdatePairResponse(w http.ResponseWriter) error
+}
+
+type UpdatePair200JSONResponse Pair
+
+func (response UpdatePair200JSONResponse) VisitUpdatePairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePairdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdatePairdefaultJSONResponse) VisitUpdatePairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSystemStatusRequestObject struct {
+}
+
+type GetSystemStatusResponseObject interface {
+	VisitGetSystemStatusResponse(w http.ResponseWriter) error
+}
+
+type GetSystemStatus200JSONResponse SystemStatus
+
+func (response GetSystemStatus200JSONResponse) VisitGetSystemStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSystemStatusdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetSystemStatusdefaultJSONResponse) VisitGetSystemStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
 	_, err := buf.WriteTo(w)
 	return err
 }
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+
+	// (GET /account/balances)
+	GetBalances(ctx context.Context, request GetBalancesRequestObject) (GetBalancesResponseObject, error)
+	// BorrowUsdt Borrow USDT on cross margin
+	// (POST /account/borrow)
+	BorrowUsdt(ctx context.Context, request BorrowUsdtRequestObject) (BorrowUsdtResponseObject, error)
+	// RepayUsdt Repay USDT on cross margin
+	// (POST /account/repay)
+	RepayUsdt(ctx context.Context, request RepayUsdtRequestObject) (RepayUsdtResponseObject, error)
+	// TransferUsdt Move USDT between spot and cross margin
+	// (POST /account/transfer)
+	TransferUsdt(ctx context.Context, request TransferUsdtRequestObject) (TransferUsdtResponseObject, error)
+	// UpdateCoin Edit the coin's markdown description
+	// (PATCH /coins/{id})
+	UpdateCoin(ctx context.Context, request UpdateCoinRequestObject) (UpdateCoinResponseObject, error)
+
+	// (GET /jobs)
+	ListJobs(ctx context.Context, request ListJobsRequestObject) (ListJobsResponseObject, error)
+	// RunJob Start the job now, in the background
+	// (POST /jobs/{name}/run)
+	RunJob(ctx context.Context, request RunJobRequestObject) (RunJobResponseObject, error)
+
+	// (GET /jobs/{name}/runs)
+	ListJobRuns(ctx context.Context, request ListJobRunsRequestObject) (ListJobRunsResponseObject, error)
 	// GetMe Current signed-in user
 	// (GET /me)
 	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
+
+	// (GET /pairs)
+	ListPairs(ctx context.Context, request ListPairsRequestObject) (ListPairsResponseObject, error)
+	// CreatePair Add a pair by its Binance symbol; coin and filters come from Binance
+	// (POST /pairs)
+	CreatePair(ctx context.Context, request CreatePairRequestObject) (CreatePairResponseObject, error)
+
+	// (DELETE /pairs/{id})
+	DeletePair(ctx context.Context, request DeletePairRequestObject) (DeletePairResponseObject, error)
+
+	// (GET /pairs/{id})
+	GetPair(ctx context.Context, request GetPairRequestObject) (GetPairResponseObject, error)
+
+	// (PATCH /pairs/{id})
+	UpdatePair(ctx context.Context, request UpdatePairRequestObject) (UpdatePairResponseObject, error)
+	// GetSystemStatus Safety switches and environment, for the status indicators in the top bar
+	// (GET /system)
+	GetSystemStatus(ctx context.Context, request GetSystemStatusRequestObject) (GetSystemStatusResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -284,6 +1622,235 @@ type strictHandler struct {
 	options     StrictHTTPServerOptions
 }
 
+// GetBalances operation middleware
+func (sh *strictHandler) GetBalances(w http.ResponseWriter, r *http.Request, params GetBalancesParams) {
+	var request GetBalancesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetBalances(ctx, request.(GetBalancesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetBalances")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetBalancesResponseObject); ok {
+		if err := validResponse.VisitGetBalancesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// BorrowUsdt operation middleware
+func (sh *strictHandler) BorrowUsdt(w http.ResponseWriter, r *http.Request) {
+	var request BorrowUsdtRequestObject
+
+	var body BorrowUsdtJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.BorrowUsdt(ctx, request.(BorrowUsdtRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "BorrowUsdt")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(BorrowUsdtResponseObject); ok {
+		if err := validResponse.VisitBorrowUsdtResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RepayUsdt operation middleware
+func (sh *strictHandler) RepayUsdt(w http.ResponseWriter, r *http.Request) {
+	var request RepayUsdtRequestObject
+
+	var body RepayUsdtJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RepayUsdt(ctx, request.(RepayUsdtRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RepayUsdt")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RepayUsdtResponseObject); ok {
+		if err := validResponse.VisitRepayUsdtResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// TransferUsdt operation middleware
+func (sh *strictHandler) TransferUsdt(w http.ResponseWriter, r *http.Request) {
+	var request TransferUsdtRequestObject
+
+	var body TransferUsdtJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TransferUsdt(ctx, request.(TransferUsdtRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TransferUsdt")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TransferUsdtResponseObject); ok {
+		if err := validResponse.VisitTransferUsdtResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateCoin operation middleware
+func (sh *strictHandler) UpdateCoin(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdateCoinRequestObject
+
+	request.Id = id
+
+	var body UpdateCoinJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateCoin(ctx, request.(UpdateCoinRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateCoin")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateCoinResponseObject); ok {
+		if err := validResponse.VisitUpdateCoinResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListJobs operation middleware
+func (sh *strictHandler) ListJobs(w http.ResponseWriter, r *http.Request) {
+	var request ListJobsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListJobs(ctx, request.(ListJobsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListJobs")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListJobsResponseObject); ok {
+		if err := validResponse.VisitListJobsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RunJob operation middleware
+func (sh *strictHandler) RunJob(w http.ResponseWriter, r *http.Request, name JobName) {
+	var request RunJobRequestObject
+
+	request.Name = name
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RunJob(ctx, request.(RunJobRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RunJob")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RunJobResponseObject); ok {
+		if err := validResponse.VisitRunJobResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListJobRuns operation middleware
+func (sh *strictHandler) ListJobRuns(w http.ResponseWriter, r *http.Request, name JobName, params ListJobRunsParams) {
+	var request ListJobRunsRequestObject
+
+	request.Name = name
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListJobRuns(ctx, request.(ListJobRunsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListJobRuns")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListJobRunsResponseObject); ok {
+		if err := validResponse.VisitListJobRunsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetMe operation middleware
 func (sh *strictHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	var request GetMeRequestObject
@@ -308,20 +1875,213 @@ func (sh *strictHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListPairs operation middleware
+func (sh *strictHandler) ListPairs(w http.ResponseWriter, r *http.Request, params ListPairsParams) {
+	var request ListPairsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListPairs(ctx, request.(ListPairsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListPairs")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListPairsResponseObject); ok {
+		if err := validResponse.VisitListPairsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreatePair operation middleware
+func (sh *strictHandler) CreatePair(w http.ResponseWriter, r *http.Request) {
+	var request CreatePairRequestObject
+
+	var body CreatePairJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreatePair(ctx, request.(CreatePairRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreatePair")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreatePairResponseObject); ok {
+		if err := validResponse.VisitCreatePairResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeletePair operation middleware
+func (sh *strictHandler) DeletePair(w http.ResponseWriter, r *http.Request, id Id) {
+	var request DeletePairRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeletePair(ctx, request.(DeletePairRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeletePair")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeletePairResponseObject); ok {
+		if err := validResponse.VisitDeletePairResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetPair operation middleware
+func (sh *strictHandler) GetPair(w http.ResponseWriter, r *http.Request, id Id) {
+	var request GetPairRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPair(ctx, request.(GetPairRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPair")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPairResponseObject); ok {
+		if err := validResponse.VisitGetPairResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdatePair operation middleware
+func (sh *strictHandler) UpdatePair(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdatePairRequestObject
+
+	request.Id = id
+
+	var body UpdatePairJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdatePair(ctx, request.(UpdatePairRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdatePair")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdatePairResponseObject); ok {
+		if err := validResponse.VisitUpdatePairResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetSystemStatus operation middleware
+func (sh *strictHandler) GetSystemStatus(w http.ResponseWriter, r *http.Request) {
+	var request GetSystemStatusRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSystemStatus(ctx, request.(GetSystemStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSystemStatus")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSystemStatusResponseObject); ok {
+		if err := validResponse.VisitGetSystemStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"i2Wbd6/mwfKO80zlRnmAr9yynC1/zP8zAA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

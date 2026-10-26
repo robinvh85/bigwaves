@@ -1,20 +1,26 @@
-// Command bwctl is the operator CLI: migrations, imports and one-off maintenance tasks.
+// Command bwctl is the operator CLI: migrations, users, one-off jobs and imports.
 package main
 
 import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"sort"
+	"syscall"
 
+	"bigwaves/internal/app"
 	"bigwaves/internal/config"
-	"bigwaves/internal/platform/db"
 	"bigwaves/internal/platform/logging"
 )
 
-const usage = `usage: bwctl <command>
+const usage = `usage: bwctl <command> [args]
 
 commands:
-  migrate    apply database migrations
+  migrate              apply database migrations
+  user add <email>     allow an email to sign in
+  job list             list scheduled jobs
+  job run <name>       run a job now and wait for it
 `
 
 func main() {
@@ -22,29 +28,49 @@ func main() {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(2)
 	}
-	if err := run(context.Background(), os.Args[1], os.Args[2:]); err != nil {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if err := run(ctx, os.Args[1], os.Args[2:]); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, cmd string, _ []string) error {
+func run(ctx context.Context, cmd string, args []string) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return err
 	}
 	logging.Setup(cfg)
 
-	switch cmd {
-	case "migrate":
-		d, err := db.Open(ctx, cfg.DBPath)
+	a, err := app.New(ctx, cfg) // also applies migrations
+	if err != nil {
+		return err
+	}
+	defer func() { _ = a.Close() }()
+
+	switch {
+	case cmd == "migrate":
+		fmt.Println("migrations applied")
+		return nil
+	case cmd == "user" && len(args) == 2 && args[0] == "add":
+		u, err := a.Auth.AddUser(ctx, args[1])
 		if err != nil {
 			return err
 		}
-		defer func() { _ = d.Close() }()
-		return d.Migrate(ctx)
+		fmt.Printf("user %d %s can sign in\n", u.ID, u.Email)
+		return nil
+	case cmd == "job" && len(args) == 1 && args[0] == "list":
+		jobs := a.Scheduler.Jobs()
+		sort.Slice(jobs, func(i, j int) bool { return jobs[i].Name < jobs[j].Name })
+		for _, j := range jobs {
+			fmt.Printf("%-32s %-40s %s\n", j.Name, j.Cron, j.Description)
+		}
+		return nil
+	case cmd == "job" && len(args) == 2 && args[0] == "run":
+		return a.Scheduler.RunSync(args[1])
 	default:
 		fmt.Fprint(os.Stderr, usage)
-		return fmt.Errorf("unknown command %q", cmd)
+		return fmt.Errorf("unknown command: %s %v", cmd, args)
 	}
 }
