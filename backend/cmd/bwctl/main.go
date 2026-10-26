@@ -22,6 +22,12 @@ commands:
   job list             list scheduled jobs
   job run <name>       run a job now and wait for it
   ema1d ...            EMA1D tools (bwctl ema1d for the list)
+
+migration (see .claude/plans/03-migration-cutover.md):
+  import-pg -pg URL -out FILE [-archive DIR]   copy the Rails PostgreSQL data into a NEW SQLite file
+  verify-import -pg URL -db FILE               compare counts, totals and open positions
+  shadow-compare -pg URL [-date D] [-notify]   compare today's Rails sync with the bot (dry run)
+  export-orders -since RFC3339                 orders the bot placed since a time, as CSV (rollback)
 `
 
 func main() {
@@ -43,6 +49,14 @@ func run(ctx context.Context, cmd string, args []string) error {
 		return err
 	}
 	logging.Setup(cfg)
+
+	// These work on files given as flags, not on DB_PATH.
+	switch cmd {
+	case "import-pg":
+		return runImport(ctx, args)
+	case "verify-import":
+		return runVerify(ctx, args)
+	}
 
 	a, err := app.New(ctx, cfg) // also applies migrations
 	if err != nil {
@@ -72,6 +86,10 @@ func run(ctx context.Context, cmd string, args []string) error {
 		return a.Scheduler.RunSync(args[1])
 	case cmd == "ema1d":
 		return runEma1d(ctx, a, args)
+	case cmd == "shadow-compare":
+		return runShadow(ctx, a, args)
+	case cmd == "export-orders":
+		return runExportOrders(ctx, a, args)
 	default:
 		fmt.Fprint(os.Stderr, usage)
 		return fmt.Errorf("unknown command: %s %v", cmd, args)
