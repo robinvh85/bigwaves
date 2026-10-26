@@ -28,6 +28,7 @@ export function ConfirmDialog({
   confirmLabel = 'Xác nhận',
   destructive,
   typeToConfirm,
+  confirmDisabled,
   onConfirm,
 }: {
   open: boolean
@@ -38,11 +39,13 @@ export function ConfirmDialog({
   confirmLabel?: string
   destructive?: boolean
   typeToConfirm?: string
+  /** Keeps the confirm button disabled, e.g. while a form inside the dialog is invalid. */
+  confirmDisabled?: boolean
   onConfirm: () => unknown
 }) {
   const [typed, setTyped] = useState('')
   const [pending, setPending] = useState(false)
-  const blocked = typeToConfirm !== undefined && typed.trim() !== typeToConfirm
+  const blocked = Boolean(confirmDisabled) || (typeToConfirm !== undefined && typed.trim() !== typeToConfirm)
 
   const close = (next: boolean) => {
     if (pending) return

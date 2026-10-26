@@ -15,10 +15,11 @@ import (
 	"bigwaves/internal/platform/scheduler"
 )
 
+// setPrice stores the ticker price unrounded: strategies (DCA triggers) compare against it, so
+// rounding is left to the display.
 func (s *Service) setPrice(ctx context.Context, q *dbq.Queries, id int64, price money.Dec) error {
-	p := money.RoundPrice(price)
 	now := dbtype.Now()
-	return q.SetPairPrice(ctx, dbq.SetPairPriceParams{CurrentPrice: &p, PriceUpdatedAt: &now, ID: id})
+	return q.SetPairPrice(ctx, dbq.SetPairPriceParams{CurrentPrice: &price, PriceUpdatedAt: &now, ID: id})
 }
 
 // UpdatePrices stores the last price of every live pair, from one ticker call.
@@ -70,7 +71,8 @@ func (s *Service) UpdateInterestRates(ctx context.Context) (string, error) {
 		}
 		daily, ok, err := s.Binance.DailyInterestRate(ctx, p.BaseAsset(), since)
 		if err != nil {
-			if errors.Is(err, binance.ErrBanned) || ctx.Err() != nil {
+			// Account-wide problems fail every pair the same way: stop at the first one.
+			if errors.Is(err, binance.ErrBanned) || errors.Is(err, binance.ErrNotConfigured) || ctx.Err() != nil {
 				return "", err
 			}
 			errs = append(errs, fmt.Errorf("%s: %w", p.Name, err))

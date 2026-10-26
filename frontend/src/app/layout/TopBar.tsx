@@ -3,7 +3,9 @@ import { Link, useMatches } from '@tanstack/react-router'
 import { LogOutIcon, MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
 import { Fragment } from 'react'
 
+import { StatusIndicators } from '@/app/layout/StatusIndicators'
 import { type ThemePreference, useThemeStore } from '@/app/theme'
+import { AccountPopover } from '@/features/account/AccountPopover'
 import { logout, meQuery } from '@/features/auth/api'
 import {
   Breadcrumb,
@@ -100,6 +102,8 @@ export function TopBar() {
       <div className="min-w-0 flex-1">
         <Crumbs />
       </div>
+      <StatusIndicators />
+      <AccountPopover />
       <UserMenu />
     </header>
   )

@@ -96,7 +96,7 @@ func (c *Client) do(ctx context.Context, r request, out any) error {
 	}
 	if r.security == signed {
 		if c.cfg.APIKey == "" || c.cfg.SecretKey == "" {
-			return fmt.Errorf("binance: API key not configured for %s", r.path)
+			return fmt.Errorf("%w (%s)", ErrNotConfigured, r.path)
 		}
 		params.Set("timestamp", strconv.FormatInt(c.serverNow().UnixMilli(), 10))
 		params.Set("recvWindow", strconv.Itoa(c.cfg.RecvWindow))

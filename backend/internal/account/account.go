@@ -177,6 +177,9 @@ func upstream(err error) error {
 	if err == nil {
 		return nil
 	}
+	if errors.Is(err, binance.ErrNotConfigured) {
+		return &httpx.Error{Status: http.StatusFailedDependency, Code: "exchange_not_configured", Message: "chưa cấu hình API key Binance", Err: err}
+	}
 	if errors.Is(err, binance.ErrTradingDisabled) {
 		return &httpx.Error{Status: http.StatusConflict, Code: "trading_disabled", Message: "TRADING_ENABLED đang tắt: không gửi lệnh ghi lên Binance", Err: err}
 	}

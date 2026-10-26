@@ -46,6 +46,9 @@ var transientCodes = []int{
 // ErrTradingDisabled is returned by every write call while TRADING_ENABLED is false.
 var ErrTradingDisabled = errors.New("binance: trading disabled (TRADING_ENABLED=false)")
 
+// ErrNotConfigured is returned by signed calls when no API key is set.
+var ErrNotConfigured = errors.New("binance: BINANCE_API_KEY / BINANCE_SECRET_KEY not configured")
+
 // ErrBanned is returned while Binance has banned this IP (HTTP 418) or asked us to back off (429).
 var ErrBanned = errors.New("binance: rate limited, backing off")
 

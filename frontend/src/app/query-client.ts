@@ -1,8 +1,30 @@
-import { QueryClient } from '@tanstack/react-query'
+import { MutationCache, QueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
-import { ApiError } from '@/shared/api/errors'
+import { ApiError, errorMessage } from '@/shared/api/errors'
+
+declare module '@tanstack/react-query' {
+  interface Register {
+    mutationMeta: {
+      /** Skip the default error toast (the caller shows the error itself). */
+      silent?: boolean
+      /** Toast shown on success. */
+      success?: string
+    }
+  }
+}
 
 export const queryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onError: (err, _vars, _ctx, mutation) => {
+      if (mutation.meta?.silent) return
+      if (err instanceof ApiError && err.isUnauthorized) return
+      toast.error(errorMessage(err))
+    },
+    onSuccess: (_data, _vars, _ctx, mutation) => {
+      if (mutation.meta?.success) toast.success(mutation.meta.success)
+    },
+  }),
   defaultOptions: {
     queries: {
       staleTime: 15_000,

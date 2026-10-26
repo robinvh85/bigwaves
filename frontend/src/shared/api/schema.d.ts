@@ -21,10 +21,203 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/system": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Safety switches and environment, for the status indicators in the top bar */
+        get: operations["getSystemStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pairs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPairs"];
+        put?: never;
+        /** Add a pair by its Binance symbol; coin and filters come from Binance */
+        post: operations["createPair"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pairs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get: operations["getPair"];
+        put?: never;
+        post?: never;
+        delete: operations["deletePair"];
+        options?: never;
+        head?: never;
+        patch: operations["updatePair"];
+        trace?: never;
+    };
+    "/coins/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit the coin's markdown description */
+        patch: operations["updateCoin"];
+        trace?: never;
+    };
+    "/account/balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getBalances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/borrow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Borrow USDT on cross margin */
+        post: operations["borrowUsdt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/repay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Repay USDT on cross margin */
+        post: operations["repayUsdt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move USDT between spot and cross margin */
+        post: operations["transferUsdt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{name}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: components["parameters"]["JobName"];
+            };
+            cookie?: never;
+        };
+        get: operations["listJobRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{name}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: components["parameters"]["JobName"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start the job now, in the background */
+        post: operations["runJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Format: decimal */
+        Decimal: string;
         ErrorResponse: {
             error: components["schemas"]["ErrorDetail"];
         };
@@ -41,6 +234,103 @@ export interface components {
             id: number;
             email: string;
         };
+        SystemStatus: {
+            env: string;
+            /** @description When false no order, borrow, repay or transfer reaches Binance */
+            tradingEnabled: boolean;
+            schedulerEnabled: boolean;
+        };
+        /** @enum {string} */
+        PairStatus: "ACTIVE" | "DISABLED";
+        Coin: {
+            /** Format: int64 */
+            id: number;
+            /** @example SUN */
+            name: string;
+            /** @description Markdown */
+            description: string;
+        };
+        Pair: {
+            /** Format: int64 */
+            id: number;
+            /** @example SUNUSDT */
+            name: string;
+            /** @example USDT */
+            quoteAsset: string;
+            status: components["schemas"]["PairStatus"];
+            coin: components["schemas"]["Coin"];
+            currentPrice?: components["schemas"]["Decimal"];
+            /** Format: date-time */
+            priceUpdatedAt?: string;
+            /** @description Yearly borrow rate of the base asset, in percent */
+            interestRate?: components["schemas"]["Decimal"];
+            stepSize?: components["schemas"]["Decimal"];
+            minNotional?: components["schemas"]["Decimal"];
+            isSpot: boolean;
+            isIsolated: boolean;
+            /** Format: date-time */
+            deletedAt?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreatePairRequest: {
+            /** @example SUNUSDT */
+            name: string;
+            /** @default false */
+            isSpot: boolean;
+            /** @default false */
+            isIsolated: boolean;
+        };
+        UpdatePairRequest: {
+            status?: components["schemas"]["PairStatus"];
+            isSpot?: boolean;
+            isIsolated?: boolean;
+        };
+        Balances: {
+            spotUsdtFree: components["schemas"]["Decimal"];
+            crossUsdtFree: components["schemas"]["Decimal"];
+            /** @description USDT borrowed plus interest */
+            crossUsdtDebt: components["schemas"]["Decimal"];
+            /** @description Every borrowed asset valued in USDT */
+            crossDebtUsdt: components["schemas"]["Decimal"];
+            marginLevel: components["schemas"]["Decimal"];
+            spotTotalUsdt: components["schemas"]["Decimal"];
+            crossTotalUsdt: components["schemas"]["Decimal"];
+            netTotalUsdt: components["schemas"]["Decimal"];
+            /** Format: date-time */
+            fetchedAt: string;
+        };
+        AmountRequest: {
+            amount: components["schemas"]["Decimal"];
+        };
+        TransferResult: {
+            /** Format: int64 */
+            tranId: number;
+        };
+        /** @enum {string} */
+        JobRunStatus: "RUNNING" | "OK" | "FAILED" | "SKIPPED";
+        JobRun: {
+            /** Format: int64 */
+            id: number;
+            job: string;
+            /** @enum {string} */
+            trigger: "schedule" | "manual";
+            status: components["schemas"]["JobRunStatus"];
+            message: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            finishedAt?: string;
+        };
+        JobStatus: {
+            name: string;
+            description: string;
+            cron: string;
+            running: boolean;
+            /** Format: date-time */
+            nextRunAt?: string;
+            lastRun?: components["schemas"]["JobRun"];
+        };
     };
     responses: {
         /** @description Error */
@@ -53,7 +343,10 @@ export interface components {
             };
         };
     };
-    parameters: never;
+    parameters: {
+        Id: number;
+        JobName: string;
+    };
     requestBodies: never;
     headers: never;
     pathItems: never;
@@ -78,7 +371,353 @@ export interface operations {
                     "application/json": components["schemas"]["User"];
                 };
             };
-            401: components["responses"]["Error"];
+            default: components["responses"]["Error"];
+        };
+    };
+    getSystemStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemStatus"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listPairs: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["PairStatus"];
+                includeDeleted?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Pair"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createPair: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePairRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pair"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getPair: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pair"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deletePair: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updatePair: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePairRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pair"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateCoin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    description: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Coin"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getBalances: {
+        parameters: {
+            query?: {
+                /** @description Bypass the 30-second cache */
+                refresh?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Balances"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    borrowUsdt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AmountRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransferResult"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    repayUsdt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AmountRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransferResult"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    transferUsdt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    direction: "SPOT_TO_CROSS" | "CROSS_TO_SPOT";
+                    amount: components["schemas"]["Decimal"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransferResult"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["JobStatus"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listJobRuns: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                name: components["parameters"]["JobName"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["JobRun"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    runJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: components["parameters"]["JobName"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Started */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
         };
     };
 }

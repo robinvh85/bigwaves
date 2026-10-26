@@ -21,6 +21,7 @@ export default tseslint.config(
       'react-hooks/exhaustive-deps': 'error',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true, argsIgnorePattern: '^_' }],
       '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],

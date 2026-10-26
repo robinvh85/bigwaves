@@ -199,5 +199,8 @@ func (s *Service) UpdateCoinDescription(ctx context.Context, coinID int64, descr
 
 // upstream wraps an exchange failure as a 502 for the API.
 func upstream(err error) error {
+	if errors.Is(err, binance.ErrNotConfigured) {
+		return &httpx.Error{Status: http.StatusFailedDependency, Code: "exchange_not_configured", Message: "chưa cấu hình API key Binance", Err: err}
+	}
 	return &httpx.Error{Status: http.StatusBadGateway, Code: "exchange_error", Message: "lỗi khi gọi Binance: " + err.Error(), Err: err}
 }

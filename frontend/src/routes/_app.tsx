@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
+import { useEventStream } from '@/app/event-stream'
 import { AppSidebar } from '@/app/layout/AppSidebar'
 import { TopBar } from '@/app/layout/TopBar'
 import { meQuery } from '@/features/auth/api'
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/_app')({
 })
 
 function AppLayout() {
+  useEventStream()
   return (
     <SidebarProvider>
       <AppSidebar />
