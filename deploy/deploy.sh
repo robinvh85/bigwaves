@@ -20,8 +20,9 @@ echo "==> make release"
 make release
 
 echo "==> upload"
-# tar over ssh: a fresh Debian droplet has no rsync.
-COPYFILE_DISABLE=1 tar -cz deploy -C backend/bin bigwaves bwctl \
+# tar over ssh: a fresh Debian droplet has no rsync. --no-xattrs keeps macOS xattrs
+# (com.apple.provenance) out of the archive, which GNU tar would warn about.
+COPYFILE_DISABLE=1 tar --no-xattrs -cz deploy -C backend/bin bigwaves bwctl \
   | ssh "$host" 'rm -rf /tmp/bigwaves-release && mkdir -p /tmp/bigwaves-release && tar -xz -C /tmp/bigwaves-release'
 
 ssh "$host" SETUP_SITE="$setup_site" 'bash -s' <<'REMOTE'
@@ -63,7 +64,7 @@ fi
 echo "==> restart"
 sudo systemctl restart bigwaves
 for i in $(seq 1 30); do
-  if curl -fsS -o /dev/null http://127.0.0.1:8080/healthz; then
+  if curl -fs -o /dev/null http://127.0.0.1:8080/healthz; then
     echo "healthy after ${i}s"
     rm -rf /tmp/bigwaves-release
     exit 0
