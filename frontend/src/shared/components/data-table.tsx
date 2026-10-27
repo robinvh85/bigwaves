@@ -11,7 +11,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
@@ -56,6 +56,34 @@ export type DataTableProps<T> = {
   rowClassName?: (row: T) => string | undefined
 }
 
+const NO_SORTING: SortingState = []
+
+function sameSorting(a: SortingState, b: SortingState) {
+  return (
+    a.length === b.length &&
+    a.every((s, i) => {
+      const t = b[i]
+      return t !== undefined && s.id === t.id && s.desc === t.desc
+    })
+  )
+}
+
+/**
+ * Callers pass `sorting` as a literal (`sorting={[{ id: 'pnl', desc: true }]}`), a new array on
+ * every render. TanStack Table recomputes the sorted rows on a new array and, with
+ * autoResetPageIndex, resets the page — another render, another array: the tab freezes. Keep the
+ * previous array while the value is the same.
+ */
+function useStableSorting(sorting: SortingState | undefined): SortingState {
+  const next = sorting ?? NO_SORTING
+  const [stable, setStable] = useState(next)
+  if (stable !== next && !sameSorting(stable, next)) {
+    setStable(next)
+    return next
+  }
+  return stable
+}
+
 export function DataTable<T>({
   columns,
   data,
@@ -72,14 +100,15 @@ export function DataTable<T>({
   rowClassName,
 }: DataTableProps<T>) {
   const isMobile = useIsMobile()
+  const stableSorting = useStableSorting(sorting)
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table is not compiler-safe; this component is not memoized by the compiler.
   const table = useReactTable({
     data: data ?? [],
     columns,
     getRowId,
-    state: { sorting: sorting ?? [], globalFilter },
+    state: { sorting: stableSorting, globalFilter },
     onSortingChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(sorting ?? []) : updater
+      const next = typeof updater === 'function' ? updater(stableSorting) : updater
       onSortingChange?.(next)
     },
     getCoreRowModel: getCoreRowModel(),
