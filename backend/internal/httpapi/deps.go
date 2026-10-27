@@ -5,6 +5,7 @@ import (
 	"bigwaves/internal/config"
 	"bigwaves/internal/dca"
 	"bigwaves/internal/ema1d"
+	"bigwaves/internal/emacross"
 	"bigwaves/internal/marketdata"
 	"bigwaves/internal/platform/configstore"
 	"bigwaves/internal/platform/db"
@@ -20,5 +21,6 @@ type Deps struct {
 	Scheduler *scheduler.Scheduler
 	EMA1D     *ema1d.Service
 	DCA       *dca.Service
+	EMACross  *emacross.Service
 	Configs   *configstore.Store
 }

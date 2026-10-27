@@ -15,6 +15,7 @@ tags:
   - name: jobs
   - name: ema1d
   - name: dca
+  - name: emacross
 paths:
   /me:
     get:
@@ -745,6 +746,117 @@ paths:
                   items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
         default: { $ref: "#/components/responses/Error" }
 
+  /ema-cross/pairs:
+    get:
+      tags: [emacross]
+      operationId: listEmaCrossPairs
+      summary: Pairs watched by the EMA cross alert, with their last readings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/EmaCrossPair" } }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-cross/pairs/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      tags: [emacross]
+      operationId: watchEmaCrossPair
+      summary: Set the timeframes watched on a pair (id = pair id); all off removes it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmaCrossWatchRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaCrossPair" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-cross/alerts:
+    get:
+      tags: [emacross]
+      operationId: listEmaCrossAlerts
+      parameters:
+        - name: pairId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: timeframe
+          in: query
+          schema: { $ref: "#/components/schemas/EmaCrossTimeframe" }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 500, default: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/EmaCrossAlert" } }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-cross/config:
+    get:
+      tags: [emacross]
+      operationId: getEmaCrossConfig
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaCrossConfigEnvelope" }
+        default: { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [emacross]
+      operationId: updateEmaCrossConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, config]
+              properties:
+                version: { type: integer, format: int64 }
+                config: { $ref: "#/components/schemas/EmaCrossConfig" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaCrossConfigEnvelope" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-cross/config/history:
+    get:
+      tags: [emacross]
+      operationId: getEmaCrossConfigHistory
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   parameters:
     Id:
@@ -1303,3 +1415,87 @@ components:
         nextSellPrice: { $ref: "#/components/schemas/Decimal" }
         createdAt: { type: string, format: date-time }
         trades: { type: array, items: { $ref: "#/components/schemas/DcaTrade" } }
+
+    EmaCrossTimeframe:
+      type: string
+      enum: [H1, H4, D1]
+
+    EmaCrossDirection:
+      type: string
+      enum: [UP, DOWN]
+
+    EmaCrossState:
+      type: object
+      required: [timeframe, trend, gapPercent, price, candleTime, checkedAt]
+      properties:
+        timeframe: { $ref: "#/components/schemas/EmaCrossTimeframe" }
+        trend: { $ref: "#/components/schemas/EmaCrossDirection" }
+        gapPercent:
+          type: number
+          format: double
+          description: (EMA14 - Smooth10) / Smooth10 * 100
+        price: { $ref: "#/components/schemas/Decimal" }
+        candleTime: { type: string, format: date-time, description: Open time of the running candle }
+        checkedAt: { type: string, format: date-time }
+
+    EmaCrossAlert:
+      type: object
+      required: [id, pairId, pairName, timeframe, direction, price, gapPercent, candleTime, error, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        pairId: { type: integer, format: int64 }
+        pairName: { type: string }
+        timeframe: { $ref: "#/components/schemas/EmaCrossTimeframe" }
+        direction: { $ref: "#/components/schemas/EmaCrossDirection" }
+        price: { $ref: "#/components/schemas/Decimal" }
+        gapPercent: { type: number, format: double }
+        candleTime: { type: string, format: date-time, description: Open time of the candle that crossed }
+        sentAt: { type: string, format: date-time, description: Missing when the Discord message failed }
+        error: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    EmaCrossPair:
+      type: object
+      required: [pairId, pairName, pairStatus, h1, h4, d1, states, lastAlerts]
+      properties:
+        pairId: { type: integer, format: int64 }
+        pairName: { type: string }
+        pairStatus: { $ref: "#/components/schemas/PairStatus" }
+        currentPrice: { $ref: "#/components/schemas/Decimal" }
+        h1: { type: boolean }
+        h4: { type: boolean }
+        d1: { type: boolean }
+        states: { type: array, items: { $ref: "#/components/schemas/EmaCrossState" } }
+        lastAlerts: { type: array, items: { $ref: "#/components/schemas/EmaCrossAlert" } }
+
+    EmaCrossWatchRequest:
+      type: object
+      required: [h1, h4, d1]
+      properties:
+        h1: { type: boolean }
+        h4: { type: boolean }
+        d1: { type: boolean }
+
+    EmaCrossThresholds:
+      type: object
+      required: [h1, h4, d1]
+      properties:
+        h1: { $ref: "#/components/schemas/Decimal" }
+        h4: { $ref: "#/components/schemas/Decimal" }
+        d1: { $ref: "#/components/schemas/Decimal" }
+
+    EmaCrossConfig:
+      type: object
+      required: [enabled, thresholdPercent]
+      properties:
+        enabled: { type: boolean, description: The checks run and send alerts }
+        thresholdPercent:
+          allOf: [{ $ref: "#/components/schemas/EmaCrossThresholds" }]
+          description: How far in % EMA14 must pass Smooth10 to count as a cross
+
+    EmaCrossConfigEnvelope:
+      type: object
+      required: [config, version]
+      properties:
+        config: { $ref: "#/components/schemas/EmaCrossConfig" }
+        version: { type: integer, format: int64 }

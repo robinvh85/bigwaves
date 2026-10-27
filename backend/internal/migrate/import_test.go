@@ -25,14 +25,16 @@ const fixture = `
 INSERT INTO markets (id, name, created_at, updated_at) VALUES (1, 'Binance', now(), now()), (2, 'OKX', now(), now());
 INSERT INTO coins (id, name, description, created_at, updated_at) VALUES
   (1, 'SUN', '# SUN notes', now(), now()), (2, 'ETH', NULL, now(), now()), (3, 'XYZ', NULL, now(), now());
-INSERT INTO pairs (id, coin_id, market_id, name, current_price, status, step_size, is_spot, is_isolated, created_at, updated_at) VALUES
-  (1, 1, 1, 'SUNUSDT', 0.02, 'ACTIVE', 1, false, false, now(), now()),
-  (2, 2, 1, 'ETHUSDT', 2000, 'ACTIVE', 0.0001, false, false, now(), now()),
-  (3, 3, 2, 'XYZUSDT', 1, 'ACTIVE', 1, false, false, now(), now());
+INSERT INTO pairs (id, coin_id, market_id, name, current_price, status, step_size, is_spot, is_isolated,
+  is_auto_ema_h1_trade, is_auto_ema_h4_trade, is_auto_ema_d1_trade, created_at, updated_at) VALUES
+  (1, 1, 1, 'SUNUSDT', 0.02, 'ACTIVE', 1, false, false, false, true, true, now(), now()),
+  (2, 2, 1, 'ETHUSDT', 2000, 'ACTIVE', 0.0001, false, false, false, false, false, now(), now()),
+  (3, 3, 2, 'XYZUSDT', 1, 'ACTIVE', 1, false, false, true, true, true, now(), now());
 INSERT INTO users (id, email, uid, created_at, updated_at, ips) VALUES (1, 'Me@Example.com', 'auth0|1', now(), now(), '{1.2.3.4}');
 INSERT INTO app_settings (key, value, created_at, updated_at) VALUES
   ('EMA1D_ENABLED', 1, now(), now()), ('EMA1D_BUDGET_USDT', 7000, now(), now()),
-  ('EMA1D_SIZE_CORE_LONG', 5, now(), now()), ('EMA_H1_USD_AMOUNT_NEW_TRADE', 50, now(), now());
+  ('EMA1D_SIZE_CORE_LONG', 5, now(), now()), ('EMA_H1_USD_AMOUNT_NEW_TRADE', 50, now(), now()),
+  ('EMA_H4_OVER_CROSS_EMA_PERCENT_FOR_OPEN', 0.05, now(), now());
 INSERT INTO ema1d_pairs (id, pair_id, pair_group, allow_long, allow_short, short_supported, status, added_on, long_exit_rule, created_at, updated_at) VALUES
   (1, 1, 'CORE', true, true, true, 'ACTIVE', '2026-10-01', 'DIV4H', now(), now()),
   (2, 2, 'CORE', true, true, true, 'ACTIVE', '2026-10-01', 'DIV4H', now(), now());
@@ -146,6 +148,13 @@ func TestImportPG(t *testing.T) {
 	// Config from the EMA1D settings.
 	cfg := row(`SELECT json_extract(config, '$.enabled'), json_extract(config, '$.budgetUsdt'), json_extract(config, '$.sizes.coreLong') FROM strategy_configs WHERE strategy = 'ema1d'`)
 	require.Equal(t, []any{int64(1), "7000", "5"}, cfg)
+
+	// EMA cross: the watchlist from the Rails flags (not the OKX pair) and the H4 threshold.
+	require.Equal(t, 1, rep.Imported["emacross_pairs"])
+	require.Equal(t, []any{int64(1), int64(0), int64(1), int64(1)}, row(`SELECT pair_id, h1, h4, d1 FROM emacross_pairs`))
+	require.Equal(t, []any{int64(1), "0.01", "0.05"},
+		row(`SELECT json_extract(config, '$.enabled'), json_extract(config, '$.thresholdPercent.h1'), json_extract(config, '$.thresholdPercent.h4') FROM strategy_configs WHERE strategy = 'emacross'`))
+	require.NotContains(t, strings.Join(rep.Notes, "\n"), "EMA_H4_OVER_CROSS_EMA_PERCENT_FOR_OPEN")
 
 	// Floats survive exactly.
 	require.Equal(t, []any{0.016712345678901234}, row(`SELECT close FROM ema1d_candles WHERE pair_id = 1`))

@@ -52,6 +52,8 @@ func New(t *testing.T, opts ...Option) *Kit {
 	a.Alerter.Notifier = rec
 	a.EMA1D.Notifier = rec
 	a.DCA.Notifier = rec
+	a.EMACross.Notifier = rec
+	a.EMACross.Sleep = func(time.Duration) {}
 	a.EMA1D.ReportConfigured = true
 	a.EMA1D.Sleep = func(time.Duration) {}
 	t.Cleanup(func() { _ = a.Close() })

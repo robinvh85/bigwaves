@@ -22,7 +22,9 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // registers the "pgx" driver
 
 	"bigwaves/internal/ema1d"
+	"bigwaves/internal/emacross"
 	"bigwaves/internal/platform/db"
+	"bigwaves/internal/platform/money"
 )
 
 // Report says what the import did, table by table.
@@ -79,7 +81,7 @@ func ImportPG(ctx context.Context, pgURL, sqlitePath, archiveDir string) (Report
 		{"users", im.users}, {"coins", im.coins}, {"pairs", im.pairs}, {"config", im.config},
 		{"ema1d_pairs", im.ema1dPairs}, {"ema1d_positions", im.positions}, {"ema1d_syncs", im.syncs},
 		{"ema1d_todos", im.todos}, {"ema1d_equity_snapshots", im.snapshots}, {"ema1d_candles", im.candles},
-		{"ema1d_daily_checks", im.dailyChecks}, {"dca", im.dca},
+		{"ema1d_daily_checks", im.dailyChecks}, {"dca", im.dca}, {"emacross_pairs", im.emaCrossPairs},
 	}
 	for _, st := range steps {
 		if err := st.fn(ctx); err != nil {
@@ -246,6 +248,53 @@ func (im *importer) pairs(ctx context.Context) error {
 		})
 }
 
+// emaCrossConfig carries the cross thresholds (EMA_*_OVER_CROSS_EMA_PERCENT_FOR_OPEN) over to the
+// EMA cross alert config.
+func (im *importer) emaCrossConfig(ctx context.Context, get func(string) (string, bool)) error {
+	c := emacross.DefaultConfig()
+	for _, t := range []struct {
+		key string
+		dst *money.Dec
+	}{
+		{"EMA_H1_OVER_CROSS_EMA_PERCENT_FOR_OPEN", &c.ThresholdPercent.H1},
+		{"EMA_H4_OVER_CROSS_EMA_PERCENT_FOR_OPEN", &c.ThresholdPercent.H4},
+		{"EMA_D1_OVER_CROSS_EMA_PERCENT_FOR_OPEN", &c.ThresholdPercent.D1},
+	} {
+		if v, ok := get(t.key); ok {
+			d, err := money.Parse(v)
+			if err != nil {
+				return fmt.Errorf("%s: %w", t.key, err)
+			}
+			*t.dst = d
+		}
+	}
+	if err := c.Validate(); err != nil {
+		return fmt.Errorf("EMA cross settings: %w", err)
+	}
+	raw, _ := json.Marshal(c)
+	if _, err := im.lite.Write.ExecContext(ctx, `INSERT INTO strategy_configs (strategy, config) VALUES (?, ?)`, emacross.StrategyKey, string(raw)); err != nil {
+		return err
+	}
+	im.rep.Imported["strategy_configs"]++
+	return nil
+}
+
+// emaCrossPairs builds the EMA cross watchlist from the Rails flags pairs.is_auto_ema_*_trade.
+func (im *importer) emaCrossPairs(ctx context.Context) error {
+	err := im.copyRows(ctx, "emacross_pairs",
+		`SELECT p.id::text, p.is_auto_ema_h1_trade::text, p.is_auto_ema_h4_trade::text, p.is_auto_ema_d1_trade::text
+		 FROM pairs p JOIN markets m ON m.id = p.market_id
+		 WHERE upper(m.name) = 'BINANCE' AND p.deleted_at IS NULL
+		   AND (p.is_auto_ema_h1_trade OR p.is_auto_ema_h4_trade OR p.is_auto_ema_d1_trade)
+		 ORDER BY p.id`,
+		`INSERT INTO emacross_pairs (pair_id, h1, h4, d1) VALUES (?, ?, ?, ?)`,
+		func(v []*string) []any { return []any{*v[0], pgBool(v[1]), pgBool(v[2]), pgBool(v[3])} })
+	if err == nil && im.rep.Imported["emacross_pairs"] > 0 {
+		im.rep.Notes = append(im.rep.Notes, fmt.Sprintf("EMA cross alerts watch %d pair(s): leave DISCORD_CROSS_WEBHOOK empty while Rails still sends them", im.rep.Imported["emacross_pairs"]))
+	}
+	return err
+}
+
 func pgBool(s *string) int {
 	if s != nil && (*s == "true" || *s == "t") {
 		return 1
@@ -328,6 +377,9 @@ func (im *importer) config(ctx context.Context) error {
 		return err
 	}
 	im.rep.Imported["strategy_configs"]++
+	if err := im.emaCrossConfig(ctx, get); err != nil {
+		return err
+	}
 	var dropped []string
 	for k, v := range settings {
 		if !used[k] {

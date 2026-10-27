@@ -572,6 +572,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ema-cross/pairs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pairs watched by the EMA cross alert, with their last readings */
+        get: operations["listEmaCrossPairs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-cross/pairs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the timeframes watched on a pair (id = pair id); all off removes it */
+        put: operations["watchEmaCrossPair"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-cross/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listEmaCrossAlerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-cross/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEmaCrossConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateEmaCrossConfig"];
+        trace?: never;
+    };
+    "/ema-cross/config/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEmaCrossConfigHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1073,6 +1157,85 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             trades?: components["schemas"]["DcaTrade"][];
+        };
+        /** @enum {string} */
+        EmaCrossTimeframe: "H1" | "H4" | "D1";
+        /** @enum {string} */
+        EmaCrossDirection: "UP" | "DOWN";
+        EmaCrossState: {
+            timeframe: components["schemas"]["EmaCrossTimeframe"];
+            trend: components["schemas"]["EmaCrossDirection"];
+            /**
+             * Format: double
+             * @description (EMA14 - Smooth10) / Smooth10 * 100
+             */
+            gapPercent: number;
+            price: components["schemas"]["Decimal"];
+            /**
+             * Format: date-time
+             * @description Open time of the running candle
+             */
+            candleTime: string;
+            /** Format: date-time */
+            checkedAt: string;
+        };
+        EmaCrossAlert: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            pairId: number;
+            pairName: string;
+            timeframe: components["schemas"]["EmaCrossTimeframe"];
+            direction: components["schemas"]["EmaCrossDirection"];
+            price: components["schemas"]["Decimal"];
+            /** Format: double */
+            gapPercent: number;
+            /**
+             * Format: date-time
+             * @description Open time of the candle that crossed
+             */
+            candleTime: string;
+            /**
+             * Format: date-time
+             * @description Missing when the Discord message failed
+             */
+            sentAt?: string;
+            error: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        EmaCrossPair: {
+            /** Format: int64 */
+            pairId: number;
+            pairName: string;
+            pairStatus: components["schemas"]["PairStatus"];
+            currentPrice?: components["schemas"]["Decimal"];
+            h1: boolean;
+            h4: boolean;
+            d1: boolean;
+            states: components["schemas"]["EmaCrossState"][];
+            lastAlerts: components["schemas"]["EmaCrossAlert"][];
+        };
+        EmaCrossWatchRequest: {
+            h1: boolean;
+            h4: boolean;
+            d1: boolean;
+        };
+        EmaCrossThresholds: {
+            h1: components["schemas"]["Decimal"];
+            h4: components["schemas"]["Decimal"];
+            d1: components["schemas"]["Decimal"];
+        };
+        EmaCrossConfig: {
+            /** @description The checks run and send alerts */
+            enabled: boolean;
+            /** @description How far in % EMA14 must pass Smooth10 to count as a cross */
+            thresholdPercent: components["schemas"]["EmaCrossThresholds"];
+        };
+        EmaCrossConfigEnvelope: {
+            config: components["schemas"]["EmaCrossConfig"];
+            /** Format: int64 */
+            version: number;
         };
     };
     responses: {
@@ -2135,6 +2298,156 @@ export interface operations {
         };
     };
     getDcaConfigHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConfigChange"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listEmaCrossPairs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmaCrossPair"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    watchEmaCrossPair: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmaCrossWatchRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaCrossPair"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listEmaCrossAlerts: {
+        parameters: {
+            query?: {
+                pairId?: number;
+                timeframe?: components["schemas"]["EmaCrossTimeframe"];
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmaCrossAlert"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEmaCrossConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaCrossConfigEnvelope"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateEmaCrossConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: int64 */
+                    version: number;
+                    config: components["schemas"]["EmaCrossConfig"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaCrossConfigEnvelope"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEmaCrossConfigHistory: {
         parameters: {
             query?: never;
             header?: never;

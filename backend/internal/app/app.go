@@ -15,6 +15,7 @@ import (
 	"bigwaves/internal/config"
 	"bigwaves/internal/dca"
 	"bigwaves/internal/ema1d"
+	"bigwaves/internal/emacross"
 	"bigwaves/internal/exchange/binance"
 	"bigwaves/internal/marketdata"
 	"bigwaves/internal/platform/configstore"
@@ -40,6 +41,7 @@ type App struct {
 	Account   *account.Service
 	EMA1D     *ema1d.Service
 	DCA       *dca.Service
+	EMACross  *emacross.Service
 }
 
 // New opens the database, applies migrations and builds every service.
@@ -63,7 +65,7 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 		BaseURL: cfg.Binance.BaseURL, APIKey: cfg.Binance.APIKey, SecretKey: cfg.Binance.SecretKey,
 		TradingEnabled: cfg.TradingEnabled,
 	})
-	a.Notifier = notify.NewDiscord(cfg.Discord.OrderWebhook, cfg.Discord.AlertWebhook, cfg.Discord.ReportWebhook)
+	a.Notifier = notify.NewDiscord(cfg.Discord.OrderWebhook, cfg.Discord.AlertWebhook, cfg.Discord.ReportWebhook, cfg.Discord.CrossWebhook)
 	a.Alerter = notify.NewAlerter(d, a.Notifier)
 	a.Events = events.NewBroker()
 	a.Configs = configstore.New(d)
@@ -81,6 +83,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	a.DCA = &dca.Service{DB: d, Binance: a.Binance, Configs: a.Configs, Notifier: a.Notifier, Alerter: a.Alerter, Events: a.Events}
 	a.Scheduler.Register(a.EMA1D.Jobs()...)
 	a.Scheduler.Register(a.DCA.Jobs()...)
+	a.EMACross = &emacross.Service{DB: d, Binance: a.Binance, Configs: a.Configs, Notifier: a.Notifier, Events: a.Events}
+	a.Scheduler.Register(a.EMACross.Jobs()...)
 	a.Scheduler.Register(a.maintenanceJob())
 	return a, nil
 }

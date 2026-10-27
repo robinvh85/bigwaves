@@ -185,6 +185,38 @@ type Ema1dTodo struct {
 	UpdatedAt        dbtype.Time
 }
 
+type EmacrossAlert struct {
+	ID         int64
+	PairID     int64
+	Timeframe  string
+	CandleTime int64
+	Direction  string
+	Price      money.Dec
+	GapPercent float64
+	SentAt     *dbtype.Time
+	Error      string
+	CreatedAt  dbtype.Time
+}
+
+type EmacrossPair struct {
+	PairID    int64
+	H1        bool
+	H4        bool
+	D1        bool
+	CreatedAt dbtype.Time
+	UpdatedAt dbtype.Time
+}
+
+type EmacrossState struct {
+	PairID     int64
+	Timeframe  string
+	CandleTime int64
+	Trend      string
+	GapPercent float64
+	Price      money.Dec
+	CheckedAt  dbtype.Time
+}
+
 type ErrorEvent struct {
 	Fingerprint string
 	Source      string

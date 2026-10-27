@@ -50,7 +50,7 @@ type Kline struct {
 	Open, High, Low, Close string
 }
 
-// SetKlines replaces the candles of a symbol and interval ("1d", "4h").
+// SetKlines replaces the candles of a symbol and interval ("1d", "4h", "1h").
 func (e *Exchange) SetKlines(symbol, interval string, rows []Kline) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -358,8 +358,11 @@ func (e *Exchange) serveKlines(w http.ResponseWriter, symbol, interval, start, l
 		n = 500
 	}
 	step := int64(86400)
-	if interval == "4h" {
+	switch interval {
+	case "4h":
 		step = 4 * 3600
+	case "1h":
+		step = 3600
 	}
 	out := []any{}
 	for _, k := range e.klines[symbol+"|"+interval] {

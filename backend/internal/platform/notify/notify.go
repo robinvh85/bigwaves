@@ -20,6 +20,7 @@ const (
 	Orders  Channel = "orders"  // orders placed, closed, failed
 	Alerts  Channel = "alerts"  // job failures, margin level, pair problems
 	Reports Channel = "reports" // daily reports
+	Crossed Channel = "crossed" // EMA cross alerts
 )
 
 // Notifier sends a message to a channel. Implementations must be safe for concurrent use.
@@ -35,9 +36,9 @@ type Discord struct {
 	http     *http.Client
 }
 
-func NewDiscord(order, alert, report string) *Discord {
+func NewDiscord(order, alert, report, crossed string) *Discord {
 	return &Discord{
-		webhooks: map[Channel]string{Orders: order, Alerts: alert, Reports: report},
+		webhooks: map[Channel]string{Orders: order, Alerts: alert, Reports: report, Crossed: crossed},
 		http:     &http.Client{Timeout: 15 * time.Second},
 	}
 }

@@ -9,6 +9,7 @@ import (
 
 	"bigwaves/internal/ema1d"
 	"bigwaves/internal/ema1d/engine"
+	"bigwaves/internal/emacross"
 	"bigwaves/internal/platform/money"
 )
 
@@ -78,4 +79,15 @@ func TestDomainTypesMatchTheAPI(t *testing.T) {
 		Pair: "ETH", Ngay: "2026-10-24", Gia: 1.5, EmaOpen: "GIẢM", CatHomNay: "-", Lenh: "SHORT", Vao: sp("2026-10-09"), GiaVao: &px,
 		Lai: "+3.7%", ThoatTheo: "XO", HanhDong: "-", Nhom: "RỔ", GhiChu: "", Open: true, Side: "S",
 	}}})
+
+	alert := emacross.Alert{
+		ID: 1, PairID: 2, PairName: "SUNUSDT", Timeframe: "H4", Direction: "UP", Price: *d("0.02"), GapPercent: 0.35,
+		CandleTime: now, SentAt: &now, Error: "", CreatedAt: now,
+	}
+	roundTrip[EmaCrossPair](t, emacross.Pair{
+		PairID: 2, PairName: "SUNUSDT", PairStatus: "ACTIVE", CurrentPrice: d("0.02"), H1: true, H4: true, D1: false,
+		States:     []emacross.State{{Timeframe: "H4", Trend: "UP", GapPercent: 0.35, Price: *d("0.02"), CandleTime: now, CheckedAt: now}},
+		LastAlerts: []emacross.Alert{alert},
+	})
+	roundTrip[EmaCrossConfig](t, emacross.DefaultConfig())
 }

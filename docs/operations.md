@@ -1,6 +1,6 @@
 # Vận hành
 
-> Liên quan: [cutover.md](cutover.md) · [ema1d.md](ema1d.md) · [dca.md](dca.md)
+> Liên quan: [cutover.md](cutover.md) · [ema1d.md](ema1d.md) · [dca.md](dca.md) · [ema-cross.md](ema-cross.md)
 
 ## Thành phần
 
@@ -38,6 +38,7 @@ Xem `deploy/.env.example`. Trên server đặt ở `/etc/bigwaves/env` (`root:bi
 | `DISCORD_ORDER_WEBHOOK` | Lệnh khớp / lỗi lệnh |
 | `DISCORD_ALERT_WEBHOOK` | Job lỗi, margin level, kết quả shadow |
 | `DISCORD_REPORT_WEBHOOK` | Báo cáo daily check EMA1D (bắt buộc khi bật daily check) |
+| `DISCORD_CROSS_WEBHOOK` | Cảnh báo EMA cross H1/H4/D1 (bỏ trống = chỉ ghi log) |
 | `EMA1D_API_TOKEN` | Token cho các endpoint cũ `/api/ema1d/*` (bỏ trống = tắt) |
 | `BACKUP_KEEP` | Số bản `backup.sh` giữ lại (mặc định 14) |
 
@@ -64,11 +65,14 @@ Màn **Admin → Jobs** hiện lần chạy cuối/kế tiếp và cho chạy ta
 | `ema1d.daily_check` | 07:03 VN | Nến → tín hiệu → sync → báo cáo |
 | `ema1d.daily_snapshot` | 07:05 VN | Ảnh chụp vốn + kiểm tra pair trên Binance |
 | `dca.check` | 5 phút | Mua/bán DCA theo giá |
+| `emacross.check_h1` | phút 01 và 31 | Cảnh báo EMA cross H1 |
+| `emacross.check_h4`, `emacross.check_d1` | phút 03 mỗi giờ | Cảnh báo EMA cross H4, D1 |
 | `market.update_prices` | 10 phút | Giá mọi pair (một lệnh ticker) |
 | `market.update_interest` | mỗi giờ | Lãi vay margin |
 | `market.update_filters` | 07:07 VN | Step size, min notional |
 | `maintenance.retention` | 03:00 VN | Xoá session hết hạn, lịch sử job > 30 ngày |
 | `ema1d.cleanup` | 03:15 VN | Xoá sync dry-run > 30 ngày |
+| `emacross.cleanup` | 03:20 VN | Xoá cảnh báo EMA cross > 90 ngày |
 
 Mỗi job lỗi gửi cảnh báo Discord (kênh alerts), cùng một lỗi tối đa 1 lần/10 phút. Sao lưu không phải
 job của app mà là `bigwaves-backup.timer` của systemd (xem deploy/README.md).

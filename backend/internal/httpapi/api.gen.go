@@ -410,6 +410,45 @@ func (e Ema1dTodoStep) Valid() bool {
 	}
 }
 
+// Defines values for EmaCrossDirection.
+const (
+	DOWN EmaCrossDirection = "DOWN"
+	UP   EmaCrossDirection = "UP"
+)
+
+// Valid indicates whether the value is a known member of the EmaCrossDirection enum.
+func (e EmaCrossDirection) Valid() bool {
+	switch e {
+	case DOWN:
+		return true
+	case UP:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaCrossTimeframe.
+const (
+	D1 EmaCrossTimeframe = "D1"
+	H1 EmaCrossTimeframe = "H1"
+	H4 EmaCrossTimeframe = "H4"
+)
+
+// Valid indicates whether the value is a known member of the EmaCrossTimeframe enum.
+func (e EmaCrossTimeframe) Valid() bool {
+	switch e {
+	case D1:
+		return true
+	case H1:
+		return true
+	case H4:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for JobRunTrigger.
 const (
 	Manual   JobRunTrigger = "manual"
@@ -1044,6 +1083,85 @@ type Ema1dTradesSummary struct {
 	WinRatePercent  *Decimal `json:"winRatePercent,omitempty"`
 }
 
+// EmaCrossAlert defines model for EmaCrossAlert.
+type EmaCrossAlert struct {
+	// CandleTime Open time of the candle that crossed
+	CandleTime time.Time         `json:"candleTime"`
+	CreatedAt  time.Time         `json:"createdAt"`
+	Direction  EmaCrossDirection `json:"direction"`
+	Error      string            `json:"error"`
+	GapPercent float64           `json:"gapPercent"`
+	Id         int64             `json:"id"`
+	PairId     int64             `json:"pairId"`
+	PairName   string            `json:"pairName"`
+	Price      Decimal           `json:"price"`
+
+	// SentAt Missing when the Discord message failed
+	SentAt    *time.Time        `json:"sentAt,omitempty"`
+	Timeframe EmaCrossTimeframe `json:"timeframe"`
+}
+
+// EmaCrossConfig defines model for EmaCrossConfig.
+type EmaCrossConfig struct {
+	// Enabled The checks run and send alerts
+	Enabled bool `json:"enabled"`
+
+	// ThresholdPercent How far in % EMA14 must pass Smooth10 to count as a cross
+	ThresholdPercent EmaCrossThresholds `json:"thresholdPercent"`
+}
+
+// EmaCrossConfigEnvelope defines model for EmaCrossConfigEnvelope.
+type EmaCrossConfigEnvelope struct {
+	Config  EmaCrossConfig `json:"config"`
+	Version int64          `json:"version"`
+}
+
+// EmaCrossDirection defines model for EmaCrossDirection.
+type EmaCrossDirection string
+
+// EmaCrossPair defines model for EmaCrossPair.
+type EmaCrossPair struct {
+	CurrentPrice *Decimal        `json:"currentPrice,omitempty"`
+	D1           bool            `json:"d1"`
+	H1           bool            `json:"h1"`
+	H4           bool            `json:"h4"`
+	LastAlerts   []EmaCrossAlert `json:"lastAlerts"`
+	PairId       int64           `json:"pairId"`
+	PairName     string          `json:"pairName"`
+	PairStatus   PairStatus      `json:"pairStatus"`
+	States       []EmaCrossState `json:"states"`
+}
+
+// EmaCrossState defines model for EmaCrossState.
+type EmaCrossState struct {
+	// CandleTime Open time of the running candle
+	CandleTime time.Time `json:"candleTime"`
+	CheckedAt  time.Time `json:"checkedAt"`
+
+	// GapPercent (EMA14 - Smooth10) / Smooth10 * 100
+	GapPercent float64           `json:"gapPercent"`
+	Price      Decimal           `json:"price"`
+	Timeframe  EmaCrossTimeframe `json:"timeframe"`
+	Trend      EmaCrossDirection `json:"trend"`
+}
+
+// EmaCrossThresholds defines model for EmaCrossThresholds.
+type EmaCrossThresholds struct {
+	D1 Decimal `json:"d1"`
+	H1 Decimal `json:"h1"`
+	H4 Decimal `json:"h4"`
+}
+
+// EmaCrossTimeframe defines model for EmaCrossTimeframe.
+type EmaCrossTimeframe string
+
+// EmaCrossWatchRequest defines model for EmaCrossWatchRequest.
+type EmaCrossWatchRequest struct {
+	D1 bool `json:"d1"`
+	H1 bool `json:"h1"`
+	H4 bool `json:"h4"`
+}
+
 // ErrorDetail defines model for ErrorDetail.
 type ErrorDetail struct {
 	// Code Example: validation_failed
@@ -1199,6 +1317,19 @@ type UpdateDcaSettingJSONBody struct {
 // UpdateDcaSettingJSONBodyStatus defines parameters for UpdateDcaSetting.
 type UpdateDcaSettingJSONBodyStatus string
 
+// ListEmaCrossAlertsParams defines parameters for ListEmaCrossAlerts.
+type ListEmaCrossAlertsParams struct {
+	PairId    *int64             `form:"pairId,omitempty" json:"pairId,omitempty"`
+	Timeframe *EmaCrossTimeframe `form:"timeframe,omitempty" json:"timeframe,omitempty"`
+	Limit     *int               `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// UpdateEmaCrossConfigJSONBody defines parameters for UpdateEmaCrossConfig.
+type UpdateEmaCrossConfigJSONBody struct {
+	Config  EmaCrossConfig `json:"config"`
+	Version int64          `json:"version"`
+}
+
 // UpdateEma1dConfigJSONBody defines parameters for UpdateEma1dConfig.
 type UpdateEma1dConfigJSONBody struct {
 	Config  Ema1dConfig `json:"config"`
@@ -1277,6 +1408,12 @@ type CreateDcaTradeJSONRequestBody = DcaTradeInput
 // UpdateDcaTradeJSONRequestBody defines body for UpdateDcaTrade for application/json ContentType.
 type UpdateDcaTradeJSONRequestBody = DcaTradeInput
 
+// UpdateEmaCrossConfigJSONRequestBody defines body for UpdateEmaCrossConfig for application/json ContentType.
+type UpdateEmaCrossConfigJSONRequestBody UpdateEmaCrossConfigJSONBody
+
+// WatchEmaCrossPairJSONRequestBody defines body for WatchEmaCrossPair for application/json ContentType.
+type WatchEmaCrossPairJSONRequestBody = EmaCrossWatchRequest
+
 // UpdateEma1dConfigJSONRequestBody defines body for UpdateEma1dConfig for application/json ContentType.
 type UpdateEma1dConfigJSONRequestBody UpdateEma1dConfigJSONBody
 
@@ -1351,6 +1488,24 @@ type ServerInterface interface {
 	// ForceSellDcaTrade Sell a held rung now, at market
 	// (POST /dca/trades/{id}/sell)
 	ForceSellDcaTrade(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /ema-cross/alerts)
+	ListEmaCrossAlerts(w http.ResponseWriter, r *http.Request, params ListEmaCrossAlertsParams)
+
+	// (GET /ema-cross/config)
+	GetEmaCrossConfig(w http.ResponseWriter, r *http.Request)
+
+	// (PATCH /ema-cross/config)
+	UpdateEmaCrossConfig(w http.ResponseWriter, r *http.Request)
+
+	// (GET /ema-cross/config/history)
+	GetEmaCrossConfigHistory(w http.ResponseWriter, r *http.Request)
+	// ListEmaCrossPairs Pairs watched by the EMA cross alert, with their last readings
+	// (GET /ema-cross/pairs)
+	ListEmaCrossPairs(w http.ResponseWriter, r *http.Request)
+	// WatchEmaCrossPair Set the timeframes watched on a pair (id = pair id); all off removes it
+	// (PUT /ema-cross/pairs/{id})
+	WatchEmaCrossPair(w http.ResponseWriter, r *http.Request, id Id)
 
 	// (GET /ema1d/config)
 	GetEma1dConfig(w http.ResponseWriter, r *http.Request)
@@ -1525,6 +1680,38 @@ func (_ Unimplemented) ForceBuyDcaTrade(w http.ResponseWriter, r *http.Request, 
 // ForceSellDcaTrade Sell a held rung now, at market
 // (POST /dca/trades/{id}/sell)
 func (_ Unimplemented) ForceSellDcaTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema-cross/alerts)
+func (_ Unimplemented) ListEmaCrossAlerts(w http.ResponseWriter, r *http.Request, params ListEmaCrossAlertsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema-cross/config)
+func (_ Unimplemented) GetEmaCrossConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /ema-cross/config)
+func (_ Unimplemented) UpdateEmaCrossConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema-cross/config/history)
+func (_ Unimplemented) GetEmaCrossConfigHistory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListEmaCrossPairs Pairs watched by the EMA cross alert, with their last readings
+// (GET /ema-cross/pairs)
+func (_ Unimplemented) ListEmaCrossPairs(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// WatchEmaCrossPair Set the timeframes watched on a pair (id = pair id); all off removes it
+// (PUT /ema-cross/pairs/{id})
+func (_ Unimplemented) WatchEmaCrossPair(w http.ResponseWriter, r *http.Request, id Id) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2061,6 +2248,147 @@ func (siw *ServerInterfaceWrapper) ForceSellDcaTrade(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ForceSellDcaTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListEmaCrossAlerts operation middleware
+func (siw *ServerInterfaceWrapper) ListEmaCrossAlerts(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListEmaCrossAlertsParams
+
+	// ------------- Optional query parameter "pairId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "pairId", r.URL.Query(), &params.PairId, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "pairId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pairId", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "timeframe" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "timeframe", r.URL.Query(), &params.Timeframe, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "timeframe"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "timeframe", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListEmaCrossAlerts(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEmaCrossConfig operation middleware
+func (siw *ServerInterfaceWrapper) GetEmaCrossConfig(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEmaCrossConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateEmaCrossConfig operation middleware
+func (siw *ServerInterfaceWrapper) UpdateEmaCrossConfig(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateEmaCrossConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEmaCrossConfigHistory operation middleware
+func (siw *ServerInterfaceWrapper) GetEmaCrossConfigHistory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEmaCrossConfigHistory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListEmaCrossPairs operation middleware
+func (siw *ServerInterfaceWrapper) ListEmaCrossPairs(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListEmaCrossPairs(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// WatchEmaCrossPair operation middleware
+func (siw *ServerInterfaceWrapper) WatchEmaCrossPair(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.WatchEmaCrossPair(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2921,6 +3249,24 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/dca/config/history", wrapper.GetDcaConfigHistory)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema-cross/pairs", wrapper.ListEmaCrossPairs)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/ema-cross/pairs/{id}", wrapper.WatchEmaCrossPair)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema-cross/alerts", wrapper.ListEmaCrossAlerts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema-cross/config", wrapper.GetEmaCrossConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/ema-cross/config", wrapper.UpdateEmaCrossConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema-cross/config/history", wrapper.GetEmaCrossConfigHistory)
+	})
 
 	return r
 }
@@ -3612,6 +3958,244 @@ type ForceSellDcaTradedefaultJSONResponse struct {
 }
 
 func (response ForceSellDcaTradedefaultJSONResponse) VisitForceSellDcaTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEmaCrossAlertsRequestObject struct {
+	Params ListEmaCrossAlertsParams
+}
+
+type ListEmaCrossAlertsResponseObject interface {
+	VisitListEmaCrossAlertsResponse(w http.ResponseWriter) error
+}
+
+type ListEmaCrossAlerts200JSONResponse struct {
+	Items []EmaCrossAlert `json:"items"`
+}
+
+func (response ListEmaCrossAlerts200JSONResponse) VisitListEmaCrossAlertsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEmaCrossAlertsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListEmaCrossAlertsdefaultJSONResponse) VisitListEmaCrossAlertsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaCrossConfigRequestObject struct {
+}
+
+type GetEmaCrossConfigResponseObject interface {
+	VisitGetEmaCrossConfigResponse(w http.ResponseWriter) error
+}
+
+type GetEmaCrossConfig200JSONResponse EmaCrossConfigEnvelope
+
+func (response GetEmaCrossConfig200JSONResponse) VisitGetEmaCrossConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaCrossConfigdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEmaCrossConfigdefaultJSONResponse) VisitGetEmaCrossConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEmaCrossConfigRequestObject struct {
+	Body *UpdateEmaCrossConfigJSONRequestBody
+}
+
+type UpdateEmaCrossConfigResponseObject interface {
+	VisitUpdateEmaCrossConfigResponse(w http.ResponseWriter) error
+}
+
+type UpdateEmaCrossConfig200JSONResponse EmaCrossConfigEnvelope
+
+func (response UpdateEmaCrossConfig200JSONResponse) VisitUpdateEmaCrossConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEmaCrossConfigdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateEmaCrossConfigdefaultJSONResponse) VisitUpdateEmaCrossConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaCrossConfigHistoryRequestObject struct {
+}
+
+type GetEmaCrossConfigHistoryResponseObject interface {
+	VisitGetEmaCrossConfigHistoryResponse(w http.ResponseWriter) error
+}
+
+type GetEmaCrossConfigHistory200JSONResponse struct {
+	Items []ConfigChange `json:"items"`
+}
+
+func (response GetEmaCrossConfigHistory200JSONResponse) VisitGetEmaCrossConfigHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaCrossConfigHistorydefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEmaCrossConfigHistorydefaultJSONResponse) VisitGetEmaCrossConfigHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEmaCrossPairsRequestObject struct {
+}
+
+type ListEmaCrossPairsResponseObject interface {
+	VisitListEmaCrossPairsResponse(w http.ResponseWriter) error
+}
+
+type ListEmaCrossPairs200JSONResponse struct {
+	Items []EmaCrossPair `json:"items"`
+}
+
+func (response ListEmaCrossPairs200JSONResponse) VisitListEmaCrossPairsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEmaCrossPairsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListEmaCrossPairsdefaultJSONResponse) VisitListEmaCrossPairsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type WatchEmaCrossPairRequestObject struct {
+	Id   Id `json:"id"`
+	Body *WatchEmaCrossPairJSONRequestBody
+}
+
+type WatchEmaCrossPairResponseObject interface {
+	VisitWatchEmaCrossPairResponse(w http.ResponseWriter) error
+}
+
+type WatchEmaCrossPair200JSONResponse EmaCrossPair
+
+func (response WatchEmaCrossPair200JSONResponse) VisitWatchEmaCrossPairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type WatchEmaCrossPairdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response WatchEmaCrossPairdefaultJSONResponse) VisitWatchEmaCrossPairResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -4659,6 +5243,24 @@ type StrictServerInterface interface {
 	// (POST /dca/trades/{id}/sell)
 	ForceSellDcaTrade(ctx context.Context, request ForceSellDcaTradeRequestObject) (ForceSellDcaTradeResponseObject, error)
 
+	// (GET /ema-cross/alerts)
+	ListEmaCrossAlerts(ctx context.Context, request ListEmaCrossAlertsRequestObject) (ListEmaCrossAlertsResponseObject, error)
+
+	// (GET /ema-cross/config)
+	GetEmaCrossConfig(ctx context.Context, request GetEmaCrossConfigRequestObject) (GetEmaCrossConfigResponseObject, error)
+
+	// (PATCH /ema-cross/config)
+	UpdateEmaCrossConfig(ctx context.Context, request UpdateEmaCrossConfigRequestObject) (UpdateEmaCrossConfigResponseObject, error)
+
+	// (GET /ema-cross/config/history)
+	GetEmaCrossConfigHistory(ctx context.Context, request GetEmaCrossConfigHistoryRequestObject) (GetEmaCrossConfigHistoryResponseObject, error)
+	// ListEmaCrossPairs Pairs watched by the EMA cross alert, with their last readings
+	// (GET /ema-cross/pairs)
+	ListEmaCrossPairs(ctx context.Context, request ListEmaCrossPairsRequestObject) (ListEmaCrossPairsResponseObject, error)
+	// WatchEmaCrossPair Set the timeframes watched on a pair (id = pair id); all off removes it
+	// (PUT /ema-cross/pairs/{id})
+	WatchEmaCrossPair(ctx context.Context, request WatchEmaCrossPairRequestObject) (WatchEmaCrossPairResponseObject, error)
+
 	// (GET /ema1d/config)
 	GetEma1dConfig(ctx context.Context, request GetEma1dConfigRequestObject) (GetEma1dConfigResponseObject, error)
 	// UpdateEma1dConfig Save a new config; fails with 409 when version is stale
@@ -5284,6 +5886,168 @@ func (sh *strictHandler) ForceSellDcaTrade(w http.ResponseWriter, r *http.Reques
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ForceSellDcaTradeResponseObject); ok {
 		if err := validResponse.VisitForceSellDcaTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListEmaCrossAlerts operation middleware
+func (sh *strictHandler) ListEmaCrossAlerts(w http.ResponseWriter, r *http.Request, params ListEmaCrossAlertsParams) {
+	var request ListEmaCrossAlertsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListEmaCrossAlerts(ctx, request.(ListEmaCrossAlertsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListEmaCrossAlerts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListEmaCrossAlertsResponseObject); ok {
+		if err := validResponse.VisitListEmaCrossAlertsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEmaCrossConfig operation middleware
+func (sh *strictHandler) GetEmaCrossConfig(w http.ResponseWriter, r *http.Request) {
+	var request GetEmaCrossConfigRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEmaCrossConfig(ctx, request.(GetEmaCrossConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEmaCrossConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEmaCrossConfigResponseObject); ok {
+		if err := validResponse.VisitGetEmaCrossConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateEmaCrossConfig operation middleware
+func (sh *strictHandler) UpdateEmaCrossConfig(w http.ResponseWriter, r *http.Request) {
+	var request UpdateEmaCrossConfigRequestObject
+
+	var body UpdateEmaCrossConfigJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateEmaCrossConfig(ctx, request.(UpdateEmaCrossConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateEmaCrossConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateEmaCrossConfigResponseObject); ok {
+		if err := validResponse.VisitUpdateEmaCrossConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEmaCrossConfigHistory operation middleware
+func (sh *strictHandler) GetEmaCrossConfigHistory(w http.ResponseWriter, r *http.Request) {
+	var request GetEmaCrossConfigHistoryRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEmaCrossConfigHistory(ctx, request.(GetEmaCrossConfigHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEmaCrossConfigHistory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEmaCrossConfigHistoryResponseObject); ok {
+		if err := validResponse.VisitGetEmaCrossConfigHistoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListEmaCrossPairs operation middleware
+func (sh *strictHandler) ListEmaCrossPairs(w http.ResponseWriter, r *http.Request) {
+	var request ListEmaCrossPairsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListEmaCrossPairs(ctx, request.(ListEmaCrossPairsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListEmaCrossPairs")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListEmaCrossPairsResponseObject); ok {
+		if err := validResponse.VisitListEmaCrossPairsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// WatchEmaCrossPair operation middleware
+func (sh *strictHandler) WatchEmaCrossPair(w http.ResponseWriter, r *http.Request, id Id) {
+	var request WatchEmaCrossPairRequestObject
+
+	request.Id = id
+
+	var body WatchEmaCrossPairJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.WatchEmaCrossPair(ctx, request.(WatchEmaCrossPairRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "WatchEmaCrossPair")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(WatchEmaCrossPairResponseObject); ok {
+		if err := validResponse.VisitWatchEmaCrossPairResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5968,97 +6732,108 @@ func (sh *strictHandler) GetSystemStatus(w http.ResponseWriter, r *http.Request)
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"7/7MxMqtFI+h6haM6EF4tChLGHcK27zU8b5Xn4+znz3wYQkcGoXGaVi5hYlxCLNCIQI9owzNQQZLffO3",
+	"4qo/dO6AMkGjG5zFfaD7hWZ+Km4vDMWU7PRRXrHTz7lGpCp2+o1bAHShzuJAWyGmOuFZFDft1iHyO2c6",
+	"z3mZc26qx/yosp7Dy0Ok1ENEqJCAw/wdo/oWaSwRBQgRlgonxjJ2aZjLwmZ7wDNhW8sqdyHYx1ciu1Nu",
+	"yqnvUQw079x8DGnQuGVyP3v5f1NINckjVfNWHWLWRW+VL3mpNuwzgeOidhs2ZyXXM0O9eU2mgCmxuesE",
+	"LN1plRr2iQyzWx5ELlug0/VIdwy5K9XnHxNwRabfGolhvts0wb2Ys5ddO5HnY2Z/mktunEmY7jHy+z+L",
+	"EXq2ywvf9kKGKUesunJeD4aeaZEdMyqXznt89Kqs99ZVPj+0yEX9cefCHl0IdtV7F2Ut3/VUXqn+65ai",
+	"ZY8P7pT5jc2698Vb9cEjIqOsbvSENBINtRKAB98VXd8f8Kzg1iCW/JbNdH3EDr6c0re64FQNCX9qZrRO",
+	"TdWp7aMeqh8t0H9jM5OhRmhWyCf4suAspbbR3w6PtcR1ldKeDLfD6f5n2137pyed+VWWzHpixOxvTLcK",
+	"7TG0IvpnkO/2mrCpS7nsyZw1NbuQ8ohA+JxQlKrBSuAJXXgoo/31vu3cVbqZftG/3o27S0KDKA0hT3v/",
+	"f2OVPpXkmvqh626DdI8uyXKAQWbo7s6AtKWrbHf+o9x3J2GYZ6bMVjqskTuoxSqesehHfTxeu43mJFL7",
+	"CAUsBuOxsyprOU7JV93R3adJChQ+zEmSkq7aGKl7Qod7x+sut8zOAwB73GjNUmYP7O/ZO0LUlsiEWIcA",
+	"r9TX2+NyK+PsK6FnDnKFxB2Rug6f4iFAbwlnNAYqfW3DGqe/mgUiNFRrYVzkKrBkCZphtxaghgJ+m1N3",
+	"yiPv2DvACTm4PdKUnDX5Xoh50/TeL54YzFgP8qIv1iOts1l/G5POehAGuPY+u6Hg8/3/DQA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

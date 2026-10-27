@@ -1,5 +1,6 @@
 import {
   ActivityIcon,
+  BellRingIcon,
   BotIcon,
   CandlestickChartIcon,
   CoinsIcon,
@@ -8,6 +9,7 @@ import {
   LineChartIcon,
   ListChecksIcon,
   type LucideIcon,
+  RadarIcon,
   SettingsIcon,
   SlidersHorizontalIcon,
   TrendingUpIcon,
@@ -37,6 +39,14 @@ export const NAV: NavGroup[] = [
     items: [
       { title: 'Ladders', to: '/dca', icon: TrendingUpIcon, exact: true },
       { title: 'Settings', to: '/dca/config', icon: SlidersHorizontalIcon },
+    ],
+  },
+  {
+    title: 'EMA Cross',
+    items: [
+      { title: 'Watchlist', to: '/ema-cross', icon: RadarIcon, exact: true },
+      { title: 'Alerts', to: '/ema-cross/alerts', icon: BellRingIcon },
+      { title: 'Settings', to: '/ema-cross/config', icon: SlidersHorizontalIcon },
     ],
   },
   {

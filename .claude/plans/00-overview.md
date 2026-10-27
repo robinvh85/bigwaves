@@ -29,8 +29,8 @@ flowchart LR
     FE[React SPA]
   end
   subgraph Server["bigwaves (1 Go binary)"]
-    HTTP[HTTP API /api/v1 + SSE /api/v1/events]
-    STATIC[Static FE - go:embed]
+    HTTP["HTTP API /api/v1 + SSE /api/v1/events"]
+    STATIC["Static FE - go:embed"]
     SCHED[Scheduler - gocron, TZ rõ ràng]
     QUEUE[EMA1D todo worker]
     DOMAIN[Domain: ema1d, dca, market data]
@@ -41,7 +41,7 @@ flowchart LR
   LS[Snapshot local hằng ngày - off-site làm sau]
   BIN[(Binance API)]
   DW[(Discord webhooks)]
-  EXT[Claude task bên ngoài - GET /api/v1/ema1d/sync?token=]
+  EXT["Claude task bên ngoài - GET /api/v1/ema1d/sync?token="]
 
   FE -->|cookie session| HTTP
   FE --> STATIC
@@ -112,7 +112,8 @@ Lúc dev chạy 2 process: `make dev` = `go run ./backend/cmd/bigwaves` (:8080) 
 | Grid (+ suggest step ATR) | ❌ Bỏ | — |
 | EMA Settings (`/ema-settings`, chiến dịch theo pair có budget + TP/SL — **khác** EMA1D-EXIT) | ❌ Bỏ | — |
 | EMA legacy H1/H4/D1 (tracking, auto-run) | ❌ Bỏ | — |
-| Cảnh báo EMA cross H1/H4/D1, EMA Scores, EMA Statistics + trade histories, biến động giá ngày/tháng | ⏸ Tạm bỏ qua — ngoài phạm vi, xem lại sau | — |
+| Cảnh báo EMA cross H1/H4/D1 (chỉ báo Discord) | ✅ Port (2026-10-27): tính từ klines, không cần `ema_trackings`; watchlist + chống gửi trùng — xem `docs/ema-cross.md` | — |
+| EMA Scores, EMA Statistics + trade histories, biến động giá ngày/tháng | ⏸ Tạm bỏ qua — ngoài phạm vi, xem lại sau | — |
 | Position sizing calculator | ❌ Bỏ | — |
 | Market cap (CoinGecko) | ❌ Bỏ (bỏ cả cột `coins.market_cap`) | — |
 | Tags / coin_tags | ❌ Bỏ | — |
@@ -137,7 +138,7 @@ gantt
   section Nền tảng
   P0 Repo, CI, OpenAPI, skeleton BE/FE      :p0, 2026-10-27, 5d
   section Backend
-  P1 Core: DB, auth, Binance, jobs, notify  :p1, after p0, 10d
+  P1 Core - DB, auth, Binance, jobs, notify :p1, after p0, 10d
   P2 EMA1D port + parity test               :p2, after p1, 15d
   P3 DCA                                    :p3, after p2, 5d
   section Frontend

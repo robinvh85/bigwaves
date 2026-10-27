@@ -14,12 +14,16 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppAdminRouteRouteImport } from './routes/_app/admin/route'
 import { Route as AppDcaRouteRouteImport } from './routes/_app/dca/route'
+import { Route as AppEmaCrossRouteRouteImport } from './routes/_app/ema-cross/route'
 import { Route as AppEma1dRouteRouteImport } from './routes/_app/ema1d/route'
 import { Route as AppAdminJobsRouteImport } from './routes/_app/admin/jobs'
 import { Route as AppAdminPairsRouteImport } from './routes/_app/admin/pairs'
 import { Route as AppDcaIndexRouteImport } from './routes/_app/dca/index'
 import { Route as AppDcaIdRouteImport } from './routes/_app/dca/$id'
 import { Route as AppDcaConfigRouteImport } from './routes/_app/dca/config'
+import { Route as AppEmaCrossIndexRouteImport } from './routes/_app/ema-cross/index'
+import { Route as AppEmaCrossAlertsRouteImport } from './routes/_app/ema-cross/alerts'
+import { Route as AppEmaCrossConfigRouteImport } from './routes/_app/ema-cross/config'
 import { Route as AppEma1dIndexRouteImport } from './routes/_app/ema1d/index'
 import { Route as AppEma1dConfigRouteImport } from './routes/_app/ema1d/config'
 import { Route as AppEma1dEquityRouteImport } from './routes/_app/ema1d/equity'
@@ -51,6 +55,11 @@ const AppDcaRouteRoute = AppDcaRouteRouteImport.update({
   path: '/dca',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEmaCrossRouteRoute = AppEmaCrossRouteRouteImport.update({
+  id: '/ema-cross',
+  path: '/ema-cross',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEma1dRouteRoute = AppEma1dRouteRouteImport.update({
   id: '/ema1d',
   path: '/ema1d',
@@ -80,6 +89,21 @@ const AppDcaConfigRoute = AppDcaConfigRouteImport.update({
   id: '/config',
   path: '/config',
   getParentRoute: () => AppDcaRouteRoute,
+} as any)
+const AppEmaCrossIndexRoute = AppEmaCrossIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppEmaCrossRouteRoute,
+} as any)
+const AppEmaCrossAlertsRoute = AppEmaCrossAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => AppEmaCrossRouteRoute,
+} as any)
+const AppEmaCrossConfigRoute = AppEmaCrossConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
+  getParentRoute: () => AppEmaCrossRouteRoute,
 } as any)
 const AppEma1dIndexRoute = AppEma1dIndexRouteImport.update({
   id: '/',
@@ -117,17 +141,21 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin': typeof AppAdminRouteRouteWithChildren
   '/dca': typeof AppDcaRouteRouteWithChildren
+  '/ema-cross': typeof AppEmaCrossRouteRouteWithChildren
   '/ema1d': typeof AppEma1dRouteRouteWithChildren
   '/admin/jobs': typeof AppAdminJobsRoute
   '/admin/pairs': typeof AppAdminPairsRoute
   '/dca/$id': typeof AppDcaIdRoute
   '/dca/config': typeof AppDcaConfigRoute
+  '/ema-cross/alerts': typeof AppEmaCrossAlertsRoute
+  '/ema-cross/config': typeof AppEmaCrossConfigRoute
   '/ema1d/config': typeof AppEma1dConfigRoute
   '/ema1d/equity': typeof AppEma1dEquityRoute
   '/ema1d/pairs': typeof AppEma1dPairsRoute
   '/ema1d/todos': typeof AppEma1dTodosRoute
   '/ema1d/trades': typeof AppEma1dTradesRoute
   '/dca/': typeof AppDcaIndexRoute
+  '/ema-cross/': typeof AppEmaCrossIndexRoute
   '/ema1d/': typeof AppEma1dIndexRoute
 }
 export interface FileRoutesByTo {
@@ -138,12 +166,15 @@ export interface FileRoutesByTo {
   '/admin/pairs': typeof AppAdminPairsRoute
   '/dca/$id': typeof AppDcaIdRoute
   '/dca/config': typeof AppDcaConfigRoute
+  '/ema-cross/alerts': typeof AppEmaCrossAlertsRoute
+  '/ema-cross/config': typeof AppEmaCrossConfigRoute
   '/ema1d/config': typeof AppEma1dConfigRoute
   '/ema1d/equity': typeof AppEma1dEquityRoute
   '/ema1d/pairs': typeof AppEma1dPairsRoute
   '/ema1d/todos': typeof AppEma1dTodosRoute
   '/ema1d/trades': typeof AppEma1dTradesRoute
   '/dca': typeof AppDcaIndexRoute
+  '/ema-cross': typeof AppEmaCrossIndexRoute
   '/ema1d': typeof AppEma1dIndexRoute
 }
 export interface FileRoutesById {
@@ -152,18 +183,22 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/admin': typeof AppAdminRouteRouteWithChildren
   '/_app/dca': typeof AppDcaRouteRouteWithChildren
+  '/_app/ema-cross': typeof AppEmaCrossRouteRouteWithChildren
   '/_app/ema1d': typeof AppEma1dRouteRouteWithChildren
   '/_app/': typeof AppIndexRoute
   '/_app/admin/jobs': typeof AppAdminJobsRoute
   '/_app/admin/pairs': typeof AppAdminPairsRoute
   '/_app/dca/$id': typeof AppDcaIdRoute
   '/_app/dca/config': typeof AppDcaConfigRoute
+  '/_app/ema-cross/alerts': typeof AppEmaCrossAlertsRoute
+  '/_app/ema-cross/config': typeof AppEmaCrossConfigRoute
   '/_app/ema1d/config': typeof AppEma1dConfigRoute
   '/_app/ema1d/equity': typeof AppEma1dEquityRoute
   '/_app/ema1d/pairs': typeof AppEma1dPairsRoute
   '/_app/ema1d/todos': typeof AppEma1dTodosRoute
   '/_app/ema1d/trades': typeof AppEma1dTradesRoute
   '/_app/dca/': typeof AppDcaIndexRoute
+  '/_app/ema-cross/': typeof AppEmaCrossIndexRoute
   '/_app/ema1d/': typeof AppEma1dIndexRoute
 }
 export interface FileRouteTypes {
@@ -173,17 +208,21 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin'
     | '/dca'
+    | '/ema-cross'
     | '/ema1d'
     | '/admin/jobs'
     | '/admin/pairs'
     | '/dca/$id'
     | '/dca/config'
+    | '/ema-cross/alerts'
+    | '/ema-cross/config'
     | '/ema1d/config'
     | '/ema1d/equity'
     | '/ema1d/pairs'
     | '/ema1d/todos'
     | '/ema1d/trades'
     | '/dca/'
+    | '/ema-cross/'
     | '/ema1d/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -194,12 +233,15 @@ export interface FileRouteTypes {
     | '/admin/pairs'
     | '/dca/$id'
     | '/dca/config'
+    | '/ema-cross/alerts'
+    | '/ema-cross/config'
     | '/ema1d/config'
     | '/ema1d/equity'
     | '/ema1d/pairs'
     | '/ema1d/todos'
     | '/ema1d/trades'
     | '/dca'
+    | '/ema-cross'
     | '/ema1d'
   id:
     | '__root__'
@@ -207,18 +249,22 @@ export interface FileRouteTypes {
     | '/login'
     | '/_app/admin'
     | '/_app/dca'
+    | '/_app/ema-cross'
     | '/_app/ema1d'
     | '/_app/'
     | '/_app/admin/jobs'
     | '/_app/admin/pairs'
     | '/_app/dca/$id'
     | '/_app/dca/config'
+    | '/_app/ema-cross/alerts'
+    | '/_app/ema-cross/config'
     | '/_app/ema1d/config'
     | '/_app/ema1d/equity'
     | '/_app/ema1d/pairs'
     | '/_app/ema1d/todos'
     | '/_app/ema1d/trades'
     | '/_app/dca/'
+    | '/_app/ema-cross/'
     | '/_app/ema1d/'
   fileRoutesById: FileRoutesById
 }
@@ -264,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDcaRouteRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/ema-cross': {
+      id: '/_app/ema-cross'
+      path: '/ema-cross'
+      fullPath: '/ema-cross'
+      preLoaderRoute: typeof AppEmaCrossRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/ema1d': {
       id: '/_app/ema1d'
       path: '/ema1d'
@@ -305,6 +358,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/dca/config'
       preLoaderRoute: typeof AppDcaConfigRouteImport
       parentRoute: typeof AppDcaRouteRoute
+    }
+    '/_app/ema-cross/': {
+      id: '/_app/ema-cross/'
+      path: '/'
+      fullPath: '/ema-cross/'
+      preLoaderRoute: typeof AppEmaCrossIndexRouteImport
+      parentRoute: typeof AppEmaCrossRouteRoute
+    }
+    '/_app/ema-cross/alerts': {
+      id: '/_app/ema-cross/alerts'
+      path: '/alerts'
+      fullPath: '/ema-cross/alerts'
+      preLoaderRoute: typeof AppEmaCrossAlertsRouteImport
+      parentRoute: typeof AppEmaCrossRouteRoute
+    }
+    '/_app/ema-cross/config': {
+      id: '/_app/ema-cross/config'
+      path: '/config'
+      fullPath: '/ema-cross/config'
+      preLoaderRoute: typeof AppEmaCrossConfigRouteImport
+      parentRoute: typeof AppEmaCrossRouteRoute
     }
     '/_app/ema1d/': {
       id: '/_app/ema1d/'
@@ -381,6 +455,21 @@ const AppDcaRouteRouteWithChildren = AppDcaRouteRoute._addFileChildren(
   AppDcaRouteRouteChildren,
 )
 
+interface AppEmaCrossRouteRouteChildren {
+  AppEmaCrossAlertsRoute: typeof AppEmaCrossAlertsRoute
+  AppEmaCrossConfigRoute: typeof AppEmaCrossConfigRoute
+  AppEmaCrossIndexRoute: typeof AppEmaCrossIndexRoute
+}
+
+const AppEmaCrossRouteRouteChildren: AppEmaCrossRouteRouteChildren = {
+  AppEmaCrossAlertsRoute: AppEmaCrossAlertsRoute,
+  AppEmaCrossConfigRoute: AppEmaCrossConfigRoute,
+  AppEmaCrossIndexRoute: AppEmaCrossIndexRoute,
+}
+
+const AppEmaCrossRouteRouteWithChildren =
+  AppEmaCrossRouteRoute._addFileChildren(AppEmaCrossRouteRouteChildren)
+
 interface AppEma1dRouteRouteChildren {
   AppEma1dConfigRoute: typeof AppEma1dConfigRoute
   AppEma1dEquityRoute: typeof AppEma1dEquityRoute
@@ -406,6 +495,7 @@ const AppEma1dRouteRouteWithChildren = AppEma1dRouteRoute._addFileChildren(
 interface AppRouteChildren {
   AppAdminRouteRoute: typeof AppAdminRouteRouteWithChildren
   AppDcaRouteRoute: typeof AppDcaRouteRouteWithChildren
+  AppEmaCrossRouteRoute: typeof AppEmaCrossRouteRouteWithChildren
   AppEma1dRouteRoute: typeof AppEma1dRouteRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -413,6 +503,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRouteRoute: AppAdminRouteRouteWithChildren,
   AppDcaRouteRoute: AppDcaRouteRouteWithChildren,
+  AppEmaCrossRouteRoute: AppEmaCrossRouteRouteWithChildren,
   AppEma1dRouteRoute: AppEma1dRouteRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
 }

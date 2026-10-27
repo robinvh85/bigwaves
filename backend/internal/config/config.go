@@ -48,6 +48,7 @@ type Discord struct {
 	OrderWebhook  string `env:"DISCORD_ORDER_WEBHOOK"`
 	AlertWebhook  string `env:"DISCORD_ALERT_WEBHOOK"`
 	ReportWebhook string `env:"DISCORD_REPORT_WEBHOOK"`
+	CrossWebhook  string `env:"DISCORD_CROSS_WEBHOOK"`
 }
 
 type Session struct {
