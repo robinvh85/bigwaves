@@ -31,7 +31,7 @@ export function EquityChart({ points }: { points: Point[] }) {
           tickLine={false}
           axisLine={false}
           minTickGap={32}
-          tickFormatter={(v: string) => dayjs(v).format('DD MMM')}
+          tickFormatter={(v: string) => dayjs(v).format('MM/DD')}
         />
         <YAxis
           domain={[min - pad, max + pad]}
@@ -43,7 +43,7 @@ export function EquityChart({ points }: { points: Point[] }) {
         <ChartTooltip
           content={
             <ChartTooltipContent
-              labelFormatter={(v) => dayjs(String(v)).format('DD MMM YYYY')}
+              labelFormatter={(v) => dayjs(String(v)).format('YYYY/MM/DD')}
               formatter={(v) => `${formatMoney(Number(v))} USDT`}
             />
           }

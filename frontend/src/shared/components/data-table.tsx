@@ -13,6 +13,7 @@ import {
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 
+import { compareCellValues } from '@/shared/lib/compare'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { Skeleton } from '@/shared/ui/skeleton'
@@ -47,6 +48,10 @@ export type DataTableProps<T> = {
   onRetry?: () => void
   getRowId?: (row: T) => string
   onRowClick?: (row: T) => void
+  /**
+   * With `onSortingChange` the caller owns the sort order (e.g. kept in the URL); without it,
+   * `sorting` is only the initial order and the table sorts on header clicks by itself.
+   */
   sorting?: SortingState
   onSortingChange?: (s: SortingState) => void
   globalFilter?: string
@@ -84,6 +89,14 @@ function useStableSorting(sorting: SortingState | undefined): SortingState {
   return stable
 }
 
+/**
+ * Money and prices come from the API as decimal strings; TanStack's default would sort them as
+ * text ("-5" after "3", "0.0012" equal to "0.012"). Compare them as numbers.
+ */
+function sortByValue<T>(a: Row<T>, b: Row<T>, id: string) {
+  return compareCellValues(a.getValue(id), b.getValue(id))
+}
+
 export function DataTable<T>({
   columns,
   data,
@@ -101,15 +114,22 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const isMobile = useIsMobile()
   const stableSorting = useStableSorting(sorting)
+  const [ownSorting, setOwnSorting] = useState(stableSorting)
+  const controlled = onSortingChange !== undefined
+  // One object for the table's lifetime: a new defaultColumn rebuilds the columns and the rows.
+  const [defaultColumn] = useState(() => ({ sortingFn: sortByValue<T> }))
+  const currentSorting = controlled ? stableSorting : ownSorting
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table is not compiler-safe; this component is not memoized by the compiler.
   const table = useReactTable({
     data: data ?? [],
     columns,
     getRowId,
-    state: { sorting: stableSorting, globalFilter },
+    defaultColumn,
+    state: { sorting: currentSorting, globalFilter },
     onSortingChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(stableSorting) : updater
-      onSortingChange?.(next)
+      const next = typeof updater === 'function' ? updater(currentSorting) : updater
+      if (onSortingChange) onSortingChange(next)
+      else setOwnSorting(next)
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

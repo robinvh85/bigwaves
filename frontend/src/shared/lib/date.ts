@@ -14,12 +14,12 @@ type DateInput = string | Date | null | undefined
 
 export function formatDateTime(v: DateInput): string {
   if (!v) return '—'
-  return dayjs(v).tz(APP_TZ).format('DD MMM YYYY HH:mm')
+  return dayjs(v).tz(APP_TZ).format('YYYY/MM/DD HH:mm')
 }
 
 export function formatDate(v: DateInput): string {
   if (!v) return '—'
-  return dayjs(v).tz(APP_TZ).format('DD MMM YYYY')
+  return dayjs(v).tz(APP_TZ).format('YYYY/MM/DD')
 }
 
 /** "3 minutes ago", "in 5 minutes". */
