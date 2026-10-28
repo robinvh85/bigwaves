@@ -2,6 +2,7 @@ import { Loader2Icon } from 'lucide-react'
 import { useState } from 'react'
 
 import { NumberInput } from '@/shared/components/number-input'
+import { Price } from '@/shared/components/numbers'
 import { Button } from '@/shared/ui/button'
 import {
   Dialog,
@@ -114,7 +115,8 @@ export function TradeDialog({
         <DialogHeader>
           <DialogTitle>{trade ? `Edit trade #${trade.id}` : 'Add trade'}</DialogTitle>
           <DialogDescription>
-            {setting.pairName} · current price {setting.currentPrice ?? '—'}
+            {setting.pairName} · current price{' '}
+            <Price value={setting.currentPrice} updatedAt={setting.priceUpdatedAt} exact />
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 sm:grid-cols-2">

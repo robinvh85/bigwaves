@@ -129,10 +129,12 @@ type pairView struct {
 	PairName     string
 	CoinName     string
 	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	// PriceUpdatedAt is when CurrentPrice was last refreshed.
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 func (p pairView) sideAllowed(side string) bool {
@@ -153,7 +155,7 @@ func (p pairView) step() money.Dec {
 }
 
 func viewFromList(r dbq.ListEma1dPairsRow) pairView {
-	return pairView{r.Ema1dPair, r.PairName, r.CoinName, r.CurrentPrice, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}
+	return pairView{r.Ema1dPair, r.PairName, r.CoinName, r.CurrentPrice, r.PriceUpdatedAt, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}
 }
 
 func (s *Service) listPairs(ctx context.Context, q *dbq.Queries) ([]pairView, error) {
@@ -173,7 +175,7 @@ func (s *Service) getPair(ctx context.Context, q *dbq.Queries, id int64) (pairVi
 	if err != nil {
 		return pairView{}, err
 	}
-	return pairView{r.Ema1dPair, r.PairName, r.CoinName, r.CurrentPrice, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}, nil
+	return pairView{r.Ema1dPair, r.PairName, r.CoinName, r.CurrentPrice, r.PriceUpdatedAt, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}, nil
 }
 
 // activePosition returns the open (or opening) position of a pair, nil when flat.

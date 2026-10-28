@@ -193,22 +193,23 @@ func (q *Queries) DeleteEmaSettingTrade(ctx context.Context, id int64) error {
 }
 
 const getEmaSetting = `-- name: GetEmaSetting :one
-SELECT s.id, s.pair_id, s.budget, s.trade_type, s.period, s.check_type, s.next_trade_type, s.tp_percent, s.sl_percent, s.status, s.note, s.created_at, s.updated_at, p.name AS pair_name, c.name AS coin_name, p.status AS pair_status, p.current_price,
+SELECT s.id, s.pair_id, s.budget, s.trade_type, s.period, s.check_type, s.next_trade_type, s.tp_percent, s.sl_percent, s.status, s.note, s.created_at, s.updated_at, p.name AS pair_name, c.name AS coin_name, p.status AS pair_status, p.current_price, p.price_updated_at,
   p.step_size, p.min_notional, p.is_spot, p.is_isolated
 FROM ema_settings s JOIN pairs p ON p.id = s.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE s.id = ?
 `
 
 type GetEmaSettingRow struct {
-	EmaSetting   EmaSetting
-	PairName     string
-	CoinName     string
-	PairStatus   string
-	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	EmaSetting     EmaSetting
+	PairName       string
+	CoinName       string
+	PairStatus     string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 func (q *Queries) GetEmaSetting(ctx context.Context, id int64) (GetEmaSettingRow, error) {
@@ -232,6 +233,7 @@ func (q *Queries) GetEmaSetting(ctx context.Context, id int64) (GetEmaSettingRow
 		&i.CoinName,
 		&i.PairStatus,
 		&i.CurrentPrice,
+		&i.PriceUpdatedAt,
 		&i.StepSize,
 		&i.MinNotional,
 		&i.IsSpot,
@@ -394,7 +396,7 @@ func (q *Queries) ListEmaSettingTrades(ctx context.Context, settingID int64) ([]
 }
 
 const listEmaSettings = `-- name: ListEmaSettings :many
-SELECT s.id, s.pair_id, s.budget, s.trade_type, s.period, s.check_type, s.next_trade_type, s.tp_percent, s.sl_percent, s.status, s.note, s.created_at, s.updated_at, p.name AS pair_name, c.name AS coin_name, p.status AS pair_status, p.current_price,
+SELECT s.id, s.pair_id, s.budget, s.trade_type, s.period, s.check_type, s.next_trade_type, s.tp_percent, s.sl_percent, s.status, s.note, s.created_at, s.updated_at, p.name AS pair_name, c.name AS coin_name, p.status AS pair_status, p.current_price, p.price_updated_at,
   p.step_size, p.min_notional, p.is_spot, p.is_isolated
 FROM ema_settings s JOIN pairs p ON p.id = s.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE (?1 IS NULL OR s.status = ?1)
@@ -402,15 +404,16 @@ ORDER BY s.status = 'DONE', s.created_at DESC, s.id DESC
 `
 
 type ListEmaSettingsRow struct {
-	EmaSetting   EmaSetting
-	PairName     string
-	CoinName     string
-	PairStatus   string
-	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	EmaSetting     EmaSetting
+	PairName       string
+	CoinName       string
+	PairStatus     string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 func (q *Queries) ListEmaSettings(ctx context.Context, status interface{}) ([]ListEmaSettingsRow, error) {
@@ -440,6 +443,7 @@ func (q *Queries) ListEmaSettings(ctx context.Context, status interface{}) ([]Li
 			&i.CoinName,
 			&i.PairStatus,
 			&i.CurrentPrice,
+			&i.PriceUpdatedAt,
 			&i.StepSize,
 			&i.MinNotional,
 			&i.IsSpot,

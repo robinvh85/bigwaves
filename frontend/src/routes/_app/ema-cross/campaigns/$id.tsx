@@ -232,7 +232,7 @@ function CampaignDetail() {
             <SettingStatusBadge status={s.status} />
             <Badge variant="outline">{s.period}</Badge>
             {TRADE_TYPE_LABEL[s.tradeType]} · {CHECK_TYPE_LABEL[s.checkType]} · {s.account} · price{' '}
-            <Price value={s.currentPrice} />
+            <Price value={s.currentPrice} updatedAt={s.priceUpdatedAt} />
           </span>
         }
         actions={

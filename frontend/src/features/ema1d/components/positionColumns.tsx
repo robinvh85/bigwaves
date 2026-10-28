@@ -41,7 +41,7 @@ export const openPositionColumns = [
   col.accessor((p) => num(p.currentPrice), {
     id: 'current',
     header: 'Current price',
-    cell: (c) => <Price value={c.row.original.currentPrice} />,
+    cell: (c) => <Price value={c.row.original.currentPrice} updatedAt={c.row.original.priceUpdatedAt} />,
     meta: { align: 'right' },
   }),
   col.accessor((p) => num(p.notionalUsdt), {

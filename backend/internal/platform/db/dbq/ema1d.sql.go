@@ -515,21 +515,22 @@ func (q *Queries) GetDailyCheck(ctx context.Context, signalDate string) (Ema1dDa
 }
 
 const getEma1dPair = `-- name: GetEma1dPair :one
-SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.step_size, p.min_notional,
+SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE e.id = ?
 `
 
 type GetEma1dPairRow struct {
-	Ema1dPair    Ema1dPair
-	PairName     string
-	CoinName     string
-	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	Ema1dPair      Ema1dPair
+	PairName       string
+	CoinName       string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 func (q *Queries) GetEma1dPair(ctx context.Context, id int64) (GetEma1dPairRow, error) {
@@ -554,6 +555,7 @@ func (q *Queries) GetEma1dPair(ctx context.Context, id int64) (GetEma1dPairRow, 
 		&i.PairName,
 		&i.CoinName,
 		&i.CurrentPrice,
+		&i.PriceUpdatedAt,
 		&i.StepSize,
 		&i.MinNotional,
 		&i.IsSpot,
@@ -563,21 +565,22 @@ func (q *Queries) GetEma1dPair(ctx context.Context, id int64) (GetEma1dPairRow, 
 }
 
 const getEma1dPairByCoin = `-- name: GetEma1dPairByCoin :one
-SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.step_size, p.min_notional,
+SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE c.name = ?
 `
 
 type GetEma1dPairByCoinRow struct {
-	Ema1dPair    Ema1dPair
-	PairName     string
-	CoinName     string
-	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	Ema1dPair      Ema1dPair
+	PairName       string
+	CoinName       string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 func (q *Queries) GetEma1dPairByCoin(ctx context.Context, name string) (GetEma1dPairByCoinRow, error) {
@@ -602,6 +605,7 @@ func (q *Queries) GetEma1dPairByCoin(ctx context.Context, name string) (GetEma1d
 		&i.PairName,
 		&i.CoinName,
 		&i.CurrentPrice,
+		&i.PriceUpdatedAt,
 		&i.StepSize,
 		&i.MinNotional,
 		&i.IsSpot,
@@ -827,17 +831,18 @@ func (q *Queries) LastRealSync(ctx context.Context) (Ema1dSync, error) {
 }
 
 const listActivePositions = `-- name: ListActivePositions :many
-SELECT x.id, x.ema1d_pair_id, x.pair_id, x.side, x.status, x.signal_date, x.exit_rule, x.amount, x.open_price, x.close_price, x.ref_open_price, x.ref_close_price, x.size_percent, x.equity_at_open, x.notional_usdt, x.fee_usdt, x.interest_paid, x.interest_usdt, x.realized_profit, x.unrealized_profit, x.open_order_id, x.close_order_id, x.legacy_trade_id, x.open_at, x.close_at, x.created_at, x.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price
+SELECT x.id, x.ema1d_pair_id, x.pair_id, x.side, x.status, x.signal_date, x.exit_rule, x.amount, x.open_price, x.close_price, x.ref_open_price, x.ref_close_price, x.size_percent, x.equity_at_open, x.notional_usdt, x.fee_usdt, x.interest_paid, x.interest_usdt, x.realized_profit, x.unrealized_profit, x.open_order_id, x.close_order_id, x.legacy_trade_id, x.open_at, x.close_at, x.created_at, x.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at
 FROM ema1d_positions x JOIN pairs p ON p.id = x.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE x.status IN ('OPENING', 'OPEN')
 ORDER BY x.id
 `
 
 type ListActivePositionsRow struct {
-	Ema1dPosition Ema1dPosition
-	PairName      string
-	CoinName      string
-	CurrentPrice  *money.Dec
+	Ema1dPosition  Ema1dPosition
+	PairName       string
+	CoinName       string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
 }
 
 func (q *Queries) ListActivePositions(ctx context.Context) ([]ListActivePositionsRow, error) {
@@ -880,6 +885,7 @@ func (q *Queries) ListActivePositions(ctx context.Context) ([]ListActivePosition
 			&i.PairName,
 			&i.CoinName,
 			&i.CurrentPrice,
+			&i.PriceUpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -1019,21 +1025,22 @@ func (q *Queries) ListDailyChecks(ctx context.Context, limit int64) ([]Ema1dDail
 
 const listEma1dPairs = `-- name: ListEma1dPairs :many
 
-SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.step_size, p.min_notional,
+SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 ORDER BY CASE e.status WHEN 'ACTIVE' THEN 0 WHEN 'EXIT_ONLY' THEN 1 ELSE 2 END, e.id
 `
 
 type ListEma1dPairsRow struct {
-	Ema1dPair    Ema1dPair
-	PairName     string
-	CoinName     string
-	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	Ema1dPair      Ema1dPair
+	PairName       string
+	CoinName       string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 // ---------------------------------------------------------------- pairs
@@ -1065,6 +1072,7 @@ func (q *Queries) ListEma1dPairs(ctx context.Context) ([]ListEma1dPairsRow, erro
 			&i.PairName,
 			&i.CoinName,
 			&i.CurrentPrice,
+			&i.PriceUpdatedAt,
 			&i.StepSize,
 			&i.MinNotional,
 			&i.IsSpot,
@@ -1129,7 +1137,7 @@ func (q *Queries) ListExchangeOrdersSince(ctx context.Context, createdAt dbtype.
 }
 
 const listPositions = `-- name: ListPositions :many
-SELECT x.id, x.ema1d_pair_id, x.pair_id, x.side, x.status, x.signal_date, x.exit_rule, x.amount, x.open_price, x.close_price, x.ref_open_price, x.ref_close_price, x.size_percent, x.equity_at_open, x.notional_usdt, x.fee_usdt, x.interest_paid, x.interest_usdt, x.realized_profit, x.unrealized_profit, x.open_order_id, x.close_order_id, x.legacy_trade_id, x.open_at, x.close_at, x.created_at, x.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price
+SELECT x.id, x.ema1d_pair_id, x.pair_id, x.side, x.status, x.signal_date, x.exit_rule, x.amount, x.open_price, x.close_price, x.ref_open_price, x.ref_close_price, x.size_percent, x.equity_at_open, x.notional_usdt, x.fee_usdt, x.interest_paid, x.interest_usdt, x.realized_profit, x.unrealized_profit, x.open_order_id, x.close_order_id, x.legacy_trade_id, x.open_at, x.close_at, x.created_at, x.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at
 FROM ema1d_positions x JOIN pairs p ON p.id = x.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE (CASE WHEN ?1 THEN x.status = 'CLOSED' ELSE x.status IN ('OPENING', 'OPEN') END)
   AND (?2 IS NULL OR c.name = ?2)
@@ -1149,10 +1157,11 @@ type ListPositionsParams struct {
 }
 
 type ListPositionsRow struct {
-	Ema1dPosition Ema1dPosition
-	PairName      string
-	CoinName      string
-	CurrentPrice  *money.Dec
+	Ema1dPosition  Ema1dPosition
+	PairName       string
+	CoinName       string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
 }
 
 func (q *Queries) ListPositions(ctx context.Context, arg ListPositionsParams) ([]ListPositionsRow, error) {
@@ -1201,6 +1210,7 @@ func (q *Queries) ListPositions(ctx context.Context, arg ListPositionsParams) ([
 			&i.PairName,
 			&i.CoinName,
 			&i.CurrentPrice,
+			&i.PriceUpdatedAt,
 		); err != nil {
 			return nil, err
 		}

@@ -86,7 +86,7 @@ const columns = [
   col.accessor((s) => num(s.currentPrice), {
     id: 'price',
     header: 'Price',
-    cell: (c) => <Price value={c.row.original.currentPrice} />,
+    cell: (c) => <Price value={c.row.original.currentPrice} updatedAt={c.row.original.priceUpdatedAt} />,
     meta: { align: 'right', mobile: 'hidden' },
   }),
   col.accessor((s) => num(s.totalProfit), {

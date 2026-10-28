@@ -1382,6 +1382,7 @@ components:
         refClosePrice: { $ref: "#/components/schemas/Decimal" }
         closeSlippagePercent: { $ref: "#/components/schemas/Decimal" }
         currentPrice: { $ref: "#/components/schemas/Decimal" }
+        priceUpdatedAt: { type: string, format: date-time, description: When currentPrice was last refreshed }
         notionalUsdt: { $ref: "#/components/schemas/Decimal" }
         sizePercent: { $ref: "#/components/schemas/Decimal" }
         equityPercent: { $ref: "#/components/schemas/Decimal" }
@@ -1477,6 +1478,7 @@ components:
         checkNote: { type: string }
         checkedAt: { type: string, format: date-time }
         currentPrice: { $ref: "#/components/schemas/Decimal" }
+        priceUpdatedAt: { type: string, format: date-time, description: When currentPrice was last refreshed }
         position:
           type: object
           required: [positionId, side, status, signalDate, unrealizedProfitUsdt]
@@ -1658,6 +1660,7 @@ components:
         status: { type: string, enum: [ACTIVE, INACTIVE, DONE] }
         note: { type: string }
         currentPrice: { $ref: "#/components/schemas/Decimal" }
+        priceUpdatedAt: { type: string, format: date-time, description: When currentPrice was last refreshed }
         stepSize: { $ref: "#/components/schemas/Decimal" }
         minNotional: { $ref: "#/components/schemas/Decimal" }
         account: { type: string, enum: [SPOT, CROSS, ISOLATED] }
@@ -1719,6 +1722,7 @@ components:
         pairName: { type: string }
         pairStatus: { $ref: "#/components/schemas/PairStatus" }
         currentPrice: { $ref: "#/components/schemas/Decimal" }
+        priceUpdatedAt: { type: string, format: date-time, description: When currentPrice was last refreshed }
         h1: { type: boolean }
         h4: { type: boolean }
         d1: { type: boolean }
@@ -1819,6 +1823,7 @@ components:
         pairId: { type: integer, format: int64 }
         pairName: { type: string }
         currentPrice: { $ref: "#/components/schemas/Decimal" }
+        priceUpdatedAt: { type: string, format: date-time, description: When currentPrice was last refreshed }
         account: { type: string, enum: [SPOT, CROSS, ISOLATED] }
         budget: { $ref: "#/components/schemas/Decimal" }
         tradeType: { type: string, enum: [ONLY_LONG, ONLY_SHORT, BOTH] }

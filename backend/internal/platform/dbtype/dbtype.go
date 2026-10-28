@@ -55,6 +55,15 @@ func (t *Time) Scan(src any) error {
 
 func (t Time) String() string { return t.UTC().Format(TimeLayout) }
 
+// TimePtr is the time.Time of a nullable column, for JSON views.
+func TimePtr(t *Time) *time.Time {
+	if t == nil {
+		return nil
+	}
+	v := t.Time
+	return &v
+}
+
 // FormatTime formats for TEXT comparisons in queries (e.g. "WHERE expires_at > ?").
 func FormatTime(t time.Time) string { return t.UTC().Format(TimeLayout) }
 

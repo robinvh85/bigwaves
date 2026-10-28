@@ -95,10 +95,12 @@ type settingView struct {
 	dbq.DcaSetting
 	PairName     string
 	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	// PriceUpdatedAt is when CurrentPrice was last refreshed.
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 func (v settingView) account() binance.Account {
@@ -121,7 +123,7 @@ func (s *Service) getSetting(ctx context.Context, q *dbq.Queries, id int64) (set
 	if err != nil {
 		return settingView{}, err
 	}
-	return settingView{r.DcaSetting, r.PairName, r.CurrentPrice, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}, nil
+	return settingView{r.DcaSetting, r.PairName, r.CurrentPrice, r.PriceUpdatedAt, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}, nil
 }
 
 func openOrderID(id int64) string  { return fmt.Sprintf("bw_dca_%d_open", id) }
@@ -156,7 +158,7 @@ func (s *Service) Check(ctx context.Context) (string, error) {
 	sold, bought := 0, 0
 	var failures []string
 	for _, r := range settings {
-		v := settingView{r.DcaSetting, r.PairName, r.CurrentPrice, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}
+		v := settingView{r.DcaSetting, r.PairName, r.CurrentPrice, r.PriceUpdatedAt, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}
 		if v.CurrentPrice == nil {
 			continue
 		}

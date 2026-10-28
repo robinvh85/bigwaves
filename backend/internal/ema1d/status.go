@@ -55,6 +55,7 @@ type PositionRow struct {
 	RefClosePrice        *money.Dec `json:"refClosePrice,omitempty"`
 	CloseSlippagePercent *money.Dec `json:"closeSlippagePercent,omitempty"`
 	CurrentPrice         *money.Dec `json:"currentPrice,omitempty"`
+	PriceUpdatedAt       *time.Time `json:"priceUpdatedAt,omitempty"`
 	NotionalUsdt         money.Dec  `json:"notionalUsdt"`
 	SizePercent          money.Dec  `json:"sizePercent"`
 	EquityPercent        *money.Dec `json:"equityPercent,omitempty"`
@@ -179,7 +180,7 @@ func (s *Service) Status(ctx context.Context) (Status, error) {
 			st.Exposure.ShortUsdt = st.Exposure.ShortUsdt.Add(value)
 			st.Exposure.ShortCount++
 		}
-		st.OpenPositions = append(st.OpenPositions, s.positionRow(pos, r.PairName, r.CoinName, r.CurrentPrice, equity, now))
+		st.OpenPositions = append(st.OpenPositions, s.positionRow(pos, r.PairName, r.CoinName, r.CurrentPrice, r.PriceUpdatedAt, equity, now))
 	}
 	st.Exposure.LongUsdt, st.Exposure.ShortUsdt = st.Exposure.LongUsdt.Round(2), st.Exposure.ShortUsdt.Round(2)
 	st.Exposure.LongPercent = percentOf(st.Exposure.LongUsdt, equity)
@@ -203,13 +204,13 @@ func (s *Service) Status(ctx context.Context) (Status, error) {
 	return st, nil
 }
 
-func (s *Service) positionRow(pos dbq.Ema1dPosition, pairName, coin string, current *money.Dec, equity money.Dec, now time.Time) PositionRow {
+func (s *Service) positionRow(pos dbq.Ema1dPosition, pairName, coin string, current *money.Dec, priceAt *dbtype.Time, equity money.Dec, now time.Time) PositionRow {
 	done := pos.Status == PosClosed
 	row := PositionRow{
 		ID: pos.ID, Coin: coin, PairName: pairName, Side: pos.Side, Status: pos.Status, SignalDate: pos.SignalDate,
 		ExitRule: pos.ExitRule, Amount: pos.Amount, OpenPrice: pos.OpenPrice, RefOpenPrice: pos.RefOpenPrice,
 		OpenSlippagePercent: slippagePercent(pos.OpenPrice, pos.RefOpenPrice, pos.Side == SideShort),
-		CurrentPrice:        current, NotionalUsdt: pos.NotionalUsdt, SizePercent: pos.SizePercent,
+		CurrentPrice:        current, PriceUpdatedAt: dbtype.TimePtr(priceAt), NotionalUsdt: pos.NotionalUsdt, SizePercent: pos.SizePercent,
 		FeeUsdt: pos.FeeUsdt, InterestUsdt: pos.InterestUsdt, OpenAt: timePtr(pos.OpenAt), CloseAt: timePtr(pos.CloseAt),
 		ProfitUsdt: pos.UnrealizedProfit,
 	}
@@ -311,6 +312,7 @@ type PairRow struct {
 	CheckNote      string        `json:"checkNote"`
 	CheckedAt      *time.Time    `json:"checkedAt,omitempty"`
 	CurrentPrice   *money.Dec    `json:"currentPrice,omitempty"`
+	PriceUpdatedAt *time.Time    `json:"priceUpdatedAt,omitempty"`
 	Position       *PairPosition `json:"position,omitempty"`
 	Wanted         *Wanted       `json:"wanted,omitempty"`
 	PendingTodos   []string      `json:"pendingTodos"`
@@ -340,7 +342,7 @@ func (s *Service) PairRows(ctx context.Context) ([]PairRow, error) {
 			ID: pv.ID, PairID: pv.PairID, Coin: pv.CoinName, PairName: pv.PairName, PairGroup: pv.PairGroup, Status: pv.Status,
 			AllowLong: pv.AllowLong, AllowShort: pv.AllowShort, ShortSupported: pv.ShortSupported, LongExitRule: pv.LongExitRule,
 			AddedOn: pv.AddedOn, RemovedOn: pv.RemovedOn, SignalFrom: pv.SignalFrom, CheckNote: pv.CheckNote,
-			CheckedAt: timePtr(pv.CheckedAt), CurrentPrice: pv.CurrentPrice, PendingTodos: []string{},
+			CheckedAt: timePtr(pv.CheckedAt), CurrentPrice: pv.CurrentPrice, PriceUpdatedAt: dbtype.TimePtr(pv.PriceUpdatedAt), PendingTodos: []string{},
 		}
 		pos, err := activePosition(ctx, q, pv.ID)
 		if err != nil {
@@ -473,7 +475,7 @@ func (s *Service) Trades(ctx context.Context, f TradesFilter) ([]PositionRow, Tr
 	sum := TradesSummary{Count: len(rows)}
 	var wins, losses []money.Dec
 	for i, r := range rows {
-		out[i] = s.positionRow(r.Ema1dPosition, r.PairName, r.CoinName, r.CurrentPrice, equity, now)
+		out[i] = s.positionRow(r.Ema1dPosition, r.PairName, r.CoinName, r.CurrentPrice, r.PriceUpdatedAt, equity, now)
 		p := out[i].ProfitUsdt
 		sum.TotalProfitUsdt = sum.TotalProfitUsdt.Add(p)
 		sum.InterestUsdt = sum.InterestUsdt.Add(r.Ema1dPosition.InterestUsdt)

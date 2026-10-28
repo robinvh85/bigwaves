@@ -184,7 +184,7 @@ function DcaDetail() {
         description={
           <span className="inline-flex flex-wrap items-center gap-2">
             <SettingStatusBadge status={s.status} /> {s.account} · current price{' '}
-            <Price value={s.currentPrice} />
+            <Price value={s.currentPrice} updatedAt={s.priceUpdatedAt} />
             {s.note && <span>· {s.note}</span>}
           </span>
         }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"bigwaves/internal/platform/db/dbq"
+	"bigwaves/internal/platform/dbtype"
 	"bigwaves/internal/platform/httpx"
 	"bigwaves/internal/platform/money"
 )
@@ -41,6 +42,7 @@ type SettingRow struct {
 	Status           string     `json:"status"`
 	Note             string     `json:"note"`
 	CurrentPrice     *money.Dec `json:"currentPrice,omitempty"`
+	PriceUpdatedAt   *time.Time `json:"priceUpdatedAt,omitempty"`
 	StepSize         *money.Dec `json:"stepSize,omitempty"`
 	MinNotional      *money.Dec `json:"minNotional,omitempty"`
 	Account          string     `json:"account"`
@@ -77,7 +79,7 @@ func tradeRow(t dbq.DcaTrade) TradeRow {
 func (s *Service) row(ctx context.Context, v settingView, withTrades bool) (SettingRow, error) {
 	r := SettingRow{
 		ID: v.ID, PairID: v.PairID, PairName: v.PairName, Status: v.Status, Note: v.Note, CurrentPrice: v.CurrentPrice,
-		StepSize: v.StepSize, MinNotional: v.MinNotional, Account: string(v.account()), CreatedAt: v.CreatedAt.Time,
+		PriceUpdatedAt: dbtype.TimePtr(v.PriceUpdatedAt), StepSize: v.StepSize, MinNotional: v.MinNotional, Account: string(v.account()), CreatedAt: v.CreatedAt.Time,
 	}
 	trades, err := dbq.New(s.DB.Read).ListDcaTrades(ctx, v.ID)
 	if err != nil {
@@ -125,7 +127,7 @@ func (s *Service) List(ctx context.Context, status string) ([]SettingRow, error)
 	}
 	out := make([]SettingRow, 0, len(rows))
 	for _, r := range rows {
-		row, err := s.row(ctx, settingView{r.DcaSetting, r.PairName, r.CurrentPrice, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}, false)
+		row, err := s.row(ctx, settingView{r.DcaSetting, r.PairName, r.CurrentPrice, r.PriceUpdatedAt, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}, false)
 		if err != nil {
 			return nil, err
 		}

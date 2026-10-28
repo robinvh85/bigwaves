@@ -1064,6 +1064,11 @@ export interface components {
             refClosePrice?: components["schemas"]["Decimal"];
             closeSlippagePercent?: components["schemas"]["Decimal"];
             currentPrice?: components["schemas"]["Decimal"];
+            /**
+             * Format: date-time
+             * @description When currentPrice was last refreshed
+             */
+            priceUpdatedAt?: string;
             notionalUsdt: components["schemas"]["Decimal"];
             sizePercent: components["schemas"]["Decimal"];
             equityPercent?: components["schemas"]["Decimal"];
@@ -1170,6 +1175,11 @@ export interface components {
             /** Format: date-time */
             checkedAt?: string;
             currentPrice?: components["schemas"]["Decimal"];
+            /**
+             * Format: date-time
+             * @description When currentPrice was last refreshed
+             */
+            priceUpdatedAt?: string;
             position?: {
                 /** Format: int64 */
                 positionId: number;
@@ -1341,6 +1351,11 @@ export interface components {
             status: "ACTIVE" | "INACTIVE" | "DONE";
             note: string;
             currentPrice?: components["schemas"]["Decimal"];
+            /**
+             * Format: date-time
+             * @description When currentPrice was last refreshed
+             */
+            priceUpdatedAt?: string;
             stepSize?: components["schemas"]["Decimal"];
             minNotional?: components["schemas"]["Decimal"];
             /** @enum {string} */
@@ -1410,6 +1425,11 @@ export interface components {
             pairName: string;
             pairStatus: components["schemas"]["PairStatus"];
             currentPrice?: components["schemas"]["Decimal"];
+            /**
+             * Format: date-time
+             * @description When currentPrice was last refreshed
+             */
+            priceUpdatedAt?: string;
             h1: boolean;
             h4: boolean;
             d1: boolean;
@@ -1502,6 +1522,11 @@ export interface components {
             pairId: number;
             pairName: string;
             currentPrice?: components["schemas"]["Decimal"];
+            /**
+             * Format: date-time
+             * @description When currentPrice was last refreshed
+             */
+            priceUpdatedAt?: string;
             /** @enum {string} */
             account: "SPOT" | "CROSS" | "ISOLATED";
             budget: components["schemas"]["Decimal"];

@@ -1,19 +1,19 @@
 -- ---------------------------------------------------------------- pairs
 
 -- name: ListEma1dPairs :many
-SELECT sqlc.embed(e), p.name AS pair_name, c.name AS coin_name, p.current_price, p.step_size, p.min_notional,
+SELECT sqlc.embed(e), p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 ORDER BY CASE e.status WHEN 'ACTIVE' THEN 0 WHEN 'EXIT_ONLY' THEN 1 ELSE 2 END, e.id;
 
 -- name: GetEma1dPair :one
-SELECT sqlc.embed(e), p.name AS pair_name, c.name AS coin_name, p.current_price, p.step_size, p.min_notional,
+SELECT sqlc.embed(e), p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE e.id = ?;
 
 -- name: GetEma1dPairByCoin :one
-SELECT sqlc.embed(e), p.name AS pair_name, c.name AS coin_name, p.current_price, p.step_size, p.min_notional,
+SELECT sqlc.embed(e), p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE c.name = ?;
@@ -71,7 +71,7 @@ ORDER BY id DESC LIMIT 1;
 SELECT id FROM ema1d_positions WHERE pair_id = ? AND side = 'SHORT' AND status IN ('OPENING', 'OPEN') AND id <> ?;
 
 -- name: ListActivePositions :many
-SELECT sqlc.embed(x), p.name AS pair_name, c.name AS coin_name, p.current_price
+SELECT sqlc.embed(x), p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at
 FROM ema1d_positions x JOIN pairs p ON p.id = x.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE x.status IN ('OPENING', 'OPEN')
 ORDER BY x.id;
@@ -80,7 +80,7 @@ ORDER BY x.id;
 SELECT realized_profit, interest_usdt, fee_usdt FROM ema1d_positions WHERE status = 'CLOSED';
 
 -- name: ListPositions :many
-SELECT sqlc.embed(x), p.name AS pair_name, c.name AS coin_name, p.current_price
+SELECT sqlc.embed(x), p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at
 FROM ema1d_positions x JOIN pairs p ON p.id = x.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE (CASE WHEN sqlc.arg('closed') THEN x.status = 'CLOSED' ELSE x.status IN ('OPENING', 'OPEN') END)
   AND (sqlc.narg('coin') IS NULL OR c.name = sqlc.narg('coin'))

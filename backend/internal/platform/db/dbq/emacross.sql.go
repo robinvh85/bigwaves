@@ -58,16 +58,17 @@ func (q *Queries) FinishEmacrossAlert(ctx context.Context, arg FinishEmacrossAle
 }
 
 const getEmacrossPair = `-- name: GetEmacrossPair :one
-SELECT w.pair_id, w.h1, w.h4, w.d1, w.created_at, w.updated_at, p.name AS pair_name, p.status AS pair_status, p.current_price
+SELECT w.pair_id, w.h1, w.h4, w.d1, w.created_at, w.updated_at, p.name AS pair_name, p.status AS pair_status, p.current_price, p.price_updated_at
 FROM emacross_pairs w JOIN pairs p ON p.id = w.pair_id
 WHERE w.pair_id = ?
 `
 
 type GetEmacrossPairRow struct {
-	EmacrossPair EmacrossPair
-	PairName     string
-	PairStatus   string
-	CurrentPrice *money.Dec
+	EmacrossPair   EmacrossPair
+	PairName       string
+	PairStatus     string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
 }
 
 func (q *Queries) GetEmacrossPair(ctx context.Context, pairID int64) (GetEmacrossPairRow, error) {
@@ -83,6 +84,7 @@ func (q *Queries) GetEmacrossPair(ctx context.Context, pairID int64) (GetEmacros
 		&i.PairName,
 		&i.PairStatus,
 		&i.CurrentPrice,
+		&i.PriceUpdatedAt,
 	)
 	return i, err
 }
@@ -221,17 +223,18 @@ func (q *Queries) ListEmacrossAlerts(ctx context.Context, arg ListEmacrossAlerts
 }
 
 const listEmacrossPairs = `-- name: ListEmacrossPairs :many
-SELECT w.pair_id, w.h1, w.h4, w.d1, w.created_at, w.updated_at, p.name AS pair_name, p.status AS pair_status, p.current_price
+SELECT w.pair_id, w.h1, w.h4, w.d1, w.created_at, w.updated_at, p.name AS pair_name, p.status AS pair_status, p.current_price, p.price_updated_at
 FROM emacross_pairs w JOIN pairs p ON p.id = w.pair_id
 WHERE p.deleted_at IS NULL
 ORDER BY p.name
 `
 
 type ListEmacrossPairsRow struct {
-	EmacrossPair EmacrossPair
-	PairName     string
-	PairStatus   string
-	CurrentPrice *money.Dec
+	EmacrossPair   EmacrossPair
+	PairName       string
+	PairStatus     string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
 }
 
 func (q *Queries) ListEmacrossPairs(ctx context.Context) ([]ListEmacrossPairsRow, error) {
@@ -253,6 +256,7 @@ func (q *Queries) ListEmacrossPairs(ctx context.Context) ([]ListEmacrossPairsRow
 			&i.PairName,
 			&i.PairStatus,
 			&i.CurrentPrice,
+			&i.PriceUpdatedAt,
 		); err != nil {
 			return nil, err
 		}

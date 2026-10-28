@@ -1,11 +1,11 @@
 -- name: ListEmacrossPairs :many
-SELECT sqlc.embed(w), p.name AS pair_name, p.status AS pair_status, p.current_price
+SELECT sqlc.embed(w), p.name AS pair_name, p.status AS pair_status, p.current_price, p.price_updated_at
 FROM emacross_pairs w JOIN pairs p ON p.id = w.pair_id
 WHERE p.deleted_at IS NULL
 ORDER BY p.name;
 
 -- name: GetEmacrossPair :one
-SELECT sqlc.embed(w), p.name AS pair_name, p.status AS pair_status, p.current_price
+SELECT sqlc.embed(w), p.name AS pair_name, p.status AS pair_status, p.current_price, p.price_updated_at
 FROM emacross_pairs w JOIN pairs p ON p.id = w.pair_id
 WHERE w.pair_id = ?;
 

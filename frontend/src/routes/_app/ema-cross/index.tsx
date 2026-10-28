@@ -70,7 +70,7 @@ const columns = [
   col.accessor((p) => (p.currentPrice ? Number(p.currentPrice) : 0), {
     id: 'price',
     header: 'Price',
-    cell: (c) => <Price value={c.row.original.currentPrice} />,
+    cell: (c) => <Price value={c.row.original.currentPrice} updatedAt={c.row.original.priceUpdatedAt} />,
     meta: { align: 'right', mobile: 'primary' },
   }),
 ]

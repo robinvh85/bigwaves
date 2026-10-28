@@ -87,7 +87,7 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
       <div className="space-y-4 px-4 pb-6">
         <div className="rounded-lg border p-3">
           <Info label="Current price">
-            <Price value={pair.currentPrice} />
+            <Price value={pair.currentPrice} updatedAt={pair.priceUpdatedAt} />
           </Info>
           <Info label="Price updated">
             <span title={formatDateTime(pair.priceUpdatedAt)}>{fromNow(pair.priceUpdatedAt)}</span>

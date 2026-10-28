@@ -107,19 +107,20 @@ func (q *Queries) DeleteDcaTrade(ctx context.Context, id int64) error {
 }
 
 const getDcaSetting = `-- name: GetDcaSetting :one
-SELECT s.id, s.pair_id, s.status, s.note, s.created_at, s.updated_at, p.name AS pair_name, p.current_price, p.step_size, p.min_notional, p.is_spot, p.is_isolated
+SELECT s.id, s.pair_id, s.status, s.note, s.created_at, s.updated_at, p.name AS pair_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional, p.is_spot, p.is_isolated
 FROM dca_settings s JOIN pairs p ON p.id = s.pair_id
 WHERE s.id = ?
 `
 
 type GetDcaSettingRow struct {
-	DcaSetting   DcaSetting
-	PairName     string
-	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	DcaSetting     DcaSetting
+	PairName       string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 func (q *Queries) GetDcaSetting(ctx context.Context, id int64) (GetDcaSettingRow, error) {
@@ -134,6 +135,7 @@ func (q *Queries) GetDcaSetting(ctx context.Context, id int64) (GetDcaSettingRow
 		&i.DcaSetting.UpdatedAt,
 		&i.PairName,
 		&i.CurrentPrice,
+		&i.PriceUpdatedAt,
 		&i.StepSize,
 		&i.MinNotional,
 		&i.IsSpot,
@@ -229,20 +231,21 @@ func (q *Queries) ListActiveDcaTrades(ctx context.Context) ([]DcaTrade, error) {
 }
 
 const listDcaSettings = `-- name: ListDcaSettings :many
-SELECT s.id, s.pair_id, s.status, s.note, s.created_at, s.updated_at, p.name AS pair_name, p.current_price, p.step_size, p.min_notional, p.is_spot, p.is_isolated
+SELECT s.id, s.pair_id, s.status, s.note, s.created_at, s.updated_at, p.name AS pair_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional, p.is_spot, p.is_isolated
 FROM dca_settings s JOIN pairs p ON p.id = s.pair_id
 WHERE (?1 IS NULL OR s.status = ?1)
 ORDER BY CASE s.status WHEN 'ACTIVE' THEN 0 WHEN 'INACTIVE' THEN 1 ELSE 2 END, s.id DESC
 `
 
 type ListDcaSettingsRow struct {
-	DcaSetting   DcaSetting
-	PairName     string
-	CurrentPrice *money.Dec
-	StepSize     *money.Dec
-	MinNotional  *money.Dec
-	IsSpot       bool
-	IsIsolated   bool
+	DcaSetting     DcaSetting
+	PairName       string
+	CurrentPrice   *money.Dec
+	PriceUpdatedAt *dbtype.Time
+	StepSize       *money.Dec
+	MinNotional    *money.Dec
+	IsSpot         bool
+	IsIsolated     bool
 }
 
 func (q *Queries) ListDcaSettings(ctx context.Context, status interface{}) ([]ListDcaSettingsRow, error) {
@@ -263,6 +266,7 @@ func (q *Queries) ListDcaSettings(ctx context.Context, status interface{}) ([]Li
 			&i.DcaSetting.UpdatedAt,
 			&i.PairName,
 			&i.CurrentPrice,
+			&i.PriceUpdatedAt,
 			&i.StepSize,
 			&i.MinNotional,
 			&i.IsSpot,

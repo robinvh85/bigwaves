@@ -1,11 +1,11 @@
 -- name: ListDcaSettings :many
-SELECT sqlc.embed(s), p.name AS pair_name, p.current_price, p.step_size, p.min_notional, p.is_spot, p.is_isolated
+SELECT sqlc.embed(s), p.name AS pair_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional, p.is_spot, p.is_isolated
 FROM dca_settings s JOIN pairs p ON p.id = s.pair_id
 WHERE (sqlc.narg('status') IS NULL OR s.status = sqlc.narg('status'))
 ORDER BY CASE s.status WHEN 'ACTIVE' THEN 0 WHEN 'INACTIVE' THEN 1 ELSE 2 END, s.id DESC;
 
 -- name: GetDcaSetting :one
-SELECT sqlc.embed(s), p.name AS pair_name, p.current_price, p.step_size, p.min_notional, p.is_spot, p.is_isolated
+SELECT sqlc.embed(s), p.name AS pair_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional, p.is_spot, p.is_isolated
 FROM dca_settings s JOIN pairs p ON p.id = s.pair_id
 WHERE s.id = ?;
 

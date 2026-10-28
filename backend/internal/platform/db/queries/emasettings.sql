@@ -1,12 +1,12 @@
 -- name: ListEmaSettings :many
-SELECT sqlc.embed(s), p.name AS pair_name, c.name AS coin_name, p.status AS pair_status, p.current_price,
+SELECT sqlc.embed(s), p.name AS pair_name, c.name AS coin_name, p.status AS pair_status, p.current_price, p.price_updated_at,
   p.step_size, p.min_notional, p.is_spot, p.is_isolated
 FROM ema_settings s JOIN pairs p ON p.id = s.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE (sqlc.narg(status) IS NULL OR s.status = sqlc.narg(status))
 ORDER BY s.status = 'DONE', s.created_at DESC, s.id DESC;
 
 -- name: GetEmaSetting :one
-SELECT sqlc.embed(s), p.name AS pair_name, c.name AS coin_name, p.status AS pair_status, p.current_price,
+SELECT sqlc.embed(s), p.name AS pair_name, c.name AS coin_name, p.status AS pair_status, p.current_price, p.price_updated_at,
   p.step_size, p.min_notional, p.is_spot, p.is_isolated
 FROM ema_settings s JOIN pairs p ON p.id = s.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE s.id = ?;

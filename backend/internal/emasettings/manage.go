@@ -46,6 +46,7 @@ type SettingRow struct {
 	PairID           int64      `json:"pairId"`
 	PairName         string     `json:"pairName"`
 	CurrentPrice     *money.Dec `json:"currentPrice,omitempty"`
+	PriceUpdatedAt   *time.Time `json:"priceUpdatedAt,omitempty"`
 	Account          string     `json:"account"`
 	Budget           money.Dec  `json:"budget"`
 	TradeType        string     `json:"tradeType"`
@@ -89,7 +90,8 @@ func settingRow(r dbq.GetEmaSettingRow, trades []dbq.EmaSettingTrade) SettingRow
 	s := r.EmaSetting
 	sum := Summarize(s.Budget, trades)
 	row := SettingRow{
-		ID: s.ID, PairID: s.PairID, PairName: r.PairName, CurrentPrice: r.CurrentPrice, Account: "CROSS",
+		ID: s.ID, PairID: s.PairID, PairName: r.PairName, CurrentPrice: r.CurrentPrice,
+		PriceUpdatedAt: dbtype.TimePtr(r.PriceUpdatedAt), Account: "CROSS",
 		Budget: s.Budget, TradeType: s.TradeType, Period: s.Period, CheckType: s.CheckType, NextTradeType: s.NextTradeType,
 		TpPercent: s.TpPercent, SlPercent: s.SlPercent, Status: s.Status, Note: s.Note,
 		RealizedProfit: sum.Realized, UnrealizedProfit: sum.Unrealized, TotalProfit: sum.Total, TotalPercent: sum.TotalPercent,

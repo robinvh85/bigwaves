@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"bigwaves/internal/platform/db/dbq"
+	"bigwaves/internal/platform/dbtype"
 	"bigwaves/internal/platform/httpx"
 	"bigwaves/internal/platform/money"
 )
@@ -39,13 +40,14 @@ type Alert struct {
 
 // Pair is a watched pair with its switches, its last readings and its last alerts.
 type Pair struct {
-	PairID       int64      `json:"pairId"`
-	PairName     string     `json:"pairName"`
-	PairStatus   string     `json:"pairStatus"`
-	CurrentPrice *money.Dec `json:"currentPrice,omitempty"`
-	H1           bool       `json:"h1"`
-	H4           bool       `json:"h4"`
-	D1           bool       `json:"d1"`
+	PairID         int64      `json:"pairId"`
+	PairName       string     `json:"pairName"`
+	PairStatus     string     `json:"pairStatus"`
+	CurrentPrice   *money.Dec `json:"currentPrice,omitempty"`
+	PriceUpdatedAt *time.Time `json:"priceUpdatedAt,omitempty"`
+	H1             bool       `json:"h1"`
+	H4             bool       `json:"h4"`
+	D1             bool       `json:"d1"`
 	// States and LastAlerts only hold the switched-on timeframes, in H1, H4, D1 order.
 	States     []State `json:"states"`
 	LastAlerts []Alert `json:"lastAlerts"`
@@ -73,7 +75,7 @@ func (s *Service) List(ctx context.Context) ([]Pair, error) {
 	byPair := map[int64]*Pair{}
 	out := make([]Pair, len(rows))
 	for i, r := range rows {
-		out[i] = pairView(r.EmacrossPair, r.PairName, r.PairStatus, r.CurrentPrice)
+		out[i] = pairView(r.EmacrossPair, r.PairName, r.PairStatus, r.CurrentPrice, r.PriceUpdatedAt)
 		byPair[r.EmacrossPair.PairID] = &out[i]
 	}
 	for _, st := range states {
@@ -112,7 +114,8 @@ func (s *Service) Watch(ctx context.Context, pairID int64, h1, h4, d1 bool) (Pai
 			return Pair{}, err
 		}
 		s.changed()
-		return Pair{PairID: p.ID, PairName: p.Name, PairStatus: p.Status, CurrentPrice: p.CurrentPrice, States: []State{}, LastAlerts: []Alert{}}, nil
+		return Pair{PairID: p.ID, PairName: p.Name, PairStatus: p.Status, CurrentPrice: p.CurrentPrice,
+			PriceUpdatedAt: dbtype.TimePtr(p.PriceUpdatedAt), States: []State{}, LastAlerts: []Alert{}}, nil
 	}
 	if err := q.UpsertEmacrossPair(ctx, dbq.UpsertEmacrossPairParams{PairID: pairID, H1: h1, H4: h4, D1: d1}); err != nil {
 		return Pair{}, err
@@ -160,9 +163,9 @@ func (s *Service) Alerts(ctx context.Context, f AlertFilter) ([]Alert, error) {
 	return out, nil
 }
 
-func pairView(w dbq.EmacrossPair, name, status string, price *money.Dec) Pair {
+func pairView(w dbq.EmacrossPair, name, status string, price *money.Dec, priceAt *dbtype.Time) Pair {
 	return Pair{
-		PairID: w.PairID, PairName: name, PairStatus: status, CurrentPrice: price,
+		PairID: w.PairID, PairName: name, PairStatus: status, CurrentPrice: price, PriceUpdatedAt: dbtype.TimePtr(priceAt),
 		H1: w.H1, H4: w.H4, D1: w.D1, States: []State{}, LastAlerts: []Alert{},
 	}
 }

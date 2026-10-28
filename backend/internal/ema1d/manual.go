@@ -47,7 +47,7 @@ func (s *Service) CreateManualTodo(ctx context.Context, req ManualTodoRequest) (
 	if err != nil {
 		return ManualTodoResult{}, err
 	}
-	pv := pairView{r.Ema1dPair, r.PairName, r.CoinName, r.CurrentPrice, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}
+	pv := pairView{r.Ema1dPair, r.PairName, r.CoinName, r.CurrentPrice, r.PriceUpdatedAt, r.StepSize, r.MinNotional, r.IsSpot, r.IsIsolated}
 
 	side := strings.ToUpper(strings.TrimSpace(req.Side))
 	if side != "" && side != SideLong && side != SideShort {

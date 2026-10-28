@@ -3,6 +3,7 @@ package dca_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -232,4 +233,18 @@ func TestPairAccountLockedWhileRungHeld(t *testing.T) {
 	disabled := "DISABLED"
 	_, err = e.k.App.Pairs.Update(e.ctx, l.PairID, marketdata.UpdateInput{Status: &disabled})
 	require.NoError(t, err)
+}
+
+func TestLadderShowsWhenItsPriceWasUpdated(t *testing.T) {
+	e := newEnv(t)
+	l := e.ladder(false, "0.02")
+	e.price("0.021")
+	got := e.get(l.ID)
+	require.Equal(t, "0.021", got.CurrentPrice.String())
+	require.NotNil(t, got.PriceUpdatedAt)
+	require.WithinDuration(t, time.Now(), *got.PriceUpdatedAt, time.Minute)
+
+	list, err := e.s.List(e.ctx, "")
+	require.NoError(t, err)
+	require.NotNil(t, list[0].PriceUpdatedAt)
 }

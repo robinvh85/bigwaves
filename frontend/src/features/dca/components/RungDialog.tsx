@@ -17,6 +17,7 @@ import {
 } from '@/shared/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
 import { NumberInput } from '@/shared/components/number-input'
+import { Price } from '@/shared/components/numbers'
 
 import { type DcaSetting, type DcaTrade, useSaveTrade } from '../api'
 
@@ -85,7 +86,8 @@ export function RungDialog({
           <DialogHeader>
             <DialogTitle>{rung ? `Edit rung #${rung.id}` : 'Add rung'}</DialogTitle>
             <DialogDescription>
-              {setting.pairName} · current price {setting.currentPrice ?? '—'}
+              {setting.pairName} · current price{' '}
+              <Price value={setting.currentPrice} updatedAt={setting.priceUpdatedAt} exact />
               {setting.stepSize && ` · quantity step ${setting.stepSize}`}
             </DialogDescription>
           </DialogHeader>

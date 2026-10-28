@@ -69,7 +69,7 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
       <div className="space-y-4 px-4 pb-6">
         <div className="rounded-lg border p-3">
           <Row label="Current price">
-            <Price value={pair.currentPrice} />
+            <Price value={pair.currentPrice} updatedAt={pair.priceUpdatedAt} />
           </Row>
           <Row label="Holding">
             {pair.position ? (

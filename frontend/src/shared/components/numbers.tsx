@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import {
   type DecimalString,
   formatMoney,
@@ -6,18 +8,34 @@ import {
   formatQty,
   signOf,
 } from '@/shared/lib/format'
+import { formatDateTime, fromNow } from '@/shared/lib/date'
 import { cn } from '@/shared/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip'
 
 type Value = DecimalString | number | null | undefined
 
-function Num({ text, full, className }: { text: string; full?: string; className?: string }) {
+function Num({
+  text,
+  full,
+  note,
+  className,
+}: {
+  text: string
+  full?: string
+  /** Extra line in the tooltip, under the full value. */
+  note?: ReactNode
+  className?: string
+}) {
   const span = <span className={cn('num whitespace-nowrap', className)}>{text}</span>
-  if (!full || full === text) return span
+  const showFull = !!full && full !== text
+  if (!showFull && !note) return span
   return (
     <Tooltip>
       <TooltipTrigger asChild>{span}</TooltipTrigger>
-      <TooltipContent className="num">{full}</TooltipContent>
+      <TooltipContent>
+        {showFull && <div className="num">{full}</div>}
+        {note && <div>{note}</div>}
+      </TooltipContent>
     </Tooltip>
   )
 }
@@ -42,9 +60,33 @@ export function Money({
   )
 }
 
-export function Price({ value, className }: { value: Value; className?: string }) {
+/**
+ * A price. `updatedAt` (when the price was fetched) shows on hover; `exact` prints the value as
+ * stored instead of rounding it, for forms that ask for prices.
+ */
+export function Price({
+  value,
+  updatedAt,
+  exact,
+  className,
+}: {
+  value: Value
+  updatedAt?: string | null
+  exact?: boolean
+  className?: string
+}) {
+  const full = value != null ? String(value) : undefined
   return (
-    <Num text={formatPrice(value)} full={value != null ? String(value) : undefined} className={className} />
+    <Num
+      text={exact && full !== undefined ? full : formatPrice(value)}
+      full={full}
+      note={
+        updatedAt && value != null
+          ? `Updated ${fromNow(updatedAt)} · ${formatDateTime(updatedAt)}`
+          : undefined
+      }
+      className={className}
+    />
   )
 }
 
