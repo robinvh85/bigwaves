@@ -33,7 +33,7 @@ import {
 
 export const Route = createFileRoute('/_app/dca/$id')({
   staticData: { title: 'Ladder', parent: { title: 'Ladders', to: '/dca' } },
-  // all: also list rungs waiting to buy and sold ones; by default only the ones holding coins.
+  // all: also list sold rungs (finished trades); by default only the ones waiting to buy or holding.
   validateSearch: z.object({ all: z.boolean().optional() }),
   component: DcaDetail,
 })
@@ -55,7 +55,7 @@ function DcaDetail() {
   // Memoized: a new array on every render makes DataTable rebuild its rows and reset its page,
   // which renders again.
   const trades = s?.trades
-  const holding = useMemo(() => (trades ?? []).filter((t) => t.status === 'OPEN'), [trades])
+  const unsold = useMemo(() => (trades ?? []).filter((t) => t.status !== 'CLOSED'), [trades])
 
   if (error) return <ErrorState error={error} onRetry={() => void refetch()} />
   if (!s) return <SkeletonRows rows={8} />
@@ -234,14 +234,12 @@ function DcaDetail() {
                 })
               }
             />
-            Show all rungs
-            <span className="text-muted-foreground">
-              ({holding.length} holding of {trades?.length ?? 0})
-            </span>
+            Show sold rungs
+            <span className="text-muted-foreground">({(trades?.length ?? 0) - unsold.length} sold)</span>
           </label>
           <DataTable
             columns={columns}
-            data={all ? trades : holding}
+            data={all ? trades : unsold}
             getRowId={(t) => String(t.id)}
             sorting={[{ id: 'buy', desc: true }]}
             empty={
@@ -251,10 +249,7 @@ function DcaDetail() {
                   description="Add the first rung: the buy price, how many coins and the sell price."
                 />
               ) : (
-                <EmptyState
-                  title="No rungs holding"
-                  description="Tick “Show all rungs” to see the ones waiting to buy and the sold ones."
-                />
+                <EmptyState title="All rungs are sold" description="Tick “Show sold rungs” to see them." />
               )
             }
           />
