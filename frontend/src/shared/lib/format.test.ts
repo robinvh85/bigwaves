@@ -1,4 +1,4 @@
-import { formatMoney, formatPct, formatPrice, formatQty, signOf } from './format'
+import { formatMoney, formatPct, formatPrice, formatQty, percentOf, signOf } from './format'
 
 describe('formatMoney', () => {
   it('groups thousands and keeps 2 decimals', () => {
@@ -44,5 +44,16 @@ describe('signOf', () => {
     expect(signOf('-0.1')).toBe(-1)
     expect(signOf('0')).toBe(0)
     expect(signOf('3')).toBe(1)
+  })
+})
+
+describe('percentOf', () => {
+  it('divides with decimals, not floats', () => {
+    expect(percentOf('1.5', '30')).toBe('5')
+    expect(percentOf('-0.3', '10')).toBe('-3')
+  })
+  it('has no percent without a base', () => {
+    expect(percentOf('1', '0')).toBeNull()
+    expect(percentOf('1', undefined)).toBeNull()
   })
 })

@@ -67,6 +67,17 @@ export function formatPct(
   return sign && d.gt(0) ? `+${s}%` : `${s}%`
 }
 
+/** part / whole × 100 as a decimal string ("12.5"); null when whole is missing or zero. */
+export function percentOf(
+  part: DecimalString | number | null | undefined,
+  whole: DecimalString | number | null | undefined,
+): DecimalString | null {
+  const p = toDecimal(part)
+  const w = toDecimal(whole)
+  if (!p || !w || w.isZero()) return null
+  return p.div(w).times(100).toString()
+}
+
 /** -1, 0 or 1, for picking profit/loss colors. */
 export function signOf(v: DecimalString | number | null | undefined): -1 | 0 | 1 {
   const d = toDecimal(v)

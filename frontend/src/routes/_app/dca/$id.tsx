@@ -16,10 +16,11 @@ import { PriceLadder } from '@/features/dca/components/PriceLadder'
 import { RungDialog } from '@/features/dca/components/RungDialog'
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { DataTable } from '@/shared/components/data-table'
-import { Money, Pnl, Price, Qty } from '@/shared/components/numbers'
+import { Money, Pct, Pnl, Price, Qty } from '@/shared/components/numbers'
 import { EmptyState, ErrorState, PageHeader, SkeletonRows } from '@/shared/components/states'
 import { StatCard } from '@/shared/components/stat-card'
 import { formatDateTime } from '@/shared/lib/date'
+import { percentOf } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import {
   DropdownMenu,
@@ -102,7 +103,14 @@ function DcaDetail() {
       cell: (c) => {
         const t = c.row.original
         if (t.status === 'OPENING') return <span className="text-muted-foreground">—</span>
-        return <Pnl value={t.status === 'CLOSED' ? t.realizedProfit : t.unrealizedProfit} />
+        const pnl = t.status === 'CLOSED' ? t.realizedProfit : t.unrealizedProfit
+        const pct = percentOf(pnl, t.costUsdt)
+        return (
+          <div className="flex flex-col items-end">
+            <Pnl value={pnl} />
+            {pct !== null && <Pct value={pct} className="text-xs" />}
+          </div>
+        )
       },
       meta: { align: 'right', mobile: 'primary' },
     }),
