@@ -23,6 +23,7 @@ import (
 
 	"bigwaves/internal/ema1d"
 	"bigwaves/internal/emacross"
+	"bigwaves/internal/emasettings"
 	"bigwaves/internal/platform/db"
 	"bigwaves/internal/platform/money"
 )
@@ -43,7 +44,7 @@ func ts(col string) string {
 // imported lists the Rails tables this importer reads; everything else is archived.
 var imported = []string{
 	"users", "markets", "coins", "pairs", "app_settings", "ema1d_pairs", "ema_trades", "ema1d_syncs", "ema1d_todos",
-	"ema1d_equity_snapshots", "ema1d_candles", "ema1d_daily_checks", "dca_settings", "dca_trades",
+	"ema1d_equity_snapshots", "ema1d_candles", "ema1d_daily_checks", "dca_settings", "dca_trades", "ema_settings",
 }
 
 // noData are bookkeeping tables, neither imported nor archived.
@@ -82,6 +83,7 @@ func ImportPG(ctx context.Context, pgURL, sqlitePath, archiveDir string) (Report
 		{"ema1d_pairs", im.ema1dPairs}, {"ema1d_positions", im.positions}, {"ema1d_syncs", im.syncs},
 		{"ema1d_todos", im.todos}, {"ema1d_equity_snapshots", im.snapshots}, {"ema1d_candles", im.candles},
 		{"ema1d_daily_checks", im.dailyChecks}, {"dca", im.dca}, {"emacross_pairs", im.emaCrossPairs},
+		{"ema_settings", im.emaSettings},
 	}
 	for _, st := range steps {
 		if err := st.fn(ctx); err != nil {
@@ -380,6 +382,9 @@ func (im *importer) config(ctx context.Context) error {
 	if err := im.emaCrossConfig(ctx, get); err != nil {
 		return err
 	}
+	if err := im.emaSettingsConfig(ctx, get); err != nil {
+		return err
+	}
 	var dropped []string
 	for k, v := range settings {
 		if !used[k] {
@@ -587,7 +592,7 @@ func (im *importer) archive(ctx context.Context, dir string) error {
 		case slices.Contains(noData, t):
 			continue
 		case t == "ema_trades":
-			if err := im.exportCSV(ctx, dir, "ema_trades_legacy", `SELECT * FROM ema_trades WHERE source <> 'EMA1D_EXIT' ORDER BY id`); err != nil {
+			if err := im.exportCSV(ctx, dir, "ema_trades_legacy", `SELECT * FROM ema_trades WHERE source <> 'EMA1D_EXIT' AND ema_setting_id IS NULL ORDER BY id`); err != nil {
 				return err
 			}
 		case t == "pairs":
@@ -694,4 +699,98 @@ func (im *importer) exportViaText(ctx context.Context, dir, name, query string) 
 	}
 	im.rep.Archived[name] = n
 	return errors.Join(rows.Err(), f.Close())
+}
+
+// emaSettingsConfig carries the EMA_{D1,H4}_* thresholds EMA Settings used over to its config.
+// The switch stays off: the cutover turns it on once Rails no longer runs the settings.
+func (im *importer) emaSettingsConfig(ctx context.Context, get func(string) (string, bool)) error {
+	c := emasettings.DefaultConfig()
+	for _, p := range []struct {
+		prefix string
+		dst    *emasettings.PeriodParams
+	}{{"EMA_D1_", &c.D1}, {"EMA_H4_", &c.H4}} {
+		for _, f := range []struct {
+			key string
+			dst *money.Dec
+		}{
+			{"OVER_CROSS_EMA_PERCENT_FOR_OPEN", &p.dst.OpenPercent},
+			{"OVER_CROSS_EMA_PERCENT_FOR_CLOSE", &p.dst.ClosePercent},
+			{"CURRENT_OVER_EMA_PERCENT_FOR_IGNORE_OPEN", &p.dst.IgnoreOverEmaPercent},
+			{"LOSS_LIMIT_PERCENT", &p.dst.StopLossPercent},
+		} {
+			if v, ok := get(p.prefix + f.key); ok {
+				d, err := money.Parse(v)
+				if err != nil {
+					return fmt.Errorf("%s%s: %w", p.prefix, f.key, err)
+				}
+				*f.dst = d
+			}
+		}
+	}
+	if err := c.Validate(); err != nil {
+		return fmt.Errorf("EMA Settings thresholds: %w", err)
+	}
+	raw, _ := json.Marshal(c)
+	if _, err := im.lite.Write.ExecContext(ctx, `INSERT INTO strategy_configs (strategy, config) VALUES (?, ?)`, emasettings.StrategyKey, string(raw)); err != nil {
+		return err
+	}
+	im.rep.Imported["strategy_configs"]++
+	return nil
+}
+
+var settingTradeStatus = map[string]string{"OPENING": "OPENING", "CLOSING": "OPEN", "DONE": "CLOSED"}
+
+// emaSettings imports the settings and their trades (ema_trades with an ema_setting_id), ids and
+// Rails client order ids kept so an order Rails placed is found, not placed again. Rails used
+// open_price / close_price as the triggers before the order and as the fills after: they are split
+// here by status.
+func (im *importer) emaSettings(ctx context.Context) error {
+	if err := im.copyRows(ctx, "ema_settings",
+		`SELECT s.id::text, s.pair_id::text, s.budget::text, upper(s.trade_type), upper(s.period_type), upper(s.check_type),
+		        upper(s.next_trade_type), s.tp_percent::text, s.sl_percent::text, upper(s.status), coalesce(s.note, ''),
+		        `+ts("s.created_at")+`, `+ts("s.updated_at")+`
+		 FROM ema_settings s ORDER BY s.id`,
+		`INSERT INTO ema_settings (id, pair_id, budget, trade_type, period, check_type, next_trade_type, tp_percent, sl_percent,
+		   status, note, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		func(v []*string) []any {
+			return []any{*v[0], *v[1], decOr0(v[2]), *v[3], *v[4], *v[5], *v[6], decOr0(v[7]), decOr0(v[8]), *v[9], *v[10], *v[11], *v[12]}
+		}); err != nil {
+		return err
+	}
+	if err := im.copyRows(ctx, "ema_setting_trades",
+		`SELECT t.id::text, t.ema_setting_id::text, t.pair_id::text, upper(t.trade_type), upper(t.status), t.is_auto_trade::text,
+		        t.amount::text, t.open_price::text, t.close_price::text, t.sl_price::text, t.fee_usdt::text, t.interest_paid::text,
+		        t.interest_usdt::text, t.realized_profit::text, t.unrealized_profit::text,
+		        `+ts("t.open_at")+`, `+ts("t.close_at")+`, `+ts("t.created_at")+`, `+ts("t.updated_at")+`
+		 FROM ema_trades t WHERE t.ema_setting_id IS NOT NULL ORDER BY t.id`,
+		`INSERT INTO ema_setting_trades (id, setting_id, pair_id, side, status, is_auto, amount, entry_price, target_price, sl_price,
+		   open_price, close_price, fee_usdt, interest_paid, interest_usdt, realized_profit, unrealized_profit, open_order_id,
+		   close_order_id, legacy, open_at, close_at, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)`,
+		func(v []*string) []any {
+			id, status := *v[0], settingTradeStatus[*v[4]]
+			entry, target, open, closeFill, unrealized := any(nil), any(nil), any(nil), any(nil), any("0")
+			switch status {
+			case "OPENING": // open_price / close_price are the entry trigger and the target
+				entry, target = positive(v[7]), positive(v[8])
+			case "OPEN": // open_price is the fill, close_price the target
+				open, target, unrealized = positive(v[7]), positive(v[8]), decOr0(v[14])
+			default: // both are fills
+				open, closeFill = positive(v[7]), positive(v[8])
+			}
+			return []any{
+				id, *v[1], *v[2], *v[3], status, pgBool(v[5]), decOr0(v[6]), entry, target, positive(v[9]), open, closeFill,
+				decOr0(v[10]), decOr0(v[11]), decOr0(v[12]), decOr0(v[13]), unrealized, "ema_" + id + "_open", "ema_" + id + "_close",
+				nullable(v[15]), nullable(v[16]), *v[17], *v[18],
+			}
+		}); err != nil {
+		return err
+	}
+	var active int
+	_ = im.lite.Read.QueryRowContext(ctx, `SELECT count(*) FROM ema_settings WHERE status = 'ACTIVE'`).Scan(&active)
+	if active > 0 {
+		im.rep.Notes = append(im.rep.Notes, fmt.Sprintf("EMA Settings: %d ACTIVE setting(s) imported with the scan OFF; turn the Rails ones INACTIVE before turning it on", active))
+	}
+	return nil
 }

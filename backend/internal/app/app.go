@@ -16,6 +16,7 @@ import (
 	"bigwaves/internal/dca"
 	"bigwaves/internal/ema1d"
 	"bigwaves/internal/emacross"
+	"bigwaves/internal/emasettings"
 	"bigwaves/internal/exchange/binance"
 	"bigwaves/internal/marketdata"
 	"bigwaves/internal/platform/configstore"
@@ -42,6 +43,7 @@ type App struct {
 	EMA1D     *ema1d.Service
 	DCA       *dca.Service
 	EMACross  *emacross.Service
+	EMASets   *emasettings.Service
 }
 
 // New opens the database, applies migrations and builds every service.
@@ -85,6 +87,8 @@ func New(ctx context.Context, cfg config.Config) (*App, error) {
 	a.Scheduler.Register(a.DCA.Jobs()...)
 	a.EMACross = &emacross.Service{DB: d, Binance: a.Binance, Configs: a.Configs, Notifier: a.Notifier, Events: a.Events}
 	a.Scheduler.Register(a.EMACross.Jobs()...)
+	a.EMASets = &emasettings.Service{DB: d, Binance: a.Binance, Configs: a.Configs, Notifier: a.Notifier, Alerter: a.Alerter, Events: a.Events}
+	a.Scheduler.Register(a.EMASets.Jobs()...)
 	a.Scheduler.Register(a.maintenanceJob())
 	return a, nil
 }

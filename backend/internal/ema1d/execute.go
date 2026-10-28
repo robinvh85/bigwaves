@@ -95,12 +95,12 @@ func (s *Service) createPosition(ctx context.Context, todo *dbq.Ema1dTodo, pv pa
 	}
 	q := dbq.New(s.DB.Read)
 	if side == SideShort {
-		others, err := q.OtherActiveShorts(ctx, dbq.OtherActiveShortsParams{PairID: pv.PairID, ID: 0})
+		others, err := otherShorts(ctx, q, pv.PairID, 0)
 		if err != nil {
 			return nil, err
 		}
-		if len(others) > 0 {
-			return nil, permanent("conflict: position(s) #%s already short %s", joinIDs(others), pv.CoinName)
+		if others != "" {
+			return nil, permanent("conflict: %s already short %s", others, pv.CoinName)
 		}
 	}
 	equity, err := s.equity(ctx, q, cfg)
@@ -153,6 +153,27 @@ func (s *Service) createPosition(ctx context.Context, todo *dbq.Ema1dTodo, pv pa
 		return nil, err
 	}
 	return &pos, nil
+}
+
+// otherShorts names the other trades short the pair's coin, "" when none: EMA1D positions and EMA
+// Settings trades, since the cross-margin debt is per coin (Rails checked every ema_trades row).
+func otherShorts(ctx context.Context, q *dbq.Queries, pairID, selfID int64) (string, error) {
+	e1, err := q.OtherActiveShorts(ctx, dbq.OtherActiveShortsParams{PairID: pairID, ID: selfID})
+	if err != nil {
+		return "", err
+	}
+	es, err := q.ActiveSettingShorts(ctx, dbq.ActiveSettingShortsParams{PairID: pairID, ID: 0})
+	if err != nil {
+		return "", err
+	}
+	var parts []string
+	if len(e1) > 0 {
+		parts = append(parts, "position(s) #"+joinIDs(e1))
+	}
+	if len(es) > 0 {
+		parts = append(parts, "EMA Settings trade(s) #"+joinIDs(es))
+	}
+	return strings.Join(parts, " and "), nil
 }
 
 func joinIDs(ids []int64) string {
@@ -351,15 +372,15 @@ func (s *Service) closePosition(ctx context.Context, pos *dbq.Ema1dPosition, pv 
 			order, err = s.marketOrder(ctx, pv.PairName, binance.Sell, money.FloorToStep(pos.Amount, pv.step()), pos.CloseOrderID)
 		}
 	default:
-		others, oErr := dbq.New(s.DB.Read).OtherActiveShorts(ctx, dbq.OtherActiveShortsParams{PairID: pos.PairID, ID: pos.ID})
+		others, oErr := otherShorts(ctx, dbq.New(s.DB.Read), pos.PairID, pos.ID)
 		if oErr != nil {
 			return oErr
 		}
-		if len(others) == 0 {
+		if others == "" {
 			order, err = s.closeShortWithInterest(ctx, pos, pv, existing)
 		} else {
-			s.notify(ctx, fmt.Sprintf("EMA1D: %s position #%d shares the coin debt with position(s) #%s: repaying the principal only, interest left on the account",
-				pv.PairName, pos.ID, joinIDs(others)))
+			s.notify(ctx, fmt.Sprintf("EMA1D: %s position #%d shares the coin debt with %s: repaying the principal only, interest left on the account",
+				pv.PairName, pos.ID, others))
 			order, err = s.closeShortPrincipal(ctx, pos, pv, existing)
 		}
 	}

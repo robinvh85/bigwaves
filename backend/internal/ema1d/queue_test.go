@@ -335,6 +335,23 @@ func TestShortOnACoinAlreadyShortFailsAsConflictWithoutBorrowing(t *testing.T) {
 	require.Zero(t, borrows)
 }
 
+// An EMA Settings short shares the coin's cross-margin debt too (Rails checked every ema_trades row).
+func TestShortOnACoinAnEMASettingsTradeShortsFailsAsConflict(t *testing.T) {
+	q := newQueueEnv(t)
+	q.exec(`INSERT INTO ema_settings (id, pair_id, budget) VALUES (7, ?, '100')`, q.sun.PairID)
+	q.exec(`INSERT INTO ema_setting_trades (id, setting_id, pair_id, side, status, amount, open_order_id, close_order_id)
+		VALUES (2180, 7, ?, 'SHORT', 'OPEN', '50', 'ema_2180_open', 'ema_2180_close')`, q.sun.PairID)
+	todo := q.create(q.sun, "OPEN", "SHORT")
+
+	q.process()
+
+	got := q.todo(todo.ID)
+	require.Equal(t, ema1d.TodoFailed, got.Status)
+	require.Contains(t, got.LastError, "conflict: EMA Settings trade(s) #2180 already short SUN")
+	borrows, _ := q.ex.Loans()
+	require.Zero(t, borrows)
+}
+
 func TestSizeBelowSuggestedIsRaisedToMinNotional(t *testing.T) {
 	q := newQueueEnv(t)
 	q.config(func(c *ema1d.Config) { c.Sizes.CoreLong = dec("0.007") }) // 0.42 USDT, a test size

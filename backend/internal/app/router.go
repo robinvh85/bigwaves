@@ -44,7 +44,7 @@ func (a *App) Router() http.Handler {
 				json.Use(middleware.Timeout(60 * time.Second))
 				httpapi.Mount(json, &httpapi.Server{Deps: httpapi.Deps{
 					Cfg: a.Cfg, DB: a.DB, Pairs: a.Pairs, Account: a.Account, Scheduler: a.Scheduler,
-					EMA1D: a.EMA1D, DCA: a.DCA, EMACross: a.EMACross, Configs: a.Configs,
+					EMA1D: a.EMA1D, DCA: a.DCA, EMACross: a.EMACross, EMASets: a.EMASets, Configs: a.Configs,
 				}})
 			})
 		})

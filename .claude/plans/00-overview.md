@@ -110,7 +110,7 @@ Lúc dev chạy 2 process: `make dev` = `go run ./backend/cmd/bigwaves` (:8080) 
 | Discord relay (`/discord_messages/send_message`) | ✅ Giữ, đặt sau token | P2 |
 | **DCA** | ✅ Port | P3 |
 | Grid (+ suggest step ATR) | ❌ Bỏ | — |
-| EMA Settings (`/ema-settings`, chiến dịch theo pair có budget + TP/SL — **khác** EMA1D-EXIT) | ❌ Bỏ | — |
+| EMA Settings (`/ema-settings`, chiến dịch theo pair có budget + TP/SL — **khác** EMA1D-EXIT) | ✅ Port (đổi 2026-10-28: vẫn còn 2 setting ACTIVE, 2 trade đang giữ) — xem [04-ema-settings.md](04-ema-settings.md) | — |
 | EMA legacy H1/H4/D1 (tracking, auto-run) | ❌ Bỏ | — |
 | Cảnh báo EMA cross H1/H4/D1 (chỉ báo Discord) | ✅ Port (2026-10-27): tính từ klines, không cần `ema_trackings`; watchlist + chống gửi trùng — xem `docs/ema-cross.md` | — |
 | EMA Scores, EMA Statistics + trade histories, biến động giá ngày/tháng | ⏸ Tạm bỏ qua — ngoài phạm vi, xem lại sau | — |

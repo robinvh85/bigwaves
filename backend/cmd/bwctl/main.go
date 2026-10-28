@@ -26,6 +26,7 @@ commands:
 migration (see .claude/plans/03-migration-cutover.md):
   import-pg -pg URL -out FILE [-archive DIR]   copy the Rails PostgreSQL data into a NEW SQLite file
   verify-import -pg URL -db FILE               compare counts, totals and open positions
+  emasettings-compare -pg URL [-n 3]           EMA14/Smooth10 of the ACTIVE Rails EMA settings: ema_trackings vs klines
   shadow-compare -pg URL [-date D] [-notify]   compare today's Rails sync with the bot (dry run)
   export-orders -since RFC3339                 orders the bot placed since a time, as CSV (rollback)
 `
@@ -56,6 +57,8 @@ func run(ctx context.Context, cmd string, args []string) error {
 		return runImport(ctx, args)
 	case "verify-import":
 		return runVerify(ctx, args)
+	case "emasettings-compare":
+		return runEMACompare(ctx, cfg.Binance.BaseURL, args)
 	}
 
 	a, err := app.New(ctx, cfg) // also applies migrations

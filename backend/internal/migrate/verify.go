@@ -102,6 +102,8 @@ func Verify(ctx context.Context, pgURL, sqlitePath string) ([]Check, error) {
 		{"ema1d_daily_checks", `SELECT count(*)::text FROM ema1d_daily_checks`, `SELECT count(*) FROM ema1d_daily_checks`},
 		{"dca_settings", `SELECT count(*)::text FROM dca_settings`, `SELECT count(*) FROM dca_settings`},
 		{"dca_trades", `SELECT count(*)::text FROM dca_trades`, `SELECT count(*) FROM dca_trades`},
+		{"ema_settings", `SELECT count(*)::text FROM ema_settings`, `SELECT count(*) FROM ema_settings`},
+		{"ema setting trades", `SELECT count(*)::text FROM ema_trades WHERE ema_setting_id IS NOT NULL`, `SELECT count(*) FROM ema_setting_trades`},
 	}
 	for _, c := range counts {
 		add("count "+c.name, one(pg, c.pgQ), one(lite.Read, c.liteQ))
@@ -113,6 +115,9 @@ func Verify(ctx context.Context, pgURL, sqlitePath string) ([]Check, error) {
 		{"EMA1D open amount", `SELECT amount::text FROM ema_trades WHERE source = 'EMA1D_EXIT' AND status IN ('OPENING', 'CLOSING')`, `SELECT amount FROM ema1d_positions WHERE status IN ('OPENING', 'OPEN')`},
 		{"DCA realized profit", `SELECT realized_profit::text FROM dca_trades`, `SELECT realized_profit FROM dca_trades`},
 		{"DCA held amount", `SELECT amount::text FROM dca_trades WHERE status = 'CLOSING'`, `SELECT held_amount FROM dca_trades WHERE status = 'OPEN'`},
+		{"EMA Settings realized profit", `SELECT realized_profit::text FROM ema_trades WHERE ema_setting_id IS NOT NULL`, `SELECT realized_profit FROM ema_setting_trades`},
+		{"EMA Settings budgets", `SELECT budget::text FROM ema_settings`, `SELECT budget FROM ema_settings`},
+		{"EMA Settings open amount", `SELECT amount::text FROM ema_trades WHERE ema_setting_id IS NOT NULL AND status = 'CLOSING'`, `SELECT amount FROM ema_setting_trades WHERE status = 'OPEN'`},
 	}
 	for _, c := range sums {
 		add("sum "+c.name, sum(pg, c.pgQ), sum(lite.Read, c.liteQ))
@@ -120,6 +125,12 @@ func Verify(ctx context.Context, pgURL, sqlitePath string) ([]Check, error) {
 	add("open EMA1D positions",
 		list(pg, `SELECT p.name || ':' || upper(t.trade_type) || ':' || t.signal_date::text FROM ema_trades t JOIN pairs p ON p.id = t.pair_id WHERE t.source = 'EMA1D_EXIT' AND t.status IN ('OPENING', 'CLOSING')`),
 		list(lite.Read, `SELECT p.name || ':' || x.side || ':' || x.signal_date FROM ema1d_positions x JOIN pairs p ON p.id = x.pair_id WHERE x.status IN ('OPENING', 'OPEN')`))
+	add("open EMA Settings trades",
+		list(pg, `SELECT t.id::text || ':' || p.name || ':' || upper(t.trade_type) || ':' || t.ema_setting_id::text FROM ema_trades t JOIN pairs p ON p.id = t.pair_id WHERE t.ema_setting_id IS NOT NULL AND t.status IN ('OPENING', 'CLOSING')`),
+		list(lite.Read, `SELECT x.id || ':' || p.name || ':' || x.side || ':' || x.setting_id FROM ema_setting_trades x JOIN pairs p ON p.id = x.pair_id WHERE x.status IN ('OPENING', 'OPEN')`))
+	add("ACTIVE EMA settings",
+		list(pg, `SELECT id::text FROM ema_settings WHERE status = 'ACTIVE'`),
+		list(lite.Read, `SELECT CAST(id AS TEXT) FROM ema_settings WHERE status = 'ACTIVE'`))
 	add("in-flight todos",
 		list(pg, `SELECT id::text || ':' || upper(status) FROM ema1d_todos WHERE status IN ('PENDING', 'RUNNING')`),
 		list(lite.Read, `SELECT id || ':' || status FROM ema1d_todos WHERE status IN ('PENDING', 'RUNNING')`))

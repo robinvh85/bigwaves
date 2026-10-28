@@ -6,6 +6,7 @@ import (
 	"bigwaves/internal/dca"
 	"bigwaves/internal/ema1d"
 	"bigwaves/internal/emacross"
+	"bigwaves/internal/emasettings"
 	"bigwaves/internal/marketdata"
 	"bigwaves/internal/platform/configstore"
 	"bigwaves/internal/platform/db"
@@ -22,5 +23,6 @@ type Deps struct {
 	EMA1D     *ema1d.Service
 	DCA       *dca.Service
 	EMACross  *emacross.Service
+	EMASets   *emasettings.Service
 	Configs   *configstore.Store
 }

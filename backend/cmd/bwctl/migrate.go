@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"bigwaves/internal/app"
+	"bigwaves/internal/exchange/binance"
 	"bigwaves/internal/migrate"
 	"bigwaves/internal/platform/db/dbq"
 	"bigwaves/internal/platform/dbtype"
@@ -113,4 +114,24 @@ func runExportOrders(ctx context.Context, a *app.App, args []string) error {
 	}
 	w.Flush()
 	return w.Error()
+}
+
+func runEMACompare(ctx context.Context, baseURL string, args []string) error {
+	fs := flag.NewFlagSet("emasettings-compare", flag.ContinueOnError)
+	pg := fs.String("pg", os.Getenv("PG_URL"), "PostgreSQL URL of the Rails database (or PG_URL)")
+	n := fs.Int("n", 3, "closed candles per pair")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	diffs, err := migrate.EMACompare(ctx, *pg, binance.New(binance.Config{BaseURL: baseURL}), time.Now(), *n)
+	if err != nil {
+		return err
+	}
+	for _, d := range diffs {
+		fmt.Println(d)
+	}
+	if len(diffs) == 0 {
+		fmt.Println("no ema_trackings row matched a kline")
+	}
+	return nil
 }

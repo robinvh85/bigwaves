@@ -28,19 +28,19 @@ import (
 
 // Defines values for DcaSettingAccount.
 const (
-	CROSS    DcaSettingAccount = "CROSS"
-	ISOLATED DcaSettingAccount = "ISOLATED"
-	SPOT     DcaSettingAccount = "SPOT"
+	DcaSettingAccountCROSS    DcaSettingAccount = "CROSS"
+	DcaSettingAccountISOLATED DcaSettingAccount = "ISOLATED"
+	DcaSettingAccountSPOT     DcaSettingAccount = "SPOT"
 )
 
 // Valid indicates whether the value is a known member of the DcaSettingAccount enum.
 func (e DcaSettingAccount) Valid() bool {
 	switch e {
-	case CROSS:
+	case DcaSettingAccountCROSS:
 		return true
-	case ISOLATED:
+	case DcaSettingAccountISOLATED:
 		return true
-	case SPOT:
+	case DcaSettingAccountSPOT:
 		return true
 	default:
 		return false
@@ -430,19 +430,325 @@ func (e EmaCrossDirection) Valid() bool {
 
 // Defines values for EmaCrossTimeframe.
 const (
-	D1 EmaCrossTimeframe = "D1"
-	H1 EmaCrossTimeframe = "H1"
-	H4 EmaCrossTimeframe = "H4"
+	EmaCrossTimeframeD1 EmaCrossTimeframe = "D1"
+	EmaCrossTimeframeH1 EmaCrossTimeframe = "H1"
+	EmaCrossTimeframeH4 EmaCrossTimeframe = "H4"
 )
 
 // Valid indicates whether the value is a known member of the EmaCrossTimeframe enum.
 func (e EmaCrossTimeframe) Valid() bool {
 	switch e {
-	case D1:
+	case EmaCrossTimeframeD1:
 		return true
-	case H1:
+	case EmaCrossTimeframeH1:
 		return true
-	case H4:
+	case EmaCrossTimeframeH4:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingAccount.
+const (
+	EmaSettingAccountCROSS    EmaSettingAccount = "CROSS"
+	EmaSettingAccountISOLATED EmaSettingAccount = "ISOLATED"
+	EmaSettingAccountSPOT     EmaSettingAccount = "SPOT"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingAccount enum.
+func (e EmaSettingAccount) Valid() bool {
+	switch e {
+	case EmaSettingAccountCROSS:
+		return true
+	case EmaSettingAccountISOLATED:
+		return true
+	case EmaSettingAccountSPOT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingCheckType.
+const (
+	EmaSettingCheckTypeCHECKATCLOSE   EmaSettingCheckType = "CHECK_AT_CLOSE"
+	EmaSettingCheckTypeCHECKATCURRENT EmaSettingCheckType = "CHECK_AT_CURRENT"
+	EmaSettingCheckTypeCHECKATOPEN    EmaSettingCheckType = "CHECK_AT_OPEN"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingCheckType enum.
+func (e EmaSettingCheckType) Valid() bool {
+	switch e {
+	case EmaSettingCheckTypeCHECKATCLOSE:
+		return true
+	case EmaSettingCheckTypeCHECKATCURRENT:
+		return true
+	case EmaSettingCheckTypeCHECKATOPEN:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingNextTradeType.
+const (
+	EmaSettingNextTradeTypeNEWTRADE    EmaSettingNextTradeType = "NEW_TRADE"
+	EmaSettingNextTradeTypeNOTNEWTRADE EmaSettingNextTradeType = "NOT_NEW_TRADE"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingNextTradeType enum.
+func (e EmaSettingNextTradeType) Valid() bool {
+	switch e {
+	case EmaSettingNextTradeTypeNEWTRADE:
+		return true
+	case EmaSettingNextTradeTypeNOTNEWTRADE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingPeriod.
+const (
+	EmaSettingPeriodD1 EmaSettingPeriod = "D1"
+	EmaSettingPeriodH4 EmaSettingPeriod = "H4"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingPeriod enum.
+func (e EmaSettingPeriod) Valid() bool {
+	switch e {
+	case EmaSettingPeriodD1:
+		return true
+	case EmaSettingPeriodH4:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingTradeType.
+const (
+	EmaSettingTradeTypeBOTH      EmaSettingTradeType = "BOTH"
+	EmaSettingTradeTypeONLYLONG  EmaSettingTradeType = "ONLY_LONG"
+	EmaSettingTradeTypeONLYSHORT EmaSettingTradeType = "ONLY_SHORT"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingTradeType enum.
+func (e EmaSettingTradeType) Valid() bool {
+	switch e {
+	case EmaSettingTradeTypeBOTH:
+		return true
+	case EmaSettingTradeTypeONLYLONG:
+		return true
+	case EmaSettingTradeTypeONLYSHORT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingInputCheckType.
+const (
+	EmaSettingInputCheckTypeCHECKATCLOSE   EmaSettingInputCheckType = "CHECK_AT_CLOSE"
+	EmaSettingInputCheckTypeCHECKATCURRENT EmaSettingInputCheckType = "CHECK_AT_CURRENT"
+	EmaSettingInputCheckTypeCHECKATOPEN    EmaSettingInputCheckType = "CHECK_AT_OPEN"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingInputCheckType enum.
+func (e EmaSettingInputCheckType) Valid() bool {
+	switch e {
+	case EmaSettingInputCheckTypeCHECKATCLOSE:
+		return true
+	case EmaSettingInputCheckTypeCHECKATCURRENT:
+		return true
+	case EmaSettingInputCheckTypeCHECKATOPEN:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingInputNextTradeType.
+const (
+	EmaSettingInputNextTradeTypeNEWTRADE    EmaSettingInputNextTradeType = "NEW_TRADE"
+	EmaSettingInputNextTradeTypeNOTNEWTRADE EmaSettingInputNextTradeType = "NOT_NEW_TRADE"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingInputNextTradeType enum.
+func (e EmaSettingInputNextTradeType) Valid() bool {
+	switch e {
+	case EmaSettingInputNextTradeTypeNEWTRADE:
+		return true
+	case EmaSettingInputNextTradeTypeNOTNEWTRADE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingInputPeriod.
+const (
+	EmaSettingInputPeriodD1 EmaSettingInputPeriod = "D1"
+	EmaSettingInputPeriodH4 EmaSettingInputPeriod = "H4"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingInputPeriod enum.
+func (e EmaSettingInputPeriod) Valid() bool {
+	switch e {
+	case EmaSettingInputPeriodD1:
+		return true
+	case EmaSettingInputPeriodH4:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingInputTradeType.
+const (
+	EmaSettingInputTradeTypeBOTH      EmaSettingInputTradeType = "BOTH"
+	EmaSettingInputTradeTypeONLYLONG  EmaSettingInputTradeType = "ONLY_LONG"
+	EmaSettingInputTradeTypeONLYSHORT EmaSettingInputTradeType = "ONLY_SHORT"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingInputTradeType enum.
+func (e EmaSettingInputTradeType) Valid() bool {
+	switch e {
+	case EmaSettingInputTradeTypeBOTH:
+		return true
+	case EmaSettingInputTradeTypeONLYLONG:
+		return true
+	case EmaSettingInputTradeTypeONLYSHORT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingStatus.
+const (
+	EmaSettingStatusACTIVE   EmaSettingStatus = "ACTIVE"
+	EmaSettingStatusDONE     EmaSettingStatus = "DONE"
+	EmaSettingStatusINACTIVE EmaSettingStatus = "INACTIVE"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingStatus enum.
+func (e EmaSettingStatus) Valid() bool {
+	switch e {
+	case EmaSettingStatusACTIVE:
+		return true
+	case EmaSettingStatusDONE:
+		return true
+	case EmaSettingStatusINACTIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingTradeSide.
+const (
+	EmaSettingTradeSideLONG  EmaSettingTradeSide = "LONG"
+	EmaSettingTradeSideSHORT EmaSettingTradeSide = "SHORT"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingTradeSide enum.
+func (e EmaSettingTradeSide) Valid() bool {
+	switch e {
+	case EmaSettingTradeSideLONG:
+		return true
+	case EmaSettingTradeSideSHORT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingTradeStatus.
+const (
+	EmaSettingTradeStatusCLOSED  EmaSettingTradeStatus = "CLOSED"
+	EmaSettingTradeStatusOPEN    EmaSettingTradeStatus = "OPEN"
+	EmaSettingTradeStatusOPENING EmaSettingTradeStatus = "OPENING"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingTradeStatus enum.
+func (e EmaSettingTradeStatus) Valid() bool {
+	switch e {
+	case EmaSettingTradeStatusCLOSED:
+		return true
+	case EmaSettingTradeStatusOPEN:
+		return true
+	case EmaSettingTradeStatusOPENING:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingTradeInputSide.
+const (
+	EmaSettingTradeInputSideLONG  EmaSettingTradeInputSide = "LONG"
+	EmaSettingTradeInputSideSHORT EmaSettingTradeInputSide = "SHORT"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingTradeInputSide enum.
+func (e EmaSettingTradeInputSide) Valid() bool {
+	switch e {
+	case EmaSettingTradeInputSideLONG:
+		return true
+	case EmaSettingTradeInputSideSHORT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingTradeInputStatus.
+const (
+	EmaSettingTradeInputStatusOPEN    EmaSettingTradeInputStatus = "OPEN"
+	EmaSettingTradeInputStatusOPENING EmaSettingTradeInputStatus = "OPENING"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingTradeInputStatus enum.
+func (e EmaSettingTradeInputStatus) Valid() bool {
+	switch e {
+	case EmaSettingTradeInputStatusOPEN:
+		return true
+	case EmaSettingTradeInputStatusOPENING:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingTradeUpdateSide.
+const (
+	EmaSettingTradeUpdateSideLONG  EmaSettingTradeUpdateSide = "LONG"
+	EmaSettingTradeUpdateSideSHORT EmaSettingTradeUpdateSide = "SHORT"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingTradeUpdateSide enum.
+func (e EmaSettingTradeUpdateSide) Valid() bool {
+	switch e {
+	case EmaSettingTradeUpdateSideLONG:
+		return true
+	case EmaSettingTradeUpdateSideSHORT:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EmaSettingTradeUpdateStatus.
+const (
+	EmaSettingTradeUpdateStatusCLOSED EmaSettingTradeUpdateStatus = "CLOSED"
+)
+
+// Valid indicates whether the value is a known member of the EmaSettingTradeUpdateStatus enum.
+func (e EmaSettingTradeUpdateStatus) Valid() bool {
+	switch e {
+	case EmaSettingTradeUpdateStatusCLOSED:
 		return true
 	default:
 		return false
@@ -511,16 +817,16 @@ func (e PairStatus) Valid() bool {
 
 // Defines values for Side.
 const (
-	LONG  Side = "LONG"
-	SHORT Side = "SHORT"
+	SideLONG  Side = "LONG"
+	SideSHORT Side = "SHORT"
 )
 
 // Valid indicates whether the value is a known member of the Side enum.
 func (e Side) Valid() bool {
 	switch e {
-	case LONG:
+	case SideLONG:
 		return true
-	case SHORT:
+	case SideSHORT:
 		return true
 	default:
 		return false
@@ -581,6 +887,84 @@ func (e UpdateDcaSettingJSONBodyStatus) Valid() bool {
 	case UpdateDcaSettingJSONBodyStatusDONE:
 		return true
 	case UpdateDcaSettingJSONBodyStatusINACTIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateEmaSettingJSONBodyCheckType.
+const (
+	CreateEmaSettingJSONBodyCheckTypeCHECKATCLOSE   CreateEmaSettingJSONBodyCheckType = "CHECK_AT_CLOSE"
+	CreateEmaSettingJSONBodyCheckTypeCHECKATCURRENT CreateEmaSettingJSONBodyCheckType = "CHECK_AT_CURRENT"
+	CreateEmaSettingJSONBodyCheckTypeCHECKATOPEN    CreateEmaSettingJSONBodyCheckType = "CHECK_AT_OPEN"
+)
+
+// Valid indicates whether the value is a known member of the CreateEmaSettingJSONBodyCheckType enum.
+func (e CreateEmaSettingJSONBodyCheckType) Valid() bool {
+	switch e {
+	case CreateEmaSettingJSONBodyCheckTypeCHECKATCLOSE:
+		return true
+	case CreateEmaSettingJSONBodyCheckTypeCHECKATCURRENT:
+		return true
+	case CreateEmaSettingJSONBodyCheckTypeCHECKATOPEN:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateEmaSettingJSONBodyNextTradeType.
+const (
+	CreateEmaSettingJSONBodyNextTradeTypeNEWTRADE    CreateEmaSettingJSONBodyNextTradeType = "NEW_TRADE"
+	CreateEmaSettingJSONBodyNextTradeTypeNOTNEWTRADE CreateEmaSettingJSONBodyNextTradeType = "NOT_NEW_TRADE"
+)
+
+// Valid indicates whether the value is a known member of the CreateEmaSettingJSONBodyNextTradeType enum.
+func (e CreateEmaSettingJSONBodyNextTradeType) Valid() bool {
+	switch e {
+	case CreateEmaSettingJSONBodyNextTradeTypeNEWTRADE:
+		return true
+	case CreateEmaSettingJSONBodyNextTradeTypeNOTNEWTRADE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateEmaSettingJSONBodyPeriod.
+const (
+	CreateEmaSettingJSONBodyPeriodD1 CreateEmaSettingJSONBodyPeriod = "D1"
+	CreateEmaSettingJSONBodyPeriodH4 CreateEmaSettingJSONBodyPeriod = "H4"
+)
+
+// Valid indicates whether the value is a known member of the CreateEmaSettingJSONBodyPeriod enum.
+func (e CreateEmaSettingJSONBodyPeriod) Valid() bool {
+	switch e {
+	case CreateEmaSettingJSONBodyPeriodD1:
+		return true
+	case CreateEmaSettingJSONBodyPeriodH4:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateEmaSettingJSONBodyTradeType.
+const (
+	CreateEmaSettingJSONBodyTradeTypeBOTH      CreateEmaSettingJSONBodyTradeType = "BOTH"
+	CreateEmaSettingJSONBodyTradeTypeONLYLONG  CreateEmaSettingJSONBodyTradeType = "ONLY_LONG"
+	CreateEmaSettingJSONBodyTradeTypeONLYSHORT CreateEmaSettingJSONBodyTradeType = "ONLY_SHORT"
+)
+
+// Valid indicates whether the value is a known member of the CreateEmaSettingJSONBodyTradeType enum.
+func (e CreateEmaSettingJSONBodyTradeType) Valid() bool {
+	switch e {
+	case CreateEmaSettingJSONBodyTradeTypeBOTH:
+		return true
+	case CreateEmaSettingJSONBodyTradeTypeONLYLONG:
+		return true
+	case CreateEmaSettingJSONBodyTradeTypeONLYSHORT:
 		return true
 	default:
 		return false
@@ -1162,6 +1546,202 @@ type EmaCrossWatchRequest struct {
 	H4 bool `json:"h4"`
 }
 
+// EmaSetting defines model for EmaSetting.
+type EmaSetting struct {
+	Account        EmaSettingAccount       `json:"account"`
+	ActiveTrade    *EmaSettingTrade        `json:"activeTrade,omitempty"`
+	Budget         Decimal                 `json:"budget"`
+	CheckType      EmaSettingCheckType     `json:"checkType"`
+	CreatedAt      time.Time               `json:"createdAt"`
+	CurrentPrice   *Decimal                `json:"currentPrice,omitempty"`
+	Id             int64                   `json:"id"`
+	NextTradeType  EmaSettingNextTradeType `json:"nextTradeType"`
+	Note           string                  `json:"note"`
+	PairId         int64                   `json:"pairId"`
+	PairName       string                  `json:"pairName"`
+	Period         EmaSettingPeriod        `json:"period"`
+	RealizedProfit Decimal                 `json:"realizedProfit"`
+	SlPercent      Decimal                 `json:"slPercent"`
+	Status         EmaSettingStatus        `json:"status"`
+
+	// TotalPercent Total PnL in % of the budget
+	TotalPercent     *Decimal            `json:"totalPercent,omitempty"`
+	TotalProfit      Decimal             `json:"totalProfit"`
+	TpPercent        Decimal             `json:"tpPercent"`
+	TradeCount       int                 `json:"tradeCount"`
+	TradeType        EmaSettingTradeType `json:"tradeType"`
+	Trades           *[]EmaSettingTrade  `json:"trades,omitempty"`
+	UnrealizedProfit Decimal             `json:"unrealizedProfit"`
+	UpdatedAt        time.Time           `json:"updatedAt"`
+}
+
+// EmaSettingAccount defines model for EmaSetting.Account.
+type EmaSettingAccount string
+
+// EmaSettingCheckType defines model for EmaSetting.CheckType.
+type EmaSettingCheckType string
+
+// EmaSettingNextTradeType defines model for EmaSetting.NextTradeType.
+type EmaSettingNextTradeType string
+
+// EmaSettingPeriod defines model for EmaSetting.Period.
+type EmaSettingPeriod string
+
+// EmaSettingTradeType defines model for EmaSetting.TradeType.
+type EmaSettingTradeType string
+
+// EmaSettingAmount defines model for EmaSettingAmount.
+type EmaSettingAmount struct {
+	Amount Decimal `json:"amount"`
+}
+
+// EmaSettingInput defines model for EmaSettingInput.
+type EmaSettingInput struct {
+	// Budget USDT per trade
+	Budget        *Decimal                      `json:"budget,omitempty"`
+	CheckType     *EmaSettingInputCheckType     `json:"checkType,omitempty"`
+	NextTradeType *EmaSettingInputNextTradeType `json:"nextTradeType,omitempty"`
+
+	// Note Markdown
+	Note   *string                `json:"note,omitempty"`
+	Period *EmaSettingInputPeriod `json:"period,omitempty"`
+
+	// SlPercent Stop loss on the total PnL, in % of the budget; 0 = off
+	SlPercent *Decimal          `json:"slPercent,omitempty"`
+	Status    *EmaSettingStatus `json:"status,omitempty"`
+
+	// TpPercent Take profit on the total PnL, in % of the budget; 0 = off
+	TpPercent *Decimal                  `json:"tpPercent,omitempty"`
+	TradeType *EmaSettingInputTradeType `json:"tradeType,omitempty"`
+}
+
+// EmaSettingInputCheckType defines model for EmaSettingInput.CheckType.
+type EmaSettingInputCheckType string
+
+// EmaSettingInputNextTradeType defines model for EmaSettingInput.NextTradeType.
+type EmaSettingInputNextTradeType string
+
+// EmaSettingInputPeriod defines model for EmaSettingInput.Period.
+type EmaSettingInputPeriod string
+
+// EmaSettingInputTradeType defines model for EmaSettingInput.TradeType.
+type EmaSettingInputTradeType string
+
+// EmaSettingStatus defines model for EmaSettingStatus.
+type EmaSettingStatus string
+
+// EmaSettingTrade defines model for EmaSettingTrade.
+type EmaSettingTrade struct {
+	Amount Decimal `json:"amount"`
+
+	// BorrowStep Short open - '' / BORROWING / BORROWED
+	BorrowStep string     `json:"borrowStep"`
+	CloseAt    *time.Time `json:"closeAt,omitempty"`
+	ClosePrice *Decimal   `json:"closePrice,omitempty"`
+
+	// CloseReason SL, TARGET, EMA_REVERSE, SETTING_TP, SETTING_SL, MANUAL, CANCELLED
+	CloseReason string    `json:"closeReason"`
+	CreatedAt   time.Time `json:"createdAt"`
+
+	// EntryPrice OPENING - enter when the price passes it; absent = on the cross
+	EntryPrice   *Decimal `json:"entryPrice,omitempty"`
+	FeeUsdt      Decimal  `json:"feeUsdt"`
+	Id           int64    `json:"id"`
+	InterestUsdt Decimal  `json:"interestUsdt"`
+
+	// IsAuto Created by the scan
+	IsAuto    bool   `json:"isAuto"`
+	LastError string `json:"lastError"`
+
+	// Legacy Imported from Rails
+	Legacy    bool       `json:"legacy"`
+	OpenAt    *time.Time `json:"openAt,omitempty"`
+	OpenPrice *Decimal   `json:"openPrice,omitempty"`
+
+	// RealizedProfit Net of fees and interest (legacy trades - the Rails gross figure)
+	RealizedProfit   Decimal               `json:"realizedProfit"`
+	SettingId        int64                 `json:"settingId"`
+	Side             EmaSettingTradeSide   `json:"side"`
+	SlPrice          *Decimal              `json:"slPrice,omitempty"`
+	Status           EmaSettingTradeStatus `json:"status"`
+	TargetPrice      *Decimal              `json:"targetPrice,omitempty"`
+	UnrealizedProfit Decimal               `json:"unrealizedProfit"`
+}
+
+// EmaSettingTradeSide defines model for EmaSettingTrade.Side.
+type EmaSettingTradeSide string
+
+// EmaSettingTradeStatus defines model for EmaSettingTrade.Status.
+type EmaSettingTradeStatus string
+
+// EmaSettingTradeInput defines model for EmaSettingTradeInput.
+type EmaSettingTradeInput struct {
+	// Amount Base asset; OPENING without it sizes from the budget at open
+	Amount     *Decimal   `json:"amount,omitempty"`
+	EntryPrice *Decimal   `json:"entryPrice,omitempty"`
+	OpenAt     *time.Time `json:"openAt,omitempty"`
+
+	// OpenPrice OPEN only - the price the position was entered at
+	OpenPrice   *Decimal                    `json:"openPrice,omitempty"`
+	Side        EmaSettingTradeInputSide    `json:"side"`
+	SlPrice     *Decimal                    `json:"slPrice,omitempty"`
+	Status      *EmaSettingTradeInputStatus `json:"status,omitempty"`
+	TargetPrice *Decimal                    `json:"targetPrice,omitempty"`
+}
+
+// EmaSettingTradeInputSide defines model for EmaSettingTradeInput.Side.
+type EmaSettingTradeInputSide string
+
+// EmaSettingTradeInputStatus defines model for EmaSettingTradeInput.Status.
+type EmaSettingTradeInputStatus string
+
+// EmaSettingTradeUpdate A price of 0 clears it. status CLOSED cancels an OPENING trade or records an OPEN one closed by hand at closePrice (no order).
+type EmaSettingTradeUpdate struct {
+	Amount      *Decimal                     `json:"amount,omitempty"`
+	ClosePrice  *Decimal                     `json:"closePrice,omitempty"`
+	EntryPrice  *Decimal                     `json:"entryPrice,omitempty"`
+	Side        *EmaSettingTradeUpdateSide   `json:"side,omitempty"`
+	SlPrice     *Decimal                     `json:"slPrice,omitempty"`
+	Status      *EmaSettingTradeUpdateStatus `json:"status,omitempty"`
+	TargetPrice *Decimal                     `json:"targetPrice,omitempty"`
+}
+
+// EmaSettingTradeUpdateSide defines model for EmaSettingTradeUpdate.Side.
+type EmaSettingTradeUpdateSide string
+
+// EmaSettingTradeUpdateStatus defines model for EmaSettingTradeUpdate.Status.
+type EmaSettingTradeUpdateStatus string
+
+// EmaSettingsConfig defines model for EmaSettingsConfig.
+type EmaSettingsConfig struct {
+	D1 EmaSettingsPeriodParams `json:"d1"`
+
+	// Enabled The 5-minute scan runs (manual actions always work)
+	Enabled bool                    `json:"enabled"`
+	H4      EmaSettingsPeriodParams `json:"h4"`
+}
+
+// EmaSettingsConfigEnvelope defines model for EmaSettingsConfigEnvelope.
+type EmaSettingsConfigEnvelope struct {
+	Config  EmaSettingsConfig `json:"config"`
+	Version int64             `json:"version"`
+}
+
+// EmaSettingsPeriodParams defines model for EmaSettingsPeriodParams.
+type EmaSettingsPeriodParams struct {
+	// ClosePercent Cross back by this % closes the trade
+	ClosePercent Decimal `json:"closePercent"`
+
+	// IgnoreOverEmaPercent No entry when the price is this far from EMA14
+	IgnoreOverEmaPercent Decimal `json:"ignoreOverEmaPercent"`
+
+	// OpenPercent EMA14 past Smooth10 by this % to enter
+	OpenPercent Decimal `json:"openPercent"`
+
+	// StopLossPercent Stop loss set on each trade at open, from the entry price
+	StopLossPercent Decimal `json:"stopLossPercent"`
+}
+
 // ErrorDetail defines model for ErrorDetail.
 type ErrorDetail struct {
 	// Code Example: validation_failed
@@ -1330,6 +1910,50 @@ type UpdateEmaCrossConfigJSONBody struct {
 	Version int64          `json:"version"`
 }
 
+// UpdateEmaSettingsConfigJSONBody defines parameters for UpdateEmaSettingsConfig.
+type UpdateEmaSettingsConfigJSONBody struct {
+	Config  EmaSettingsConfig `json:"config"`
+	Version int64             `json:"version"`
+}
+
+// ListEmaSettingsParams defines parameters for ListEmaSettings.
+type ListEmaSettingsParams struct {
+	Status *EmaSettingStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// CreateEmaSettingJSONBody defines parameters for CreateEmaSetting.
+type CreateEmaSettingJSONBody struct {
+	// Budget USDT per trade
+	Budget        Decimal                                `json:"budget"`
+	CheckType     *CreateEmaSettingJSONBodyCheckType     `json:"checkType,omitempty"`
+	NextTradeType *CreateEmaSettingJSONBodyNextTradeType `json:"nextTradeType,omitempty"`
+
+	// Note Markdown
+	Note   *string                         `json:"note,omitempty"`
+	PairId int64                           `json:"pairId"`
+	Period *CreateEmaSettingJSONBodyPeriod `json:"period,omitempty"`
+
+	// SlPercent Stop loss on the total PnL, in % of the budget; 0 = off
+	SlPercent *Decimal          `json:"slPercent,omitempty"`
+	Status    *EmaSettingStatus `json:"status,omitempty"`
+
+	// TpPercent Take profit on the total PnL, in % of the budget; 0 = off
+	TpPercent *Decimal                           `json:"tpPercent,omitempty"`
+	TradeType *CreateEmaSettingJSONBodyTradeType `json:"tradeType,omitempty"`
+}
+
+// CreateEmaSettingJSONBodyCheckType defines parameters for CreateEmaSetting.
+type CreateEmaSettingJSONBodyCheckType string
+
+// CreateEmaSettingJSONBodyNextTradeType defines parameters for CreateEmaSetting.
+type CreateEmaSettingJSONBodyNextTradeType string
+
+// CreateEmaSettingJSONBodyPeriod defines parameters for CreateEmaSetting.
+type CreateEmaSettingJSONBodyPeriod string
+
+// CreateEmaSettingJSONBodyTradeType defines parameters for CreateEmaSetting.
+type CreateEmaSettingJSONBodyTradeType string
+
 // UpdateEma1dConfigJSONBody defines parameters for UpdateEma1dConfig.
 type UpdateEma1dConfigJSONBody struct {
 	Config  Ema1dConfig `json:"config"`
@@ -1413,6 +2037,27 @@ type UpdateEmaCrossConfigJSONRequestBody UpdateEmaCrossConfigJSONBody
 
 // WatchEmaCrossPairJSONRequestBody defines body for WatchEmaCrossPair for application/json ContentType.
 type WatchEmaCrossPairJSONRequestBody = EmaCrossWatchRequest
+
+// UpdateEmaSettingsConfigJSONRequestBody defines body for UpdateEmaSettingsConfig for application/json ContentType.
+type UpdateEmaSettingsConfigJSONRequestBody UpdateEmaSettingsConfigJSONBody
+
+// CreateEmaSettingJSONRequestBody defines body for CreateEmaSetting for application/json ContentType.
+type CreateEmaSettingJSONRequestBody CreateEmaSettingJSONBody
+
+// UpdateEmaSettingJSONRequestBody defines body for UpdateEmaSetting for application/json ContentType.
+type UpdateEmaSettingJSONRequestBody = EmaSettingInput
+
+// CreateEmaSettingTradeJSONRequestBody defines body for CreateEmaSettingTrade for application/json ContentType.
+type CreateEmaSettingTradeJSONRequestBody = EmaSettingTradeInput
+
+// UpdateEmaSettingTradeJSONRequestBody defines body for UpdateEmaSettingTrade for application/json ContentType.
+type UpdateEmaSettingTradeJSONRequestBody = EmaSettingTradeUpdate
+
+// PartialCloseEmaSettingTradeJSONRequestBody defines body for PartialCloseEmaSettingTrade for application/json ContentType.
+type PartialCloseEmaSettingTradeJSONRequestBody = EmaSettingAmount
+
+// SplitEmaSettingTradeJSONRequestBody defines body for SplitEmaSettingTrade for application/json ContentType.
+type SplitEmaSettingTradeJSONRequestBody = EmaSettingAmount
 
 // UpdateEma1dConfigJSONRequestBody defines body for UpdateEma1dConfig for application/json ContentType.
 type UpdateEma1dConfigJSONRequestBody UpdateEma1dConfigJSONBody
@@ -1506,6 +2151,54 @@ type ServerInterface interface {
 	// WatchEmaCrossPair Set the timeframes watched on a pair (id = pair id); all off removes it
 	// (PUT /ema-cross/pairs/{id})
 	WatchEmaCrossPair(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /ema-settings/config)
+	GetEmaSettingsConfig(w http.ResponseWriter, r *http.Request)
+
+	// (PATCH /ema-settings/config)
+	UpdateEmaSettingsConfig(w http.ResponseWriter, r *http.Request)
+
+	// (GET /ema-settings/config/history)
+	GetEmaSettingsConfigHistory(w http.ResponseWriter, r *http.Request)
+
+	// (GET /ema-settings/settings)
+	ListEmaSettings(w http.ResponseWriter, r *http.Request, params ListEmaSettingsParams)
+
+	// (POST /ema-settings/settings)
+	CreateEmaSetting(w http.ResponseWriter, r *http.Request)
+	// DeleteEmaSetting Delete a setting with no trade waiting or held
+	// (DELETE /ema-settings/settings/{id})
+	DeleteEmaSetting(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (GET /ema-settings/settings/{id})
+	GetEmaSetting(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (PATCH /ema-settings/settings/{id})
+	UpdateEmaSetting(w http.ResponseWriter, r *http.Request, id Id)
+	// CloseEmaSetting End the campaign - waiting trades cancelled, held ones closed at market, setting DONE
+	// (POST /ema-settings/settings/{id}/close)
+	CloseEmaSetting(w http.ResponseWriter, r *http.Request, id Id)
+	// CreateEmaSettingTrade Add a trade by hand - OPENING waits, OPEN records a position already held (no order)
+	// (POST /ema-settings/settings/{id}/trades)
+	CreateEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id)
+	// DeleteEmaSettingTrade Delete a waiting (OPENING) trade
+	// (DELETE /ema-settings/trades/{id})
+	DeleteEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id)
+
+	// (PATCH /ema-settings/trades/{id})
+	UpdateEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id)
+	// ForceCloseEmaSettingTrade Exit a held trade at market now
+	// (POST /ema-settings/trades/{id}/force-close)
+	ForceCloseEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id)
+	// ForceOpenEmaSettingTrade Enter a waiting trade at market now
+	// (POST /ema-settings/trades/{id}/force-open)
+	ForceOpenEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id)
+	// PartialCloseEmaSettingTrade Split amount off a held trade and close that part at market
+	// (POST /ema-settings/trades/{id}/partial-close)
+	PartialCloseEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id)
+	// SplitEmaSettingTrade Move amount into a new trade, without any order
+	// (POST /ema-settings/trades/{id}/split)
+	SplitEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id)
 
 	// (GET /ema1d/config)
 	GetEma1dConfig(w http.ResponseWriter, r *http.Request)
@@ -1712,6 +2405,94 @@ func (_ Unimplemented) ListEmaCrossPairs(w http.ResponseWriter, r *http.Request)
 // WatchEmaCrossPair Set the timeframes watched on a pair (id = pair id); all off removes it
 // (PUT /ema-cross/pairs/{id})
 func (_ Unimplemented) WatchEmaCrossPair(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema-settings/config)
+func (_ Unimplemented) GetEmaSettingsConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /ema-settings/config)
+func (_ Unimplemented) UpdateEmaSettingsConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema-settings/config/history)
+func (_ Unimplemented) GetEmaSettingsConfigHistory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema-settings/settings)
+func (_ Unimplemented) ListEmaSettings(w http.ResponseWriter, r *http.Request, params ListEmaSettingsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /ema-settings/settings)
+func (_ Unimplemented) CreateEmaSetting(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteEmaSetting Delete a setting with no trade waiting or held
+// (DELETE /ema-settings/settings/{id})
+func (_ Unimplemented) DeleteEmaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /ema-settings/settings/{id})
+func (_ Unimplemented) GetEmaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /ema-settings/settings/{id})
+func (_ Unimplemented) UpdateEmaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CloseEmaSetting End the campaign - waiting trades cancelled, held ones closed at market, setting DONE
+// (POST /ema-settings/settings/{id}/close)
+func (_ Unimplemented) CloseEmaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateEmaSettingTrade Add a trade by hand - OPENING waits, OPEN records a position already held (no order)
+// (POST /ema-settings/settings/{id}/trades)
+func (_ Unimplemented) CreateEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteEmaSettingTrade Delete a waiting (OPENING) trade
+// (DELETE /ema-settings/trades/{id})
+func (_ Unimplemented) DeleteEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PATCH /ema-settings/trades/{id})
+func (_ Unimplemented) UpdateEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ForceCloseEmaSettingTrade Exit a held trade at market now
+// (POST /ema-settings/trades/{id}/force-close)
+func (_ Unimplemented) ForceCloseEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ForceOpenEmaSettingTrade Enter a waiting trade at market now
+// (POST /ema-settings/trades/{id}/force-open)
+func (_ Unimplemented) ForceOpenEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// PartialCloseEmaSettingTrade Split amount off a held trade and close that part at market
+// (POST /ema-settings/trades/{id}/partial-close)
+func (_ Unimplemented) PartialCloseEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// SplitEmaSettingTrade Move amount into a new trade, without any order
+// (POST /ema-settings/trades/{id}/split)
+func (_ Unimplemented) SplitEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2389,6 +3170,381 @@ func (siw *ServerInterfaceWrapper) WatchEmaCrossPair(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.WatchEmaCrossPair(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEmaSettingsConfig operation middleware
+func (siw *ServerInterfaceWrapper) GetEmaSettingsConfig(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEmaSettingsConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateEmaSettingsConfig operation middleware
+func (siw *ServerInterfaceWrapper) UpdateEmaSettingsConfig(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateEmaSettingsConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEmaSettingsConfigHistory operation middleware
+func (siw *ServerInterfaceWrapper) GetEmaSettingsConfigHistory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEmaSettingsConfigHistory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListEmaSettings operation middleware
+func (siw *ServerInterfaceWrapper) ListEmaSettings(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListEmaSettingsParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListEmaSettings(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateEmaSetting operation middleware
+func (siw *ServerInterfaceWrapper) CreateEmaSetting(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateEmaSetting(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteEmaSetting operation middleware
+func (siw *ServerInterfaceWrapper) DeleteEmaSetting(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteEmaSetting(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEmaSetting operation middleware
+func (siw *ServerInterfaceWrapper) GetEmaSetting(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEmaSetting(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateEmaSetting operation middleware
+func (siw *ServerInterfaceWrapper) UpdateEmaSetting(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateEmaSetting(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CloseEmaSetting operation middleware
+func (siw *ServerInterfaceWrapper) CloseEmaSetting(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CloseEmaSetting(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateEmaSettingTrade operation middleware
+func (siw *ServerInterfaceWrapper) CreateEmaSettingTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateEmaSettingTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteEmaSettingTrade operation middleware
+func (siw *ServerInterfaceWrapper) DeleteEmaSettingTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteEmaSettingTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateEmaSettingTrade operation middleware
+func (siw *ServerInterfaceWrapper) UpdateEmaSettingTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateEmaSettingTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ForceCloseEmaSettingTrade operation middleware
+func (siw *ServerInterfaceWrapper) ForceCloseEmaSettingTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ForceCloseEmaSettingTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ForceOpenEmaSettingTrade operation middleware
+func (siw *ServerInterfaceWrapper) ForceOpenEmaSettingTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ForceOpenEmaSettingTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PartialCloseEmaSettingTrade operation middleware
+func (siw *ServerInterfaceWrapper) PartialCloseEmaSettingTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PartialCloseEmaSettingTrade(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SplitEmaSettingTrade operation middleware
+func (siw *ServerInterfaceWrapper) SplitEmaSettingTrade(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int64", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SplitEmaSettingTrade(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3266,6 +4422,54 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/ema-cross/config/history", wrapper.GetEmaCrossConfigHistory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema-settings/settings", wrapper.ListEmaSettings)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema-settings/settings", wrapper.CreateEmaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/ema-settings/settings/{id}", wrapper.DeleteEmaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema-settings/settings/{id}", wrapper.GetEmaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/ema-settings/settings/{id}", wrapper.UpdateEmaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema-settings/settings/{id}/close", wrapper.CloseEmaSetting)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema-settings/settings/{id}/trades", wrapper.CreateEmaSettingTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/ema-settings/trades/{id}", wrapper.DeleteEmaSettingTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/ema-settings/trades/{id}", wrapper.UpdateEmaSettingTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema-settings/trades/{id}/force-open", wrapper.ForceOpenEmaSettingTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema-settings/trades/{id}/force-close", wrapper.ForceCloseEmaSettingTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema-settings/trades/{id}/partial-close", wrapper.PartialCloseEmaSettingTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/ema-settings/trades/{id}/split", wrapper.SplitEmaSettingTrade)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema-settings/config", wrapper.GetEmaSettingsConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/ema-settings/config", wrapper.UpdateEmaSettingsConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/ema-settings/config/history", wrapper.GetEmaSettingsConfigHistory)
 	})
 
 	return r
@@ -4196,6 +5400,625 @@ type WatchEmaCrossPairdefaultJSONResponse struct {
 }
 
 func (response WatchEmaCrossPairdefaultJSONResponse) VisitWatchEmaCrossPairResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaSettingsConfigRequestObject struct {
+}
+
+type GetEmaSettingsConfigResponseObject interface {
+	VisitGetEmaSettingsConfigResponse(w http.ResponseWriter) error
+}
+
+type GetEmaSettingsConfig200JSONResponse EmaSettingsConfigEnvelope
+
+func (response GetEmaSettingsConfig200JSONResponse) VisitGetEmaSettingsConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaSettingsConfigdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEmaSettingsConfigdefaultJSONResponse) VisitGetEmaSettingsConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEmaSettingsConfigRequestObject struct {
+	Body *UpdateEmaSettingsConfigJSONRequestBody
+}
+
+type UpdateEmaSettingsConfigResponseObject interface {
+	VisitUpdateEmaSettingsConfigResponse(w http.ResponseWriter) error
+}
+
+type UpdateEmaSettingsConfig200JSONResponse EmaSettingsConfigEnvelope
+
+func (response UpdateEmaSettingsConfig200JSONResponse) VisitUpdateEmaSettingsConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEmaSettingsConfigdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateEmaSettingsConfigdefaultJSONResponse) VisitUpdateEmaSettingsConfigResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaSettingsConfigHistoryRequestObject struct {
+}
+
+type GetEmaSettingsConfigHistoryResponseObject interface {
+	VisitGetEmaSettingsConfigHistoryResponse(w http.ResponseWriter) error
+}
+
+type GetEmaSettingsConfigHistory200JSONResponse struct {
+	Items []ConfigChange `json:"items"`
+}
+
+func (response GetEmaSettingsConfigHistory200JSONResponse) VisitGetEmaSettingsConfigHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaSettingsConfigHistorydefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEmaSettingsConfigHistorydefaultJSONResponse) VisitGetEmaSettingsConfigHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEmaSettingsRequestObject struct {
+	Params ListEmaSettingsParams
+}
+
+type ListEmaSettingsResponseObject interface {
+	VisitListEmaSettingsResponse(w http.ResponseWriter) error
+}
+
+type ListEmaSettings200JSONResponse struct {
+	Items []EmaSetting `json:"items"`
+}
+
+func (response ListEmaSettings200JSONResponse) VisitListEmaSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListEmaSettingsdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ListEmaSettingsdefaultJSONResponse) VisitListEmaSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateEmaSettingRequestObject struct {
+	Body *CreateEmaSettingJSONRequestBody
+}
+
+type CreateEmaSettingResponseObject interface {
+	VisitCreateEmaSettingResponse(w http.ResponseWriter) error
+}
+
+type CreateEmaSetting201JSONResponse EmaSetting
+
+func (response CreateEmaSetting201JSONResponse) VisitCreateEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateEmaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CreateEmaSettingdefaultJSONResponse) VisitCreateEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteEmaSettingRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type DeleteEmaSettingResponseObject interface {
+	VisitDeleteEmaSettingResponse(w http.ResponseWriter) error
+}
+
+type DeleteEmaSetting204Response struct {
+}
+
+func (response DeleteEmaSetting204Response) VisitDeleteEmaSettingResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteEmaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response DeleteEmaSettingdefaultJSONResponse) VisitDeleteEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaSettingRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type GetEmaSettingResponseObject interface {
+	VisitGetEmaSettingResponse(w http.ResponseWriter) error
+}
+
+type GetEmaSetting200JSONResponse EmaSetting
+
+func (response GetEmaSetting200JSONResponse) VisitGetEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEmaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response GetEmaSettingdefaultJSONResponse) VisitGetEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEmaSettingRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdateEmaSettingJSONRequestBody
+}
+
+type UpdateEmaSettingResponseObject interface {
+	VisitUpdateEmaSettingResponse(w http.ResponseWriter) error
+}
+
+type UpdateEmaSetting200JSONResponse EmaSetting
+
+func (response UpdateEmaSetting200JSONResponse) VisitUpdateEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEmaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateEmaSettingdefaultJSONResponse) VisitUpdateEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CloseEmaSettingRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type CloseEmaSettingResponseObject interface {
+	VisitCloseEmaSettingResponse(w http.ResponseWriter) error
+}
+
+type CloseEmaSetting200JSONResponse EmaSetting
+
+func (response CloseEmaSetting200JSONResponse) VisitCloseEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CloseEmaSettingdefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CloseEmaSettingdefaultJSONResponse) VisitCloseEmaSettingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateEmaSettingTradeRequestObject struct {
+	Id   Id `json:"id"`
+	Body *CreateEmaSettingTradeJSONRequestBody
+}
+
+type CreateEmaSettingTradeResponseObject interface {
+	VisitCreateEmaSettingTradeResponse(w http.ResponseWriter) error
+}
+
+type CreateEmaSettingTrade201JSONResponse EmaSettingTrade
+
+func (response CreateEmaSettingTrade201JSONResponse) VisitCreateEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateEmaSettingTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response CreateEmaSettingTradedefaultJSONResponse) VisitCreateEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteEmaSettingTradeRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type DeleteEmaSettingTradeResponseObject interface {
+	VisitDeleteEmaSettingTradeResponse(w http.ResponseWriter) error
+}
+
+type DeleteEmaSettingTrade204Response struct {
+}
+
+func (response DeleteEmaSettingTrade204Response) VisitDeleteEmaSettingTradeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteEmaSettingTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response DeleteEmaSettingTradedefaultJSONResponse) VisitDeleteEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEmaSettingTradeRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdateEmaSettingTradeJSONRequestBody
+}
+
+type UpdateEmaSettingTradeResponseObject interface {
+	VisitUpdateEmaSettingTradeResponse(w http.ResponseWriter) error
+}
+
+type UpdateEmaSettingTrade200JSONResponse EmaSettingTrade
+
+func (response UpdateEmaSettingTrade200JSONResponse) VisitUpdateEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateEmaSettingTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response UpdateEmaSettingTradedefaultJSONResponse) VisitUpdateEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ForceCloseEmaSettingTradeRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type ForceCloseEmaSettingTradeResponseObject interface {
+	VisitForceCloseEmaSettingTradeResponse(w http.ResponseWriter) error
+}
+
+type ForceCloseEmaSettingTrade200JSONResponse EmaSettingTrade
+
+func (response ForceCloseEmaSettingTrade200JSONResponse) VisitForceCloseEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ForceCloseEmaSettingTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ForceCloseEmaSettingTradedefaultJSONResponse) VisitForceCloseEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ForceOpenEmaSettingTradeRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type ForceOpenEmaSettingTradeResponseObject interface {
+	VisitForceOpenEmaSettingTradeResponse(w http.ResponseWriter) error
+}
+
+type ForceOpenEmaSettingTrade200JSONResponse EmaSettingTrade
+
+func (response ForceOpenEmaSettingTrade200JSONResponse) VisitForceOpenEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ForceOpenEmaSettingTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response ForceOpenEmaSettingTradedefaultJSONResponse) VisitForceOpenEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PartialCloseEmaSettingTradeRequestObject struct {
+	Id   Id `json:"id"`
+	Body *PartialCloseEmaSettingTradeJSONRequestBody
+}
+
+type PartialCloseEmaSettingTradeResponseObject interface {
+	VisitPartialCloseEmaSettingTradeResponse(w http.ResponseWriter) error
+}
+
+type PartialCloseEmaSettingTrade200JSONResponse EmaSettingTrade
+
+func (response PartialCloseEmaSettingTrade200JSONResponse) VisitPartialCloseEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PartialCloseEmaSettingTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response PartialCloseEmaSettingTradedefaultJSONResponse) VisitPartialCloseEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SplitEmaSettingTradeRequestObject struct {
+	Id   Id `json:"id"`
+	Body *SplitEmaSettingTradeJSONRequestBody
+}
+
+type SplitEmaSettingTradeResponseObject interface {
+	VisitSplitEmaSettingTradeResponse(w http.ResponseWriter) error
+}
+
+type SplitEmaSettingTrade201JSONResponse EmaSettingTrade
+
+func (response SplitEmaSettingTrade201JSONResponse) VisitSplitEmaSettingTradeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SplitEmaSettingTradedefaultJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
+
+func (response SplitEmaSettingTradedefaultJSONResponse) VisitSplitEmaSettingTradeResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -5261,6 +7084,54 @@ type StrictServerInterface interface {
 	// (PUT /ema-cross/pairs/{id})
 	WatchEmaCrossPair(ctx context.Context, request WatchEmaCrossPairRequestObject) (WatchEmaCrossPairResponseObject, error)
 
+	// (GET /ema-settings/config)
+	GetEmaSettingsConfig(ctx context.Context, request GetEmaSettingsConfigRequestObject) (GetEmaSettingsConfigResponseObject, error)
+
+	// (PATCH /ema-settings/config)
+	UpdateEmaSettingsConfig(ctx context.Context, request UpdateEmaSettingsConfigRequestObject) (UpdateEmaSettingsConfigResponseObject, error)
+
+	// (GET /ema-settings/config/history)
+	GetEmaSettingsConfigHistory(ctx context.Context, request GetEmaSettingsConfigHistoryRequestObject) (GetEmaSettingsConfigHistoryResponseObject, error)
+
+	// (GET /ema-settings/settings)
+	ListEmaSettings(ctx context.Context, request ListEmaSettingsRequestObject) (ListEmaSettingsResponseObject, error)
+
+	// (POST /ema-settings/settings)
+	CreateEmaSetting(ctx context.Context, request CreateEmaSettingRequestObject) (CreateEmaSettingResponseObject, error)
+	// DeleteEmaSetting Delete a setting with no trade waiting or held
+	// (DELETE /ema-settings/settings/{id})
+	DeleteEmaSetting(ctx context.Context, request DeleteEmaSettingRequestObject) (DeleteEmaSettingResponseObject, error)
+
+	// (GET /ema-settings/settings/{id})
+	GetEmaSetting(ctx context.Context, request GetEmaSettingRequestObject) (GetEmaSettingResponseObject, error)
+
+	// (PATCH /ema-settings/settings/{id})
+	UpdateEmaSetting(ctx context.Context, request UpdateEmaSettingRequestObject) (UpdateEmaSettingResponseObject, error)
+	// CloseEmaSetting End the campaign - waiting trades cancelled, held ones closed at market, setting DONE
+	// (POST /ema-settings/settings/{id}/close)
+	CloseEmaSetting(ctx context.Context, request CloseEmaSettingRequestObject) (CloseEmaSettingResponseObject, error)
+	// CreateEmaSettingTrade Add a trade by hand - OPENING waits, OPEN records a position already held (no order)
+	// (POST /ema-settings/settings/{id}/trades)
+	CreateEmaSettingTrade(ctx context.Context, request CreateEmaSettingTradeRequestObject) (CreateEmaSettingTradeResponseObject, error)
+	// DeleteEmaSettingTrade Delete a waiting (OPENING) trade
+	// (DELETE /ema-settings/trades/{id})
+	DeleteEmaSettingTrade(ctx context.Context, request DeleteEmaSettingTradeRequestObject) (DeleteEmaSettingTradeResponseObject, error)
+
+	// (PATCH /ema-settings/trades/{id})
+	UpdateEmaSettingTrade(ctx context.Context, request UpdateEmaSettingTradeRequestObject) (UpdateEmaSettingTradeResponseObject, error)
+	// ForceCloseEmaSettingTrade Exit a held trade at market now
+	// (POST /ema-settings/trades/{id}/force-close)
+	ForceCloseEmaSettingTrade(ctx context.Context, request ForceCloseEmaSettingTradeRequestObject) (ForceCloseEmaSettingTradeResponseObject, error)
+	// ForceOpenEmaSettingTrade Enter a waiting trade at market now
+	// (POST /ema-settings/trades/{id}/force-open)
+	ForceOpenEmaSettingTrade(ctx context.Context, request ForceOpenEmaSettingTradeRequestObject) (ForceOpenEmaSettingTradeResponseObject, error)
+	// PartialCloseEmaSettingTrade Split amount off a held trade and close that part at market
+	// (POST /ema-settings/trades/{id}/partial-close)
+	PartialCloseEmaSettingTrade(ctx context.Context, request PartialCloseEmaSettingTradeRequestObject) (PartialCloseEmaSettingTradeResponseObject, error)
+	// SplitEmaSettingTrade Move amount into a new trade, without any order
+	// (POST /ema-settings/trades/{id}/split)
+	SplitEmaSettingTrade(ctx context.Context, request SplitEmaSettingTradeRequestObject) (SplitEmaSettingTradeResponseObject, error)
+
 	// (GET /ema1d/config)
 	GetEma1dConfig(ctx context.Context, request GetEma1dConfigRequestObject) (GetEma1dConfigResponseObject, error)
 	// UpdateEma1dConfig Save a new config; fails with 409 when version is stale
@@ -6055,6 +7926,463 @@ func (sh *strictHandler) WatchEmaCrossPair(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// GetEmaSettingsConfig operation middleware
+func (sh *strictHandler) GetEmaSettingsConfig(w http.ResponseWriter, r *http.Request) {
+	var request GetEmaSettingsConfigRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEmaSettingsConfig(ctx, request.(GetEmaSettingsConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEmaSettingsConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEmaSettingsConfigResponseObject); ok {
+		if err := validResponse.VisitGetEmaSettingsConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateEmaSettingsConfig operation middleware
+func (sh *strictHandler) UpdateEmaSettingsConfig(w http.ResponseWriter, r *http.Request) {
+	var request UpdateEmaSettingsConfigRequestObject
+
+	var body UpdateEmaSettingsConfigJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateEmaSettingsConfig(ctx, request.(UpdateEmaSettingsConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateEmaSettingsConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateEmaSettingsConfigResponseObject); ok {
+		if err := validResponse.VisitUpdateEmaSettingsConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEmaSettingsConfigHistory operation middleware
+func (sh *strictHandler) GetEmaSettingsConfigHistory(w http.ResponseWriter, r *http.Request) {
+	var request GetEmaSettingsConfigHistoryRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEmaSettingsConfigHistory(ctx, request.(GetEmaSettingsConfigHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEmaSettingsConfigHistory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEmaSettingsConfigHistoryResponseObject); ok {
+		if err := validResponse.VisitGetEmaSettingsConfigHistoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListEmaSettings operation middleware
+func (sh *strictHandler) ListEmaSettings(w http.ResponseWriter, r *http.Request, params ListEmaSettingsParams) {
+	var request ListEmaSettingsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListEmaSettings(ctx, request.(ListEmaSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListEmaSettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListEmaSettingsResponseObject); ok {
+		if err := validResponse.VisitListEmaSettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateEmaSetting operation middleware
+func (sh *strictHandler) CreateEmaSetting(w http.ResponseWriter, r *http.Request) {
+	var request CreateEmaSettingRequestObject
+
+	var body CreateEmaSettingJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateEmaSetting(ctx, request.(CreateEmaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateEmaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateEmaSettingResponseObject); ok {
+		if err := validResponse.VisitCreateEmaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteEmaSetting operation middleware
+func (sh *strictHandler) DeleteEmaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	var request DeleteEmaSettingRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteEmaSetting(ctx, request.(DeleteEmaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteEmaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteEmaSettingResponseObject); ok {
+		if err := validResponse.VisitDeleteEmaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetEmaSetting operation middleware
+func (sh *strictHandler) GetEmaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	var request GetEmaSettingRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetEmaSetting(ctx, request.(GetEmaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEmaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetEmaSettingResponseObject); ok {
+		if err := validResponse.VisitGetEmaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateEmaSetting operation middleware
+func (sh *strictHandler) UpdateEmaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdateEmaSettingRequestObject
+
+	request.Id = id
+
+	var body UpdateEmaSettingJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateEmaSetting(ctx, request.(UpdateEmaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateEmaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateEmaSettingResponseObject); ok {
+		if err := validResponse.VisitUpdateEmaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CloseEmaSetting operation middleware
+func (sh *strictHandler) CloseEmaSetting(w http.ResponseWriter, r *http.Request, id Id) {
+	var request CloseEmaSettingRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CloseEmaSetting(ctx, request.(CloseEmaSettingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CloseEmaSetting")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CloseEmaSettingResponseObject); ok {
+		if err := validResponse.VisitCloseEmaSettingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateEmaSettingTrade operation middleware
+func (sh *strictHandler) CreateEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request CreateEmaSettingTradeRequestObject
+
+	request.Id = id
+
+	var body CreateEmaSettingTradeJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateEmaSettingTrade(ctx, request.(CreateEmaSettingTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateEmaSettingTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateEmaSettingTradeResponseObject); ok {
+		if err := validResponse.VisitCreateEmaSettingTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteEmaSettingTrade operation middleware
+func (sh *strictHandler) DeleteEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request DeleteEmaSettingTradeRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteEmaSettingTrade(ctx, request.(DeleteEmaSettingTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteEmaSettingTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteEmaSettingTradeResponseObject); ok {
+		if err := validResponse.VisitDeleteEmaSettingTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateEmaSettingTrade operation middleware
+func (sh *strictHandler) UpdateEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdateEmaSettingTradeRequestObject
+
+	request.Id = id
+
+	var body UpdateEmaSettingTradeJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateEmaSettingTrade(ctx, request.(UpdateEmaSettingTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateEmaSettingTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateEmaSettingTradeResponseObject); ok {
+		if err := validResponse.VisitUpdateEmaSettingTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ForceCloseEmaSettingTrade operation middleware
+func (sh *strictHandler) ForceCloseEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request ForceCloseEmaSettingTradeRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ForceCloseEmaSettingTrade(ctx, request.(ForceCloseEmaSettingTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ForceCloseEmaSettingTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ForceCloseEmaSettingTradeResponseObject); ok {
+		if err := validResponse.VisitForceCloseEmaSettingTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ForceOpenEmaSettingTrade operation middleware
+func (sh *strictHandler) ForceOpenEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request ForceOpenEmaSettingTradeRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ForceOpenEmaSettingTrade(ctx, request.(ForceOpenEmaSettingTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ForceOpenEmaSettingTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ForceOpenEmaSettingTradeResponseObject); ok {
+		if err := validResponse.VisitForceOpenEmaSettingTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PartialCloseEmaSettingTrade operation middleware
+func (sh *strictHandler) PartialCloseEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request PartialCloseEmaSettingTradeRequestObject
+
+	request.Id = id
+
+	var body PartialCloseEmaSettingTradeJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PartialCloseEmaSettingTrade(ctx, request.(PartialCloseEmaSettingTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PartialCloseEmaSettingTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PartialCloseEmaSettingTradeResponseObject); ok {
+		if err := validResponse.VisitPartialCloseEmaSettingTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SplitEmaSettingTrade operation middleware
+func (sh *strictHandler) SplitEmaSettingTrade(w http.ResponseWriter, r *http.Request, id Id) {
+	var request SplitEmaSettingTradeRequestObject
+
+	request.Id = id
+
+	var body SplitEmaSettingTradeJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SplitEmaSettingTrade(ctx, request.(SplitEmaSettingTradeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SplitEmaSettingTrade")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SplitEmaSettingTradeResponseObject); ok {
+		if err := validResponse.VisitSplitEmaSettingTradeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetEma1dConfig operation middleware
 func (sh *strictHandler) GetEma1dConfig(w http.ResponseWriter, r *http.Request) {
 	var request GetEma1dConfigRequestObject
@@ -6732,108 +9060,133 @@ func (sh *strictHandler) GetSystemStatus(w http.ResponseWriter, r *http.Request)
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"lJ/liXyPnx//ZwA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

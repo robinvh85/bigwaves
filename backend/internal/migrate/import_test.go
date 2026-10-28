@@ -44,6 +44,14 @@ INSERT INTO ema_trades (id, pair_id, open_price, close_price, amount, status, tr
   (11, 2, 2000, 2100, 0.2, 'DONE', 'LONG', 'EMA1D_EXIT', '2026-09-01', 'DIV4H', 7, 6000, 400, 0.8, 19.2, 0, '2026-09-01 00:10:00', '2026-09-20 00:10:00', now(), now()),
   (12, 2, 0, 0, 0.1, 'OPENING', 'LONG', 'EMA1D_EXIT', '2026-10-25', 'DIV4H', 3.5, 6000, 200, 0, 0, 0, NULL, NULL, now(), now()),
   (13, 1, 0.01, 0.03, 100, 'CLOSING', 'LONG', 'EMA_AUTO', NULL, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, NULL, now(), now());
+INSERT INTO ema_settings (id, pair_id, budget, trade_type, period_type, check_type, next_trade_type, tp_percent, sl_percent, status, note, created_at, updated_at) VALUES
+  (144, 1, 600, 'BOTH', 'D1', 'CHECK_AT_CLOSE', 'NEW_TRADE', 0, 0, 'ACTIVE', 'W: down', now(), now()),
+  (90, 2, 500, 'ONLY_LONG', 'H4', 'CHECK_AT_OPEN', 'NOT_NEW_TRADE', 10, 5, 'DONE', NULL, now(), now());
+INSERT INTO ema_trades (id, pair_id, open_price, close_price, sl_price, amount, status, trade_type, source, ema_setting_id, is_auto_trade,
+  fee_usdt, realized_profit, unrealized_profit, open_at, close_at, created_at, updated_at) VALUES
+  (2174, 1, 0.019, 0.015, 0.0206, 3141, 'CLOSING', 'SHORT', 'EMA_AUTO', 144, true, 0.6, 0, 7.2, '2026-10-17 04:45:11', NULL, now(), now()),
+  (2175, 1, 0.018, 0, 0, 0, 'OPENING', 'LONG', 'EMA_AUTO', 144, false, 0, 0, 0, NULL, NULL, now(), now()),
+  (2100, 2, 2000, 2100, 1840, 0.1, 'DONE', 'LONG', 'EMA_AUTO', 90, false, 0, 10, 0, '2026-08-01 00:00:00', '2026-08-05 00:00:00', now(), now());
 INSERT INTO ema1d_syncs (id, run_id, signal_date, raw_query, parsed, result, dry_run, created_at, updated_at) VALUES
   (5, 'auto-20261009', '2026-10-09', 'date=2026-10-09&token=SECRET&run_id=auto', '{"items":[]}', '{"created_todos":[]}', false, now(), now());
 INSERT INTO ema1d_todos (id, ema1d_pair_id, action, side, signal_date, ref_price, exit_rule, source, ema1d_sync_id, depends_on_id,
@@ -163,6 +171,20 @@ func TestImportPG(t *testing.T) {
 	require.Equal(t, []any{"OPENING", "0", nil, "0.015", "0.02"}, row(`SELECT status, held_amount, open_price, buy_price, sell_price FROM dca_trades WHERE id = 30`))
 	require.Equal(t, []any{"OPEN", "2000", "0.0158", "31.6", "dca_31_close"}, row(`SELECT status, held_amount, open_price, buy_quote, close_order_id FROM dca_trades WHERE id = 31`))
 	require.Equal(t, []any{"CLOSED", "0.018", "9", "1"}, row(`SELECT status, close_price, sell_quote, realized_profit FROM dca_trades WHERE id = 32`))
+
+	// EMA Settings: settings and trades keep their ids and Rails order ids; open/close prices are
+	// split into triggers and fills by status; the scan starts off with the Rails thresholds.
+	require.Equal(t, 2, rep.Imported["ema_settings"])
+	require.Equal(t, 3, rep.Imported["ema_setting_trades"])
+	require.Equal(t, []any{"BOTH", "D1", "CHECK_AT_CLOSE", "NEW_TRADE", "600", "ACTIVE", "W: down"},
+		row(`SELECT trade_type, period, check_type, next_trade_type, budget, status, note FROM ema_settings WHERE id = 144`))
+	require.Equal(t, []any{"OPEN", "SHORT", "0.019", nil, "0.015", "0.0206", "7.2", "ema_2174_close", int64(1), int64(1)},
+		row(`SELECT status, side, open_price, entry_price, target_price, sl_price, unrealized_profit, close_order_id, is_auto, legacy FROM ema_setting_trades WHERE id = 2174`))
+	require.Equal(t, []any{"OPENING", "0.018", nil, nil}, row(`SELECT status, entry_price, open_price, target_price FROM ema_setting_trades WHERE id = 2175`))
+	require.Equal(t, []any{"CLOSED", "2000", "2100", nil, "10"}, row(`SELECT status, open_price, close_price, target_price, realized_profit FROM ema_setting_trades WHERE id = 2100`))
+	require.Equal(t, []any{int64(0), "0.05", "0.03"}, // d1 not in the fixture: default
+		row(`SELECT json_extract(config, '$.enabled'), json_extract(config, '$.h4.openPercent'), json_extract(config, '$.d1.openPercent') FROM strategy_configs WHERE strategy = 'emasettings'`))
+	require.Contains(t, strings.Join(rep.Notes, "\n"), "EMA Settings: 1 ACTIVE setting(s)")
 
 	// Users are lower-cased; coin notes kept.
 	require.Equal(t, []any{"me@example.com"}, row(`SELECT email FROM users`))

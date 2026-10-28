@@ -30,6 +30,8 @@ import { Route as AppEma1dEquityRouteImport } from './routes/_app/ema1d/equity'
 import { Route as AppEma1dPairsRouteImport } from './routes/_app/ema1d/pairs'
 import { Route as AppEma1dTodosRouteImport } from './routes/_app/ema1d/todos'
 import { Route as AppEma1dTradesRouteImport } from './routes/_app/ema1d/trades'
+import { Route as AppEmaCrossCampaignsIndexRouteImport } from './routes/_app/ema-cross/campaigns/index'
+import { Route as AppEmaCrossCampaignsIdRouteImport } from './routes/_app/ema-cross/campaigns/$id'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -135,6 +137,17 @@ const AppEma1dTradesRoute = AppEma1dTradesRouteImport.update({
   path: '/trades',
   getParentRoute: () => AppEma1dRouteRoute,
 } as any)
+const AppEmaCrossCampaignsIndexRoute =
+  AppEmaCrossCampaignsIndexRouteImport.update({
+    id: '/campaigns/',
+    path: '/campaigns/',
+    getParentRoute: () => AppEmaCrossRouteRoute,
+  } as any)
+const AppEmaCrossCampaignsIdRoute = AppEmaCrossCampaignsIdRouteImport.update({
+  id: '/campaigns/$id',
+  path: '/campaigns/$id',
+  getParentRoute: () => AppEmaCrossRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -157,6 +170,8 @@ export interface FileRoutesByFullPath {
   '/dca/': typeof AppDcaIndexRoute
   '/ema-cross/': typeof AppEmaCrossIndexRoute
   '/ema1d/': typeof AppEma1dIndexRoute
+  '/ema-cross/campaigns/$id': typeof AppEmaCrossCampaignsIdRoute
+  '/ema-cross/campaigns/': typeof AppEmaCrossCampaignsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -176,6 +191,8 @@ export interface FileRoutesByTo {
   '/dca': typeof AppDcaIndexRoute
   '/ema-cross': typeof AppEmaCrossIndexRoute
   '/ema1d': typeof AppEma1dIndexRoute
+  '/ema-cross/campaigns/$id': typeof AppEmaCrossCampaignsIdRoute
+  '/ema-cross/campaigns': typeof AppEmaCrossCampaignsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -200,6 +217,8 @@ export interface FileRoutesById {
   '/_app/dca/': typeof AppDcaIndexRoute
   '/_app/ema-cross/': typeof AppEmaCrossIndexRoute
   '/_app/ema1d/': typeof AppEma1dIndexRoute
+  '/_app/ema-cross/campaigns/$id': typeof AppEmaCrossCampaignsIdRoute
+  '/_app/ema-cross/campaigns/': typeof AppEmaCrossCampaignsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -224,6 +243,8 @@ export interface FileRouteTypes {
     | '/dca/'
     | '/ema-cross/'
     | '/ema1d/'
+    | '/ema-cross/campaigns/$id'
+    | '/ema-cross/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -243,6 +264,8 @@ export interface FileRouteTypes {
     | '/dca'
     | '/ema-cross'
     | '/ema1d'
+    | '/ema-cross/campaigns/$id'
+    | '/ema-cross/campaigns'
   id:
     | '__root__'
     | '/_app'
@@ -266,6 +289,8 @@ export interface FileRouteTypes {
     | '/_app/dca/'
     | '/_app/ema-cross/'
     | '/_app/ema1d/'
+    | '/_app/ema-cross/campaigns/$id'
+    | '/_app/ema-cross/campaigns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -422,6 +447,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEma1dTradesRouteImport
       parentRoute: typeof AppEma1dRouteRoute
     }
+    '/_app/ema-cross/campaigns/': {
+      id: '/_app/ema-cross/campaigns/'
+      path: '/campaigns'
+      fullPath: '/ema-cross/campaigns/'
+      preLoaderRoute: typeof AppEmaCrossCampaignsIndexRouteImport
+      parentRoute: typeof AppEmaCrossRouteRoute
+    }
+    '/_app/ema-cross/campaigns/$id': {
+      id: '/_app/ema-cross/campaigns/$id'
+      path: '/campaigns/$id'
+      fullPath: '/ema-cross/campaigns/$id'
+      preLoaderRoute: typeof AppEmaCrossCampaignsIdRouteImport
+      parentRoute: typeof AppEmaCrossRouteRoute
+    }
   }
 }
 
@@ -459,12 +498,16 @@ interface AppEmaCrossRouteRouteChildren {
   AppEmaCrossAlertsRoute: typeof AppEmaCrossAlertsRoute
   AppEmaCrossConfigRoute: typeof AppEmaCrossConfigRoute
   AppEmaCrossIndexRoute: typeof AppEmaCrossIndexRoute
+  AppEmaCrossCampaignsIdRoute: typeof AppEmaCrossCampaignsIdRoute
+  AppEmaCrossCampaignsIndexRoute: typeof AppEmaCrossCampaignsIndexRoute
 }
 
 const AppEmaCrossRouteRouteChildren: AppEmaCrossRouteRouteChildren = {
   AppEmaCrossAlertsRoute: AppEmaCrossAlertsRoute,
   AppEmaCrossConfigRoute: AppEmaCrossConfigRoute,
   AppEmaCrossIndexRoute: AppEmaCrossIndexRoute,
+  AppEmaCrossCampaignsIdRoute: AppEmaCrossCampaignsIdRoute,
+  AppEmaCrossCampaignsIndexRoute: AppEmaCrossCampaignsIndexRoute,
 }
 
 const AppEmaCrossRouteRouteWithChildren =

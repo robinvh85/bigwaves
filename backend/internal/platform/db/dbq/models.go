@@ -185,6 +185,53 @@ type Ema1dTodo struct {
 	UpdatedAt        dbtype.Time
 }
 
+type EmaSetting struct {
+	ID            int64
+	PairID        int64
+	Budget        money.Dec
+	TradeType     string
+	Period        string
+	CheckType     string
+	NextTradeType string
+	TpPercent     money.Dec
+	SlPercent     money.Dec
+	Status        string
+	Note          string
+	CreatedAt     dbtype.Time
+	UpdatedAt     dbtype.Time
+}
+
+type EmaSettingTrade struct {
+	ID               int64
+	SettingID        int64
+	PairID           int64
+	Side             string
+	Status           string
+	IsAuto           bool
+	Amount           money.Dec
+	EntryPrice       *money.Dec
+	TargetPrice      *money.Dec
+	SlPrice          *money.Dec
+	OpenPrice        *money.Dec
+	ClosePrice       *money.Dec
+	FeeUsdt          money.Dec
+	InterestPaid     money.Dec
+	InterestUsdt     money.Dec
+	RealizedProfit   money.Dec
+	UnrealizedProfit money.Dec
+	CloseReason      string
+	OpenOrderID      string
+	CloseOrderID     string
+	BorrowStep       string
+	FirstAttemptedAt *dbtype.Time
+	LastError        string
+	Legacy           bool
+	OpenAt           *dbtype.Time
+	CloseAt          *dbtype.Time
+	CreatedAt        dbtype.Time
+	UpdatedAt        dbtype.Time
+}
+
 type EmacrossAlert struct {
 	ID         int64
 	PairID     int64

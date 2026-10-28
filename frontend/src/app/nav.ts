@@ -12,6 +12,7 @@ import {
   RadarIcon,
   SettingsIcon,
   SlidersHorizontalIcon,
+  TargetIcon,
   TrendingUpIcon,
 } from 'lucide-react'
 
@@ -46,6 +47,7 @@ export const NAV: NavGroup[] = [
     items: [
       { title: 'Watchlist', to: '/ema-cross', icon: RadarIcon, exact: true },
       { title: 'Alerts', to: '/ema-cross/alerts', icon: BellRingIcon },
+      { title: 'Campaigns', to: '/ema-cross/campaigns', icon: TargetIcon },
       { title: 'Settings', to: '/ema-cross/config', icon: SlidersHorizontalIcon },
     ],
   },

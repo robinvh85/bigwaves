@@ -39,6 +39,12 @@ func ema(xs []float64, n int) []float64 {
 	return out
 }
 
+// Lines returns EMA14 of closes and Smooth10 (EMA10 of that EMA), one value per close.
+func Lines(closes []float64) (emaLine, smooth []float64) {
+	e := ema(closes, EMAPeriod)
+	return e, ema(e, SmoothPeriod)
+}
+
 // Evaluate reads closes, oldest first, where the last one is the running candle (its close is the
 // current price). The cross test is the Rails one (CheckCross{H1,H4,D1}EmasForPairsService): the
 // trend of the last closed candle, then how far the current EMA14 has gone past Smooth10 the other
@@ -48,8 +54,7 @@ func Evaluate(closes []float64, thresholdPercent float64) (r Reading, ok bool) {
 	if n < 2 {
 		return Reading{}, false
 	}
-	e := ema(closes, EMAPeriod)
-	s := ema(e, SmoothPeriod)
+	e, s := Lines(closes)
 	prevUp := e[n-2] >= s[n-2]
 	r = Reading{EMA: e[n-1], Smooth: s[n-1], Trend: TrendDown}
 	if r.EMA >= r.Smooth {

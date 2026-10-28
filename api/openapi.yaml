@@ -16,6 +16,7 @@ tags:
   - name: ema1d
   - name: dca
   - name: emacross
+  - name: emasettings
 paths:
   /me:
     get:
@@ -857,6 +858,262 @@ paths:
                   items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
         default: { $ref: "#/components/responses/Error" }
 
+  /ema-settings/settings:
+    get:
+      tags: [emasettings]
+      operationId: listEmaSettings
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/EmaSettingStatus" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/EmaSetting" } }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      tags: [emasettings]
+      operationId: createEmaSetting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/EmaSettingInput"
+                - type: object
+                  required: [pairId, budget]
+                  properties:
+                    pairId: { type: integer, format: int64 }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSetting" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/settings/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags: [emasettings]
+      operationId: getEmaSetting
+      responses:
+        "200":
+          description: OK, with its trades (newest first)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSetting" }
+        default: { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [emasettings]
+      operationId: updateEmaSetting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmaSettingInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSetting" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [emasettings]
+      operationId: deleteEmaSetting
+      summary: Delete a setting with no trade waiting or held
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/settings/{id}/close:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [emasettings]
+      operationId: closeEmaSetting
+      summary: End the campaign - waiting trades cancelled, held ones closed at market, setting DONE
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSetting" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/settings/{id}/trades:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [emasettings]
+      operationId: createEmaSettingTrade
+      summary: Add a trade by hand - OPENING waits, OPEN records a position already held (no order)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmaSettingTradeInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSettingTrade" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/trades/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    patch:
+      tags: [emasettings]
+      operationId: updateEmaSettingTrade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmaSettingTradeUpdate" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSettingTrade" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [emasettings]
+      operationId: deleteEmaSettingTrade
+      summary: Delete a waiting (OPENING) trade
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/trades/{id}/force-open:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [emasettings]
+      operationId: forceOpenEmaSettingTrade
+      summary: Enter a waiting trade at market now
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSettingTrade" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/trades/{id}/force-close:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [emasettings]
+      operationId: forceCloseEmaSettingTrade
+      summary: Exit a held trade at market now
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSettingTrade" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/trades/{id}/partial-close:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [emasettings]
+      operationId: partialCloseEmaSettingTrade
+      summary: Split amount off a held trade and close that part at market
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmaSettingAmount" }
+      responses:
+        "200":
+          description: The closed part
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSettingTrade" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/trades/{id}/split:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags: [emasettings]
+      operationId: splitEmaSettingTrade
+      summary: Move amount into a new trade, without any order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmaSettingAmount" }
+      responses:
+        "201":
+          description: The new trade
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSettingTrade" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/config:
+    get:
+      tags: [emasettings]
+      operationId: getEmaSettingsConfig
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSettingsConfigEnvelope" }
+        default: { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [emasettings]
+      operationId: updateEmaSettingsConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, config]
+              properties:
+                version: { type: integer, format: int64 }
+                config: { $ref: "#/components/schemas/EmaSettingsConfig" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmaSettingsConfigEnvelope" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /ema-settings/config/history:
+    get:
+      tags: [emasettings]
+      operationId: getEmaSettingsConfigHistory
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   parameters:
     Id:
@@ -1498,4 +1755,155 @@ components:
       required: [config, version]
       properties:
         config: { $ref: "#/components/schemas/EmaCrossConfig" }
+        version: { type: integer, format: int64 }
+
+    EmaSettingStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, DONE]
+
+    EmaSettingInput:
+      type: object
+      properties:
+        budget:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: USDT per trade
+        tradeType: { type: string, enum: [ONLY_LONG, ONLY_SHORT, BOTH] }
+        period: { type: string, enum: [D1, H4] }
+        checkType: { type: string, enum: [CHECK_AT_OPEN, CHECK_AT_CLOSE, CHECK_AT_CURRENT] }
+        nextTradeType: { type: string, enum: [NEW_TRADE, NOT_NEW_TRADE] }
+        tpPercent:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: Take profit on the total PnL, in % of the budget; 0 = off
+        slPercent:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: Stop loss on the total PnL, in % of the budget; 0 = off
+        status: { $ref: "#/components/schemas/EmaSettingStatus" }
+        note: { type: string, description: Markdown }
+
+    EmaSettingTrade:
+      type: object
+      required: [id, settingId, side, status, isAuto, amount, feeUsdt, interestUsdt, realizedProfit, unrealizedProfit, closeReason, lastError, borrowStep, legacy, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        settingId: { type: integer, format: int64 }
+        side: { type: string, enum: [LONG, SHORT] }
+        status: { type: string, enum: [OPENING, OPEN, CLOSED] }
+        isAuto: { type: boolean, description: Created by the scan, not by hand }
+        amount: { $ref: "#/components/schemas/Decimal" }
+        entryPrice:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: OPENING - enter when the price passes it; absent = on the cross
+        targetPrice: { $ref: "#/components/schemas/Decimal" }
+        slPrice: { $ref: "#/components/schemas/Decimal" }
+        openPrice: { $ref: "#/components/schemas/Decimal" }
+        closePrice: { $ref: "#/components/schemas/Decimal" }
+        feeUsdt: { $ref: "#/components/schemas/Decimal" }
+        interestUsdt: { $ref: "#/components/schemas/Decimal" }
+        realizedProfit:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: Net of fees and interest (legacy trades - the Rails gross figure)
+        unrealizedProfit: { $ref: "#/components/schemas/Decimal" }
+        closeReason: { type: string, description: "SL, TARGET, EMA_REVERSE, SETTING_TP, SETTING_SL, MANUAL, CANCELLED" }
+        lastError: { type: string }
+        borrowStep: { type: string, description: "Short open - '' / BORROWING / BORROWED" }
+        legacy: { type: boolean, description: Imported from Rails }
+        openAt: { type: string, format: date-time }
+        closeAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    EmaSetting:
+      type: object
+      required: [id, pairId, pairName, account, budget, tradeType, period, checkType, nextTradeType, tpPercent, slPercent, status, note, realizedProfit, unrealizedProfit, totalProfit, tradeCount, createdAt, updatedAt]
+      properties:
+        id: { type: integer, format: int64 }
+        pairId: { type: integer, format: int64 }
+        pairName: { type: string }
+        currentPrice: { $ref: "#/components/schemas/Decimal" }
+        account: { type: string, enum: [SPOT, CROSS, ISOLATED] }
+        budget: { $ref: "#/components/schemas/Decimal" }
+        tradeType: { type: string, enum: [ONLY_LONG, ONLY_SHORT, BOTH] }
+        period: { type: string, enum: [D1, H4] }
+        checkType: { type: string, enum: [CHECK_AT_OPEN, CHECK_AT_CLOSE, CHECK_AT_CURRENT] }
+        nextTradeType: { type: string, enum: [NEW_TRADE, NOT_NEW_TRADE] }
+        tpPercent: { $ref: "#/components/schemas/Decimal" }
+        slPercent: { $ref: "#/components/schemas/Decimal" }
+        status: { $ref: "#/components/schemas/EmaSettingStatus" }
+        note: { type: string }
+        realizedProfit: { $ref: "#/components/schemas/Decimal" }
+        unrealizedProfit: { $ref: "#/components/schemas/Decimal" }
+        totalProfit: { $ref: "#/components/schemas/Decimal" }
+        totalPercent:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: Total PnL in % of the budget
+        tradeCount: { type: integer }
+        activeTrade: { $ref: "#/components/schemas/EmaSettingTrade" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        trades: { type: array, items: { $ref: "#/components/schemas/EmaSettingTrade" } }
+
+    EmaSettingTradeInput:
+      type: object
+      required: [side]
+      properties:
+        side: { type: string, enum: [LONG, SHORT] }
+        status: { type: string, enum: [OPENING, OPEN], default: OPENING }
+        amount:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: Base asset; OPENING without it sizes from the budget at open
+        entryPrice: { $ref: "#/components/schemas/Decimal" }
+        targetPrice: { $ref: "#/components/schemas/Decimal" }
+        slPrice: { $ref: "#/components/schemas/Decimal" }
+        openPrice:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: OPEN only - the price the position was entered at
+        openAt: { type: string, format: date-time }
+
+    EmaSettingTradeUpdate:
+      type: object
+      description: A price of 0 clears it. status CLOSED cancels an OPENING trade or records an OPEN one closed by hand at closePrice (no order).
+      properties:
+        side: { type: string, enum: [LONG, SHORT] }
+        amount: { $ref: "#/components/schemas/Decimal" }
+        entryPrice: { $ref: "#/components/schemas/Decimal" }
+        targetPrice: { $ref: "#/components/schemas/Decimal" }
+        slPrice: { $ref: "#/components/schemas/Decimal" }
+        status: { type: string, enum: [CLOSED] }
+        closePrice: { $ref: "#/components/schemas/Decimal" }
+
+    EmaSettingAmount:
+      type: object
+      required: [amount]
+      properties:
+        amount: { $ref: "#/components/schemas/Decimal" }
+
+    EmaSettingsPeriodParams:
+      type: object
+      required: [openPercent, closePercent, ignoreOverEmaPercent, stopLossPercent]
+      properties:
+        openPercent:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: EMA14 past Smooth10 by this % to enter
+        closePercent:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: Cross back by this % closes the trade
+        ignoreOverEmaPercent:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: No entry when the price is this far from EMA14
+        stopLossPercent:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: Stop loss set on each trade at open, from the entry price
+
+    EmaSettingsConfig:
+      type: object
+      required: [enabled, d1, h4]
+      properties:
+        enabled: { type: boolean, description: The 5-minute scan runs (manual actions always work) }
+        d1: { $ref: "#/components/schemas/EmaSettingsPeriodParams" }
+        h4: { $ref: "#/components/schemas/EmaSettingsPeriodParams" }
+
+    EmaSettingsConfigEnvelope:
+      type: object
+      required: [config, version]
+      properties:
+        config: { $ref: "#/components/schemas/EmaSettingsConfig" }
         version: { type: integer, format: int64 }

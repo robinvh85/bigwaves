@@ -79,11 +79,31 @@ Chọn thời điểm sau 07:05 VN, khi hàng đợi Rails trống.
 Lặp lại bước 2 cho DCA (tắt `DcaSettings::CheckTradesService` bên Rails trước), rồi dừng hẳn Rails, Sidekiq,
 Redis, PostgreSQL (giữ dump cuối cùng).
 
+## 5. Cutover EMA Settings (Campaigns)
+
+Production đã có dữ liệu sống, nên không import lại cả DB: chỉ chép phần EMA Settings từ một file import mới vào.
+
+1. Deploy bản có migration `00006_emasettings` (bảng rỗng; scan `emasettings.enabled` mặc định **tắt**).
+2. Rails: chuyển các setting ACTIVE sang **INACTIVE** (ghi lại id; 2026-10-28 là #140, #144). Từ lúc này Rails ngừng
+   quét: SL 8% của 2 trade đang giữ không còn ai canh tới bước 6, nên làm liền mạch.
+3. `bwctl import-pg -out <file mới>` (chỉ đọc PG) → `bwctl verify-import` → mọi dòng OK, đặc biệt
+   `open EMA Settings trades` và `sum EMA Settings open amount`.
+4. Backup DB production (`systemctl start bigwaves-backup`), rồi chép `ema_settings`, `ema_setting_trades` và dòng
+   `strategy_configs` `emasettings` từ file import sang (SQLite `ATTACH`, một transaction); đặt lại ACTIVE cho các id
+   ghi ở bước 2. Restart app (config được cache).
+5. Đối chiếu nợ cross margin trên Binance với trade đang giữ: mỗi coin, nợ = tổng amount SHORT của EMA1D + campaign
+   (JASMY: EMA1D #2165 + campaign #2180).
+6. Bật scan (EMA Cross → Settings → Campaigns scan). Theo dõi cửa sổ D1 kế tiếp (00:00–00:15 UTC = 07:00–07:15 VN).
+
+Đối chiếu EMA trước khi bật (tuỳ chọn): `bwctl emasettings-compare -pg … -n 5` in EMA14/Smooth10 Rails
+(`ema_trackings`) cạnh giá trị tính từ klines cho từng pair đang chạy.
+
 ## Quay lui
 
 | Thời điểm | Cách quay lui |
 |---|---|
 | Trước bước 2.9 | Bật lại Rails; trên sàn chưa có gì thay đổi |
+| EMA Settings sau bước 5.6 | Tắt scan campaign; bật lại ACTIVE bên Rails; lệnh bigwaves đã đặt có client id `bw_es_…` (`bwctl export-orders`) |
 | Sau bước 2.9 | Tắt bigwaves (`TRADING_ENABLED=false`). `sudo bwctl export-orders -since <giờ cutover>` liệt kê mọi lệnh bigwaves đã đặt (client id `bw_…`); nhập tay các thay đổi vị thế vào Rails rồi bật lại Rails |
 
 Vị thế nhập từ Rails giữ client order id cũ (`ema_<id>_open/close`, `dca_<id>_open/close`): nếu Rails đã đặt

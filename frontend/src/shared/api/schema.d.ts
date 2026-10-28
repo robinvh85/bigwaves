@@ -656,6 +656,206 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ema-settings/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listEmaSettings"];
+        put?: never;
+        post: operations["createEmaSetting"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-settings/settings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get: operations["getEmaSetting"];
+        put?: never;
+        post?: never;
+        /** Delete a setting with no trade waiting or held */
+        delete: operations["deleteEmaSetting"];
+        options?: never;
+        head?: never;
+        patch: operations["updateEmaSetting"];
+        trace?: never;
+    };
+    "/ema-settings/settings/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End the campaign - waiting trades cancelled, held ones closed at market, setting DONE */
+        post: operations["closeEmaSetting"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-settings/settings/{id}/trades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a trade by hand - OPENING waits, OPEN records a position already held (no order) */
+        post: operations["createEmaSettingTrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-settings/trades/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a waiting (OPENING) trade */
+        delete: operations["deleteEmaSettingTrade"];
+        options?: never;
+        head?: never;
+        patch: operations["updateEmaSettingTrade"];
+        trace?: never;
+    };
+    "/ema-settings/trades/{id}/force-open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enter a waiting trade at market now */
+        post: operations["forceOpenEmaSettingTrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-settings/trades/{id}/force-close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exit a held trade at market now */
+        post: operations["forceCloseEmaSettingTrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-settings/trades/{id}/partial-close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Split amount off a held trade and close that part at market */
+        post: operations["partialCloseEmaSettingTrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-settings/trades/{id}/split": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move amount into a new trade, without any order */
+        post: operations["splitEmaSettingTrade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ema-settings/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEmaSettingsConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["updateEmaSettingsConfig"];
+        trace?: never;
+    };
+    "/ema-settings/config/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEmaSettingsConfigHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1234,6 +1434,153 @@ export interface components {
         };
         EmaCrossConfigEnvelope: {
             config: components["schemas"]["EmaCrossConfig"];
+            /** Format: int64 */
+            version: number;
+        };
+        /** @enum {string} */
+        EmaSettingStatus: "ACTIVE" | "INACTIVE" | "DONE";
+        EmaSettingInput: {
+            /** @description USDT per trade */
+            budget?: components["schemas"]["Decimal"];
+            /** @enum {string} */
+            tradeType?: "ONLY_LONG" | "ONLY_SHORT" | "BOTH";
+            /** @enum {string} */
+            period?: "D1" | "H4";
+            /** @enum {string} */
+            checkType?: "CHECK_AT_OPEN" | "CHECK_AT_CLOSE" | "CHECK_AT_CURRENT";
+            /** @enum {string} */
+            nextTradeType?: "NEW_TRADE" | "NOT_NEW_TRADE";
+            /** @description Take profit on the total PnL, in % of the budget; 0 = off */
+            tpPercent?: components["schemas"]["Decimal"];
+            /** @description Stop loss on the total PnL, in % of the budget; 0 = off */
+            slPercent?: components["schemas"]["Decimal"];
+            status?: components["schemas"]["EmaSettingStatus"];
+            /** @description Markdown */
+            note?: string;
+        };
+        EmaSettingTrade: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            settingId: number;
+            /** @enum {string} */
+            side: "LONG" | "SHORT";
+            /** @enum {string} */
+            status: "OPENING" | "OPEN" | "CLOSED";
+            /** @description Created by the scan */
+            isAuto: boolean;
+            amount: components["schemas"]["Decimal"];
+            /** @description OPENING - enter when the price passes it; absent = on the cross */
+            entryPrice?: components["schemas"]["Decimal"];
+            targetPrice?: components["schemas"]["Decimal"];
+            slPrice?: components["schemas"]["Decimal"];
+            openPrice?: components["schemas"]["Decimal"];
+            closePrice?: components["schemas"]["Decimal"];
+            feeUsdt: components["schemas"]["Decimal"];
+            interestUsdt: components["schemas"]["Decimal"];
+            /** @description Net of fees and interest (legacy trades - the Rails gross figure) */
+            realizedProfit: components["schemas"]["Decimal"];
+            unrealizedProfit: components["schemas"]["Decimal"];
+            /** @description SL, TARGET, EMA_REVERSE, SETTING_TP, SETTING_SL, MANUAL, CANCELLED */
+            closeReason: string;
+            lastError: string;
+            /** @description Short open - '' / BORROWING / BORROWED */
+            borrowStep: string;
+            /** @description Imported from Rails */
+            legacy: boolean;
+            /** Format: date-time */
+            openAt?: string;
+            /** Format: date-time */
+            closeAt?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        EmaSetting: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            pairId: number;
+            pairName: string;
+            currentPrice?: components["schemas"]["Decimal"];
+            /** @enum {string} */
+            account: "SPOT" | "CROSS" | "ISOLATED";
+            budget: components["schemas"]["Decimal"];
+            /** @enum {string} */
+            tradeType: "ONLY_LONG" | "ONLY_SHORT" | "BOTH";
+            /** @enum {string} */
+            period: "D1" | "H4";
+            /** @enum {string} */
+            checkType: "CHECK_AT_OPEN" | "CHECK_AT_CLOSE" | "CHECK_AT_CURRENT";
+            /** @enum {string} */
+            nextTradeType: "NEW_TRADE" | "NOT_NEW_TRADE";
+            tpPercent: components["schemas"]["Decimal"];
+            slPercent: components["schemas"]["Decimal"];
+            status: components["schemas"]["EmaSettingStatus"];
+            note: string;
+            realizedProfit: components["schemas"]["Decimal"];
+            unrealizedProfit: components["schemas"]["Decimal"];
+            totalProfit: components["schemas"]["Decimal"];
+            /** @description Total PnL in % of the budget */
+            totalPercent?: components["schemas"]["Decimal"];
+            tradeCount: number;
+            activeTrade?: components["schemas"]["EmaSettingTrade"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            trades?: components["schemas"]["EmaSettingTrade"][];
+        };
+        EmaSettingTradeInput: {
+            /** @enum {string} */
+            side: "LONG" | "SHORT";
+            /**
+             * @default OPENING
+             * @enum {string}
+             */
+            status: "OPENING" | "OPEN";
+            /** @description Base asset; OPENING without it sizes from the budget at open */
+            amount?: components["schemas"]["Decimal"];
+            entryPrice?: components["schemas"]["Decimal"];
+            targetPrice?: components["schemas"]["Decimal"];
+            slPrice?: components["schemas"]["Decimal"];
+            /** @description OPEN only - the price the position was entered at */
+            openPrice?: components["schemas"]["Decimal"];
+            /** Format: date-time */
+            openAt?: string;
+        };
+        /** @description A price of 0 clears it. status CLOSED cancels an OPENING trade or records an OPEN one closed by hand at closePrice (no order). */
+        EmaSettingTradeUpdate: {
+            /** @enum {string} */
+            side?: "LONG" | "SHORT";
+            amount?: components["schemas"]["Decimal"];
+            entryPrice?: components["schemas"]["Decimal"];
+            targetPrice?: components["schemas"]["Decimal"];
+            slPrice?: components["schemas"]["Decimal"];
+            /** @enum {string} */
+            status?: "CLOSED";
+            closePrice?: components["schemas"]["Decimal"];
+        };
+        EmaSettingAmount: {
+            amount: components["schemas"]["Decimal"];
+        };
+        EmaSettingsPeriodParams: {
+            /** @description EMA14 past Smooth10 by this % to enter */
+            openPercent: components["schemas"]["Decimal"];
+            /** @description Cross back by this % closes the trade */
+            closePercent: components["schemas"]["Decimal"];
+            /** @description No entry when the price is this far from EMA14 */
+            ignoreOverEmaPercent: components["schemas"]["Decimal"];
+            /** @description Stop loss set on each trade at open, from the entry price */
+            stopLossPercent: components["schemas"]["Decimal"];
+        };
+        EmaSettingsConfig: {
+            /** @description The 5-minute scan runs (manual actions always work) */
+            enabled: boolean;
+            d1: components["schemas"]["EmaSettingsPeriodParams"];
+            h4: components["schemas"]["EmaSettingsPeriodParams"];
+        };
+        EmaSettingsConfigEnvelope: {
+            config: components["schemas"]["EmaSettingsConfig"];
             /** Format: int64 */
             version: number;
         };
@@ -2448,6 +2795,401 @@ export interface operations {
         };
     };
     getEmaCrossConfigHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConfigChange"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listEmaSettings: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["EmaSettingStatus"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmaSetting"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createEmaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmaSettingInput"] & {
+                    /** Format: int64 */
+                    pairId: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSetting"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEmaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK, with its trades (newest first) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSetting"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteEmaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateEmaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmaSettingInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSetting"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    closeEmaSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSetting"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createEmaSettingTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmaSettingTradeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSettingTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteEmaSettingTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateEmaSettingTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmaSettingTradeUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSettingTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    forceOpenEmaSettingTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSettingTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    forceCloseEmaSettingTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSettingTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    partialCloseEmaSettingTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmaSettingAmount"];
+            };
+        };
+        responses: {
+            /** @description The closed part */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSettingTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    splitEmaSettingTrade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmaSettingAmount"];
+            };
+        };
+        responses: {
+            /** @description The new trade */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSettingTrade"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEmaSettingsConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSettingsConfigEnvelope"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateEmaSettingsConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: int64 */
+                    version: number;
+                    config: components["schemas"]["EmaSettingsConfig"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmaSettingsConfigEnvelope"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getEmaSettingsConfigHistory: {
         parameters: {
             query?: never;
             header?: never;
