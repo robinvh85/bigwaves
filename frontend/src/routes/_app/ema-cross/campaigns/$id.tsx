@@ -40,7 +40,7 @@ import {
 import { Label } from '@/shared/ui/label'
 
 export const Route = createFileRoute('/_app/ema-cross/campaigns/$id')({
-  staticData: { title: 'Campaign' },
+  staticData: { title: 'Campaign', parent: { title: 'Campaigns', to: '/ema-cross/campaigns' } },
   component: CampaignDetail,
 })
 
