@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { PauseIcon, PencilIcon, PlayIcon, PlusIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { z } from 'zod'
 
 import {
   type DcaTrade,
@@ -22,6 +23,7 @@ import { StatCard } from '@/shared/components/stat-card'
 import { formatDateTime } from '@/shared/lib/date'
 import { percentOf } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
+import { Checkbox } from '@/shared/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +33,8 @@ import {
 
 export const Route = createFileRoute('/_app/dca/$id')({
   staticData: { title: 'Ladder', parent: { title: 'Ladders', to: '/dca' } },
+  // all: also list rungs waiting to buy and sold ones; by default only the ones holding coins.
+  validateSearch: z.object({ all: z.boolean().optional() }),
   component: DcaDetail,
 })
 
@@ -39,7 +43,8 @@ const col = createColumnHelper<DcaTrade>()
 
 function DcaDetail() {
   const id = Number(Route.useParams().id)
-  const navigate = useNavigate()
+  const { all = false } = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
   const { data: s, error, refetch } = useQuery(dcaDetailQuery(id))
   const update = useUpdateSetting(id)
   const del = useDeleteSetting()
@@ -47,6 +52,10 @@ function DcaDetail() {
   const [edit, setEdit] = useState<{ rung?: DcaTrade } | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  // Memoized: a new array on every render makes DataTable rebuild its rows and reset its page,
+  // which renders again.
+  const trades = s?.trades
+  const holding = useMemo(() => (trades ?? []).filter((t) => t.status === 'OPEN'), [trades])
 
   if (error) return <ErrorState error={error} onRetry={() => void refetch()} />
   if (!s) return <SkeletonRows rows={8} />
@@ -214,17 +223,39 @@ function DcaDetail() {
         <StatCard label="Unrealized" value={<Pnl value={s.unrealizedProfit} />} />
       </div>
       <div className="grid gap-6 2xl:grid-cols-3">
-        <div className="2xl:col-span-2">
+        <div className="space-y-2 2xl:col-span-2">
+          <label className="flex w-fit items-center gap-2 text-sm">
+            <Checkbox
+              checked={all}
+              onCheckedChange={(v) =>
+                void navigate({
+                  search: (prev) => ({ ...prev, all: v === true || undefined }),
+                  replace: true,
+                })
+              }
+            />
+            Show all rungs
+            <span className="text-muted-foreground">
+              ({holding.length} holding of {trades?.length ?? 0})
+            </span>
+          </label>
           <DataTable
             columns={columns}
-            data={s.trades}
+            data={all ? trades : holding}
             getRowId={(t) => String(t.id)}
             sorting={[{ id: 'buy', desc: true }]}
             empty={
-              <EmptyState
-                title="No rungs yet"
-                description="Add the first rung: the buy price, how many coins and the sell price."
-              />
+              all || !trades?.length ? (
+                <EmptyState
+                  title="No rungs yet"
+                  description="Add the first rung: the buy price, how many coins and the sell price."
+                />
+              ) : (
+                <EmptyState
+                  title="No rungs holding"
+                  description="Tick “Show all rungs” to see the ones waiting to buy and the sold ones."
+                />
+              )
             }
           />
         </div>
