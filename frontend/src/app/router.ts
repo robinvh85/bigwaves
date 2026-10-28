@@ -27,5 +27,10 @@ declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     /** Shown in the breadcrumb and the document title. */
     title?: string
+    /**
+     * A list page this route is opened from but not nested under (a detail page next to its
+     * `index`), shown as the crumb before it so the user can go back to the list.
+     */
+    parent?: { title: string; to: string }
   }
 }

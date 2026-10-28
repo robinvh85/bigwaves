@@ -32,15 +32,18 @@ import { SidebarTrigger } from '@/shared/ui/sidebar'
 function Crumbs() {
   const crumbs = useMatches({
     select: (matches) =>
-      matches
-        .filter((m) => m.staticData.title)
-        .map((m) => ({ title: m.staticData.title!, path: m.pathname })),
+      matches.flatMap((m) => {
+        const { title, parent } = m.staticData
+        if (!title) return []
+        const crumb = { title, path: m.pathname }
+        return parent ? [{ title: parent.title, path: parent.to }, crumb] : [crumb]
+      }),
   })
   return (
     <Breadcrumb>
       <BreadcrumbList>
         {crumbs.map((c, i) => (
-          <Fragment key={c.path}>
+          <Fragment key={`${c.path}:${c.title}`}>
             {i > 0 && <BreadcrumbSeparator />}
             <BreadcrumbItem>
               {i === crumbs.length - 1 ? (

@@ -30,7 +30,7 @@ import {
 } from '@/shared/ui/dropdown-menu'
 
 export const Route = createFileRoute('/_app/dca/$id')({
-  staticData: { title: 'Ladder' },
+  staticData: { title: 'Ladder', parent: { title: 'Ladders', to: '/dca' } },
   component: DcaDetail,
 })
 
