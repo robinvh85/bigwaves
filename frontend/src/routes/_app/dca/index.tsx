@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
+import { useMemo } from 'react'
+import { z } from 'zod'
 
 import { type DcaSetting, dcaListQuery } from '@/features/dca/api'
 import { SettingStatusBadge } from '@/features/dca/components/badges'
@@ -9,9 +11,12 @@ import { DataTable } from '@/shared/components/data-table'
 import { Money, Pnl, Price } from '@/shared/components/numbers'
 import { EmptyState, PageHeader } from '@/shared/components/states'
 import { StatCard } from '@/shared/components/stat-card'
+import { Checkbox } from '@/shared/ui/checkbox'
 
 export const Route = createFileRoute('/_app/dca/')({
   staticData: { title: 'Ladders' },
+  // all: also list paused and finished ladders; by default only the active ones.
+  validateSearch: z.object({ all: z.boolean().optional() }),
   component: DcaList,
 })
 
@@ -84,8 +89,11 @@ function sum(rows: DcaSetting[] | undefined, key: 'capitalUsdt' | 'realizedProfi
 }
 
 function DcaList() {
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { all = false } = Route.useSearch()
   const { data, isLoading, error, refetch } = useQuery(dcaListQuery)
+  // Memoized: a new array on every render makes DataTable rebuild its rows and reset its page.
+  const active = useMemo(() => (data ?? []).filter((s) => s.status === 'ACTIVE'), [data])
   return (
     <>
       <PageHeader
@@ -106,19 +114,36 @@ function DcaList() {
           value={<Pnl value={sum(data, 'unrealizedProfit')} />}
         />
       </div>
+      <label className="mb-2 flex w-fit items-center gap-2 text-sm">
+        <Checkbox
+          checked={all}
+          onCheckedChange={(v) =>
+            void navigate({
+              search: (prev) => ({ ...prev, all: v === true || undefined }),
+              replace: true,
+            })
+          }
+        />
+        Show all ladders
+        <span className="text-muted-foreground">({(data?.length ?? 0) - active.length} not active)</span>
+      </label>
       <DataTable
         columns={columns}
-        data={data}
+        data={all ? data : data && active}
         isLoading={isLoading}
         error={error}
         onRetry={() => void refetch()}
         getRowId={(s) => String(s.id)}
         onRowClick={(s) => void navigate({ to: '/dca/$id', params: { id: String(s.id) } })}
         empty={
-          <EmptyState
-            title="No ladders yet"
-            description="Create the first ladder, then add buy/sell rungs."
-          />
+          all || !data?.length ? (
+            <EmptyState
+              title="No ladders yet"
+              description="Create the first ladder, then add buy/sell rungs."
+            />
+          ) : (
+            <EmptyState title="No active ladders" description="Tick “Show all ladders” to see the others." />
+          )
         }
       />
     </>
