@@ -61,11 +61,12 @@ type SettingRow struct {
 
 func tp(t *time.Time) *time.Time { return t }
 
-func tradeRow(t dbq.DcaTrade) TradeRow {
+// tradeRow marks an OPEN rung to price (the pair's current price, nil when unknown).
+func tradeRow(t dbq.DcaTrade, price *money.Dec) TradeRow {
 	r := TradeRow{
 		ID: t.ID, SettingID: t.DcaSettingID, Status: t.Status, BuyPrice: t.BuyPrice, SellPrice: t.SellPrice, Amount: t.Amount,
 		HeldAmount: t.HeldAmount, OpenPrice: t.OpenPrice, ClosePrice: t.ClosePrice, CostUsdt: t.BuyQuote, FeeUsdt: t.FeeUsdt,
-		RealizedProfit: t.RealizedProfit, UnrealizedProfit: t.UnrealizedProfit, LastError: t.LastError, CreatedAt: t.CreatedAt.Time,
+		RealizedProfit: t.RealizedProfit, UnrealizedProfit: unrealized(t, price), LastError: t.LastError, CreatedAt: t.CreatedAt.Time,
 	}
 	if t.OpenAt != nil {
 		r.OpenAt = tp(&t.OpenAt.Time)
@@ -99,14 +100,14 @@ func (s *Service) row(ctx context.Context, v settingView, withTrades bool) (Sett
 			r.HoldingCount++
 			r.HeldAmount = r.HeldAmount.Add(t.HeldAmount)
 			r.CapitalUsdt = r.CapitalUsdt.Add(t.BuyQuote)
-			r.UnrealizedProfit = r.UnrealizedProfit.Add(t.UnrealizedProfit)
+			r.UnrealizedProfit = r.UnrealizedProfit.Add(unrealized(t, v.CurrentPrice))
 			if t.SellPrice.IsPositive() && (r.NextSellPrice == nil || t.SellPrice.LessThan(*r.NextSellPrice)) {
 				sp := t.SellPrice
 				r.NextSellPrice = &sp
 			}
 		}
 		if withTrades {
-			r.Trades = append(r.Trades, tradeRow(t))
+			r.Trades = append(r.Trades, tradeRow(t, v.CurrentPrice))
 		}
 	}
 	if withTrades && r.Trades == nil {
@@ -261,7 +262,7 @@ func (s *Service) CreateTrade(ctx context.Context, settingID int64, in TradeInpu
 		return TradeRow{}, err
 	}
 	s.changed()
-	return tradeRow(t), nil
+	return tradeRow(t, v.CurrentPrice), nil
 }
 
 func (s *Service) trade(ctx context.Context, id int64) (dbq.DcaTrade, settingView, error) {
@@ -314,7 +315,7 @@ func (s *Service) UpdateTrade(ctx context.Context, id int64, in TradeInput) (Tra
 		return TradeRow{}, err
 	}
 	s.changed()
-	return tradeRow(t), nil
+	return tradeRow(t, v.CurrentPrice), nil
 }
 
 func (s *Service) DeleteTrade(ctx context.Context, id int64) error {
@@ -350,7 +351,7 @@ func (s *Service) ForceBuy(ctx context.Context, id int64) (TradeRow, error) {
 		return TradeRow{}, upstream(err)
 	}
 	s.changed()
-	return tradeRow(t), nil
+	return tradeRow(t, v.CurrentPrice), nil
 }
 
 // ForceSell sells a held rung now, at market.
@@ -367,7 +368,7 @@ func (s *Service) ForceSell(ctx context.Context, id int64) (TradeRow, error) {
 		return TradeRow{}, upstream(err)
 	}
 	s.changed()
-	return tradeRow(t), nil
+	return tradeRow(t, v.CurrentPrice), nil
 }
 
 func upstream(err error) error {

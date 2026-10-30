@@ -202,6 +202,26 @@ func TestDisabledDoesNothing(t *testing.T) {
 	require.Zero(t, e.k.Exchange.OrderCount())
 }
 
+func TestUnrealizedFollowsThePriceWhileDisabled(t *testing.T) {
+	e := newEnv(t)
+	e.k.Exchange.FundCross("USDT", "1000")
+	c, v, _ := e.s.Config(e.ctx)
+	c.Enabled = false
+	_, err := e.s.SaveConfig(e.ctx, v, c, "test")
+	require.NoError(t, err)
+	l := e.ladder(false, "0.019")
+	rung, err := e.s.CreateTrade(e.ctx, l.ID, dca.TradeInput{BuyPrice: d("0.02"), Amount: d("1000")})
+	require.NoError(t, err)
+	bought, err := e.s.ForceBuy(e.ctx, rung.ID)
+	require.NoError(t, err)
+	require.Equal(t, "-0.019", bought.UnrealizedProfit.String(), "999 * 0.019 - 19")
+
+	e.price("0.025")
+	row := e.get(l.ID)
+	require.Equal(t, "5.975", row.Trades[0].UnrealizedProfit.String(), "999 * 0.025 - 19, no check ran")
+	require.Equal(t, "5.975", row.UnrealizedProfit.String())
+}
+
 func itoa(i int64) string { return money.FromInt(i).String() }
 
 func TestPairAccountLockedWhileRungHeld(t *testing.T) {

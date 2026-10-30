@@ -140,8 +140,9 @@ func saveTrade(ctx context.Context, q *dbq.Queries, t dbq.DcaTrade) error {
 
 // ------------------------------------------------------------------------------- price check
 
-// Check is the 5-minute price check: sells first (frees capital), then buys, then marks the open
-// rungs to market. Each rung is independent: one failure does not stop the others.
+// Check is the 5-minute price check: sells first (frees capital), then buys. Each rung is
+// independent: one failure does not stop the others. Unrealized PnL is not stored: it is computed
+// from the pair's current price when read, so it stays right while DCA is disabled.
 func (s *Service) Check(ctx context.Context) (string, error) {
 	cfg, _, err := s.Config(ctx)
 	if err != nil {
@@ -185,9 +186,6 @@ func (s *Service) Check(ctx context.Context) (string, error) {
 				}
 			}
 		}
-		if err := s.markToMarket(ctx, v.ID, price); err != nil {
-			return "", err
-		}
 	}
 	if sold+bought > 0 || len(failures) > 0 {
 		s.changed()
@@ -211,22 +209,12 @@ func (s *Service) recordFailure(ctx context.Context, v settingView, t *dbq.DcaTr
 	return text
 }
 
-func (s *Service) markToMarket(ctx context.Context, settingID int64, price money.Dec) error {
-	q := dbq.New(s.DB.Write)
-	trades, err := q.ListDcaTrades(ctx, settingID)
-	if err != nil {
-		return err
+// unrealized is what an OPEN rung would make if sold at price; zero for other rungs or without a price.
+func unrealized(t dbq.DcaTrade, price *money.Dec) money.Dec {
+	if t.Status != TradeOpen || price == nil {
+		return money.Zero
 	}
-	for _, t := range trades {
-		if t.Status != TradeOpen {
-			continue
-		}
-		t.UnrealizedProfit = t.HeldAmount.Mul(price).Sub(t.BuyQuote).Sub(t.ExtraFeeUsdt).Round(8)
-		if err := saveTrade(ctx, q, t); err != nil {
-			return err
-		}
-	}
-	return nil
+	return t.HeldAmount.Mul(*price).Sub(t.BuyQuote).Sub(t.ExtraFeeUsdt).Round(8)
 }
 
 // openCapital is the USDT held in open rungs across every ladder.
@@ -389,7 +377,7 @@ func ptr[T any](v T) *T { return &v }
 // Jobs returns the DCA price check.
 func (s *Service) Jobs() []scheduler.Job {
 	return []scheduler.Job{{
-		Name: "dca.check", Description: "DCA: buy when price ≤ buy price, sell when price ≥ sell price, update PnL",
+		Name: "dca.check", Description: "DCA: buy when price ≤ buy price, sell when price ≥ sell price",
 		Cron: "0 */5 * * * *", Timeout: 5 * time.Minute, Run: s.Check,
 	}}
 }
