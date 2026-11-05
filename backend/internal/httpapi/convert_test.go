@@ -61,7 +61,7 @@ func TestDomainTypesMatchTheAPI(t *testing.T) {
 		ID: 1, PairID: 2, Coin: "SUN", PairName: "SUNUSDT", PairGroup: "CORE", Status: "ACTIVE", AllowLong: true, AllowShort: true,
 		ShortSupported: true, LongExitRule: sp("DIV4H"), AddedOn: "2026-10-01", RemovedOn: sp("2026-10-20"), SignalFrom: sp("2026-10-02"),
 		CheckNote: "ok", CheckedAt: &now, CurrentPrice: d("0.02"),
-		Position:     &ema1d.PairPosition{PositionID: 1, Side: "SHORT", Status: "OPEN", SignalDate: "2026-10-05", UnrealizedProfitUsdt: *d("1"), UnrealizedPercent: d("2")},
+		Position:     &ema1d.PairPosition{PositionID: 1, Side: "SHORT", Status: "OPEN", SignalDate: "2026-10-05", Amount: *d("100"), UnrealizedProfitUsdt: *d("1"), UnrealizedPercent: d("2")},
 		Wanted:       &ema1d.Wanted{State: "S", EntryDate: sp("2026-10-05"), Rule: sp("XO"), SyncDate: "2026-10-10"},
 		PendingTodos: []string{"CLOSE SHORT"}, Mismatch: true,
 	}

@@ -291,6 +291,7 @@ type PairPosition struct {
 	Side                 string     `json:"side"`
 	Status               string     `json:"status"`
 	SignalDate           string     `json:"signalDate"`
+	Amount               money.Dec  `json:"amount"`
 	UnrealizedProfitUsdt money.Dec  `json:"unrealizedProfitUsdt"`
 	UnrealizedPercent    *money.Dec `json:"unrealizedPercent,omitempty"`
 }
@@ -350,7 +351,7 @@ func (s *Service) PairRows(ctx context.Context) ([]PairRow, error) {
 		}
 		if pos != nil {
 			row.Position = &PairPosition{
-				PositionID: pos.ID, Side: pos.Side, Status: pos.Status, SignalDate: pos.SignalDate,
+				PositionID: pos.ID, Side: pos.Side, Status: pos.Status, SignalDate: pos.SignalDate, Amount: pos.Amount,
 				UnrealizedProfitUsdt: pos.UnrealizedProfit, UnrealizedPercent: percentOf(pos.UnrealizedProfit, cost(*pos)),
 			}
 		}

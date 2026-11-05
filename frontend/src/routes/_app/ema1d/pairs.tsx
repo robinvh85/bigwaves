@@ -9,7 +9,7 @@ import { type Ema1dPairRow, pairsQuery, useCheckPairs } from '@/features/ema1d/a
 import { BasketPairSheet } from '@/features/ema1d/components/BasketPairSheet'
 import { BasketStatusBadge, GroupBadge, WantedLabel } from '@/features/ema1d/components/badges'
 import { DataTable } from '@/shared/components/data-table'
-import { Pct, Price, Side } from '@/shared/components/numbers'
+import { Pct, Price, Qty, Side } from '@/shared/components/numbers'
 import { PageHeader } from '@/shared/components/states'
 import { formatDate } from '@/shared/lib/date'
 import { Button } from '@/shared/ui/button'
@@ -84,6 +84,17 @@ const columns = [
         <span className="text-muted-foreground">—</span>
       )
     },
+  }),
+  col.accessor((p) => (p.position ? Number(p.position.amount) : -Infinity), {
+    id: 'amount',
+    header: 'Quantity',
+    cell: (c) =>
+      c.row.original.position ? (
+        <Qty value={c.row.original.position.amount} />
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
+    meta: { align: 'right', mobile: 'hidden' },
   }),
   col.accessor((p) => (p.position?.unrealizedPercent ? Number(p.position.unrealizedPercent) : -Infinity), {
     id: 'pnl',
