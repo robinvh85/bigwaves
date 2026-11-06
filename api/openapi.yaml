@@ -1481,12 +1481,13 @@ components:
         priceUpdatedAt: { type: string, format: date-time, description: When currentPrice was last refreshed }
         position:
           type: object
-          required: [positionId, side, status, signalDate, unrealizedProfitUsdt]
+          required: [positionId, side, status, signalDate, amount, unrealizedProfitUsdt]
           properties:
             positionId: { type: integer, format: int64 }
             side: { $ref: "#/components/schemas/Side" }
             status: { type: string }
             signalDate: { type: string, format: date }
+            amount: { $ref: "#/components/schemas/Decimal" }
             unrealizedProfitUsdt: { $ref: "#/components/schemas/Decimal" }
             unrealizedPercent: { $ref: "#/components/schemas/Decimal" }
         wanted:

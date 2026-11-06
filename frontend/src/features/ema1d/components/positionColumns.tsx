@@ -44,6 +44,12 @@ export const openPositionColumns = [
     cell: (c) => <Price value={c.row.original.currentPrice} updatedAt={c.row.original.priceUpdatedAt} />,
     meta: { align: 'right' },
   }),
+  col.accessor((p) => num(p.amount), {
+    id: 'amount',
+    header: 'Quantity',
+    cell: (c) => <Qty value={c.row.original.amount} />,
+    meta: { align: 'right', mobile: 'hidden' },
+  }),
   col.accessor((p) => num(p.notionalUsdt), {
     id: 'notional',
     header: 'Size',

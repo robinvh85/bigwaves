@@ -16,7 +16,10 @@ import {
   useTradeAction,
   useUpdateTrade,
 } from '@/features/emasettings/api'
+import { amountForPercent } from '@/features/emasettings/amount-percent'
+import { pairQuery } from '@/features/pairs/api'
 import { SettingStatusBadge, TradeStatusBadge } from '@/features/emasettings/components/badges'
+import { AmountPercentField } from '@/features/emasettings/components/AmountPercentField'
 import { SettingDialog } from '@/features/emasettings/components/SettingDialog'
 import { TradeDialog } from '@/features/emasettings/components/TradeDialog'
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
@@ -61,6 +64,7 @@ function CampaignDetail() {
   const id = Number(Route.useParams().id)
   const navigate = useNavigate()
   const { data: s, error, refetch } = useQuery(emaSettingDetailQuery(id))
+  const { data: pair } = useQuery({ ...pairQuery(s?.pairId ?? 0), enabled: !!s })
   const saveSetting = useSaveSetting()
   const settingAction = useSettingAction()
   const tradeAction = useTradeAction()
@@ -78,7 +82,9 @@ function CampaignDetail() {
   const active = trades.filter((t) => t.status !== 'CLOSED')
 
   const ask = (action: Pending['action'], trade: EmaSettingTrade) => {
-    setAmount('')
+    setAmount(
+      action === 'partial-close' || action === 'split' ? amountForPercent(trade.amount, 50, pair?.stepSize) : '',
+    )
     setPending({ action, trade })
   }
 
@@ -382,7 +388,17 @@ function CampaignDetail() {
                   ? 'Exit price'
                   : `Amount (${coin}, below ${pending.trade.amount})`}
               </Label>
-              <NumberInput id="es-action-amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              {pending.action === 'mark-closed' ? (
+                <NumberInput id="es-action-amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              ) : (
+                <AmountPercentField
+                  id="es-action-amount"
+                  total={pending.trade.amount}
+                  stepSize={pair?.stepSize}
+                  value={amount}
+                  onChange={setAmount}
+                />
+              )}
             </div>
           )}
         </ConfirmDialog>

@@ -1187,6 +1187,7 @@ export interface components {
                 status: string;
                 /** Format: date */
                 signalDate: string;
+                amount: components["schemas"]["Decimal"];
                 unrealizedProfitUsdt: components["schemas"]["Decimal"];
                 unrealizedPercent?: components["schemas"]["Decimal"];
             };
