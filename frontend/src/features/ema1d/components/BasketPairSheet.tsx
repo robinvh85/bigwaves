@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { Loader2Icon, SearchCheckIcon } from 'lucide-react'
+import { Loader2Icon, SearchCheckIcon, XCircleIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { errorMessage } from '@/shared/api/errors'
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { Pct, Pnl, Price, Side } from '@/shared/components/numbers'
 import { formatDate, formatDateTime } from '@/shared/lib/date'
@@ -14,7 +15,14 @@ import { Separator } from '@/shared/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet'
 import { Switch } from '@/shared/ui/switch'
 
-import { type Ema1dPairRow, type Ema1dPairUpdate, pairsQuery, useCheckPairs, useUpdatePair } from '../api'
+import {
+  type Ema1dPairRow,
+  type Ema1dPairUpdate,
+  pairsQuery,
+  useCheckPairs,
+  useCreateTodo,
+  useUpdatePair,
+} from '../api'
 import { BasketStatusBadge, WantedLabel } from './badges'
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -54,6 +62,24 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
   } | null>(null)
   const ask = (title: string, description: string, body: Ema1dPairUpdate) =>
     setPending({ title, description, body })
+  const createTodo = useCreateTodo()
+  const [confirmClose, setConfirmClose] = useState(false)
+  const closeQueued = pair.pendingTodos.some((t) => t.startsWith('CLOSE'))
+
+  const closePosition = async () => {
+    if (!pair.position) return
+    try {
+      const res = await createTodo.mutateAsync({ action: 'CLOSE', coin: pair.coin, side: pair.position.side })
+      toast.success(
+        res.created
+          ? `Close todo #${res.todo.id} queued for ${pair.coin}`
+          : `Todo #${res.todo.id} is already in the queue`,
+      )
+    } catch (err) {
+      toast.error(errorMessage(err))
+      throw err
+    }
+  }
 
   return (
     <>
@@ -103,6 +129,24 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
             <p className="mt-2 text-sm text-warning">
               The position differs from the strategy and no todo is fixing it.
             </p>
+          )}
+          {pair.position && (
+            <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
+              <p className="text-xs text-muted-foreground">
+                {closeQueued
+                  ? 'A close is already in the queue.'
+                  : 'Close at market now, outside the strategy.'}
+              </p>
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={closeQueued}
+                onClick={() => setConfirmClose(true)}
+              >
+                <XCircleIcon />
+                Close trade
+              </Button>
+            </div>
           )}
         </div>
 
@@ -225,6 +269,23 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
           )}
         </div>
       </div>
+      {pair.position && (
+        <ConfirmDialog
+          open={confirmClose}
+          onOpenChange={setConfirmClose}
+          title={`Close ${pair.position.side} ${pair.coin}?`}
+          description={
+            <>
+              Queues a CLOSE todo: the order queue closes the position at market and repays any borrow. While
+              the strategy still wants this side, the next sync may open it again; set the pair to Exit only
+              to keep it closed.
+            </>
+          }
+          destructive
+          confirmLabel="Close trade"
+          onConfirm={closePosition}
+        />
+      )}
       {pending && (
         <ConfirmDialog
           open
