@@ -20,12 +20,12 @@ Chi tiết server xem `deploy/README.md`.
 | Binary | `/opt/bigwaves/bin/{bigwaves,bwctl}` + `.prev` |
 | DB / backup | `/var/lib/bigwaves/bigwaves.db`, `/var/lib/bigwaves/backups/` |
 | Env | `/etc/bigwaves/env` |
-| Service | `bigwaves` (systemd), log: `sudo journalctl -u bigwaves` |
+| Service | `bigwaves` (systemd), log: `journalctl -u bigwaves` (user deploy thuộc group systemd-journal) |
 | Repo chính | `/Users/work/Workspace/VH/bigwaves` (checkout của `main`) |
 
 ```mermaid
 flowchart TD
-  A[0. Kiểm sudo trên server] --> B[1. Xác định branch + kiểm repo chính]
+  A[0. Kiểm quyền user deploy trên server] --> B[1. Xác định branch + kiểm repo chính]
   B --> C[2. Đưa branch lên ngọn main: rebase nếu cần, test]
   C --> D[3. So với bản đang chạy]
   D --> E{4. Người dùng xác nhận<br/>merge + deploy + push + dọn}
@@ -43,8 +43,8 @@ flowchart TD
 
 - Chạy `deploy.sh … --setup`: lệnh này chạy lại `setup-debian.sh` và ghi đè `/etc/caddy/Caddyfile`
   (đang sửa tay cho cổng 3333 và redirect www).
-- SSH bằng `root@`. Bước nào cần quyền root thì dùng `sudo -n` qua user `deploy`; `sudo` đòi mật khẩu
-  thì dừng và báo người dùng (bước 0), không chuyển sang root.
+- SSH bằng `root@`. User `deploy` chỉ có các quyền ở bước 0; thiếu quyền thì dừng và báo người dùng,
+  không chuyển sang root, không xin sudo toàn quyền.
 - Sửa `/etc/bigwaves/env`, đổi `TRADING_ENABLED`, bật/tắt switch strategy (ema1d / dca /
   emasettings) như một phần của deploy. Chỉ làm khi người dùng yêu cầu riêng.
 - Làm bước 5 trở đi khi chưa được người dùng xác nhận ở bước 4. Một lần đồng ý chỉ áp dụng cho đúng
@@ -64,18 +64,34 @@ WT=$REPO/.claude/worktrees/deploy          # worktree chỉ dùng để build b�
 HOST=deploy@167.71.202.249
 ```
 
-### 0. Kiểm sudo trên server
+### 0. Kiểm quyền của user deploy trên server
 
-`deploy.sh` chạy dưới user `deploy` sẽ gọi `sudo` (mkdir / cp / install / systemctl / journalctl)
-qua ssh không có TTY, nên `sudo` phải không đòi mật khẩu:
+User `deploy` chỉ có quyền tối thiểu (mục "User `deploy`: quyền tối thiểu" trong
+`deploy/README.md`): sở hữu `/opt/bigwaves`, group `systemd-journal`, và sudo không mật khẩu cho
+đúng 2 lệnh. Kiểm đủ cả ba:
 
 ```bash
-ssh -o BatchMode=yes $HOST 'sudo -n true && echo sudo-ok'
+ssh -o BatchMode=yes $HOST 'test -w /opt/bigwaves/bin && echo own-ok; \
+  sudo -n -l systemctl restart bigwaves >/dev/null && sudo -n -l systemctl start bigwaves-backup.service >/dev/null && echo sudo-ok; \
+  id -nG | grep -qw systemd-journal && echo journal-ok'
 ```
 
-Không in `sudo-ok` → dừng, báo người dùng cần cho `deploy` sudo không mật khẩu (ít nhất cho các lệnh
-trong `deploy.sh`), ví dụ file `/etc/sudoers.d/bigwaves-deploy` (`deploy ALL=(root) NOPASSWD: ALL`,
-hoặc giới hạn theo lệnh). Người dùng tự sửa trên server; không tự làm bằng root.
+Thiếu dòng nào → dừng, báo người dùng chạy (bằng root, người dùng tự chạy, không tự làm):
+
+```bash
+ssh root@167.71.202.249 'set -e
+chown -R deploy:deploy /opt/bigwaves
+usermod -aG systemd-journal deploy
+echo "deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart bigwaves, /usr/bin/systemctl start bigwaves-backup.service" > /etc/sudoers.d/bigwaves-deploy.tmp
+chmod 0440 /etc/sudoers.d/bigwaves-deploy.tmp
+visudo -cf /etc/sudoers.d/bigwaves-deploy.tmp && mv -f /etc/sudoers.d/bigwaves-deploy.tmp /etc/sudoers.d/bigwaves-deploy'
+```
+
+(Đây là mục "Deploy user" của `setup-debian.sh`. Không chạy lại cả `setup-debian.sh` vì nó ghi đè
+Caddyfile.) Không xin sudo toàn quyền cho `deploy`.
+
+`deploy.sh` in `!! out of date, needs root: …` (unit systemd hoặc `/usr/local/bin/bwctl` đổi) → app
+vẫn đã restart bằng unit cũ. Báo người dùng kèm lệnh cài bằng root mà script in ra.
 
 ### 1. Xác định branch và kiểm repo chính
 
@@ -200,7 +216,7 @@ Script in `healthy after Ns` và exit 0 là đã qua `/healthz` nội bộ. Ki�
 curl -fsS -o /dev/null -w '%{http_code}\n' https://wavetrade.top:3333/healthz     # 200
 ssh $HOST "systemctl is-active bigwaves; \
   grep -a -o 'vcs\.revision=[^[:space:]]*' /opt/bigwaves/bin/bigwaves | sort -u; \
-  sudo -n journalctl -u bigwaves --since '-3min' --no-pager | grep -iE 'error|panic|fatal' | tail -20"
+  journalctl -u bigwaves --since '-3min' --no-pager | grep -iE 'error|panic|fatal' | tail -20"
 ```
 
 - `vcs.revision` trên server phải bằng `$SHA`.
@@ -255,12 +271,12 @@ Lúc đó (bước 6 đã dừng, chưa push, chưa dọn):
 Hỏi xác nhận rồi mới làm:
 
 ```bash
-ssh $HOST "cd /opt/bigwaves/bin && sudo -n cp -p bigwaves.prev bigwaves && sudo -n cp -p bwctl.prev bwctl && sudo -n systemctl restart bigwaves && sleep 3 && curl -fsS http://127.0.0.1:8080/healthz"
+ssh $HOST "cd /opt/bigwaves/bin && cp -p bigwaves.prev bigwaves && cp -p bwctl.prev bwctl && sudo -n systemctl restart bigwaves && sleep 3 && curl -fsS http://127.0.0.1:8080/healthz"
 ```
 
 Bản vừa deploy đã chạy migration → cần restore backup làm ngay trước lần deploy đó (bản
 `backups/bigwaves-*.db.gz` mới nhất có giờ trước lúc deploy). Mất dữ liệu ghi từ lúc deploy tới lúc
 restore, nên **luôn hỏi người dùng trước**. Lệnh restore ở mục "Restore một bản backup" trong
-`deploy/README.md` (thay `sudo` bằng `sudo -n`, chạy qua `ssh $HOST`).
+`deploy/README.md`. User `deploy` không có quyền làm việc này (dừng service, ghi `/var/lib/bigwaves`): đưa lệnh để người dùng tự chạy bằng `ssh root@167.71.202.249`.
 
 Cách khác (thường tốt hơn khi lỗi nhỏ): sửa lỗi trên branch mới rồi chạy lại skill này.

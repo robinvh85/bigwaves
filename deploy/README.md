@@ -50,17 +50,40 @@ flowchart LR
    deploy/deploy.sh root@<ip> --setup bigwaves.example.com
    ```
 
-   Script setup server rồi dừng lại vì `/etc/bigwaves/env` chưa có secrets.
+   Script setup server (kể cả tạo user `deploy`, xem dưới) rồi dừng lại vì `/etc/bigwaves/env` chưa
+   có secrets.
 5. Trên server: `sudoedit /etc/bigwaves/env` — điền Auth0, Binance, Discord, `EMA1D_API_TOKEN`.
    **Giữ `TRADING_ENABLED=false`** cho tới cutover (`.claude/plans/03-migration-cutover.md`).
-6. Deploy thật: `deploy/deploy.sh root@<ip>`. Migration chạy khi app khởi động.
+6. Deploy thật lần đầu bằng root (chỉ root mới kiểm được env đã có secrets):
+   `deploy/deploy.sh root@<ip>`. Migration chạy khi app khởi động.
 7. Cho phép email đăng nhập: `sudo bwctl user add <email>`.
 
 ## Các lần sau
 
 ```bash
-deploy/deploy.sh root@<ip>
+deploy/deploy.sh deploy@<ip>
 ```
+
+Production hiện tại: `deploy/deploy.sh deploy@167.71.202.249` (Claude: skill `/deploy`).
+
+## User `deploy`: quyền tối thiểu
+
+Deploy thường chạy bằng user `deploy`, không dùng root. `setup-debian.sh` cấp cho user này đúng các
+quyền sau, không hơn:
+
+| Quyền | Để làm gì |
+|---|---|
+| Sở hữu `/opt/bigwaves` | thay binary `bigwaves` / `bwctl` / `backup.sh` (+ `.prev`), copy `deploy/` |
+| `sudo` không mật khẩu, chỉ `systemctl restart bigwaves` và `systemctl start bigwaves-backup.service` (`/etc/sudoers.d/bigwaves-deploy`) | restart app, backup DB trước khi migrate (backup vẫn chạy dưới user `bigwaves`) |
+| group `systemd-journal` | in log khi rollback |
+
+User `deploy` **không** đọc được `/etc/bigwaves/env` (secrets) và không vào được `/var/lib/bigwaves`
+(DB). Unit systemd và `/usr/local/bin/bwctl` nằm ngoài `/opt/bigwaves`: khi chúng đổi, `deploy.sh`
+chạy bằng `deploy` sẽ in `out of date, needs root` kèm lệnh cài bằng root; deploy bằng root thì tự
+cài.
+
+Server đã setup trước khi có phần này: chạy lại đúng các bước của mục "Deploy user" trong
+`setup-debian.sh` bằng root (không chạy lại cả script — nó ghi đè Caddyfile).
 
 Mỗi lần deploy đều backup DB trước (binary mới có thể migrate schema). Nếu `/healthz` không lên
 trong 30 giây, script trả binary `.prev` về và in 40 dòng log cuối. Rollback **không** lùi schema:

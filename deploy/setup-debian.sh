@@ -83,6 +83,26 @@ systemctl daemon-reload
 systemctl enable bigwaves.service bigwaves-backup.timer
 systemctl start bigwaves-backup.timer
 
+log "Deploy user"
+# deploy.sh runs as this user: it owns /opt/bigwaves, reads the journal, and may restart the app
+# and start a backup through sudo without a password. Nothing else.
+deploy_user="${DEPLOY_USER:-deploy}"
+if ! id "$deploy_user" &>/dev/null; then
+  useradd --create-home --shell /bin/bash "$deploy_user"
+  # Same SSH keys as root, so the machine that ran --setup can deploy as this user.
+  install -d -o "$deploy_user" -g "$deploy_user" -m 0700 "/home/$deploy_user/.ssh"
+  install -o "$deploy_user" -g "$deploy_user" -m 0600 /root/.ssh/authorized_keys "/home/$deploy_user/.ssh/authorized_keys"
+fi
+command -v sudo &>/dev/null || apt-get install -y -q sudo
+chown -R "$deploy_user:$deploy_user" /opt/bigwaves
+usermod -aG systemd-journal "$deploy_user"
+sudoers=/etc/sudoers.d/bigwaves-deploy
+cat > "$sudoers.tmp" <<SUDO
+$deploy_user ALL=(root) NOPASSWD: /usr/bin/systemctl restart bigwaves, /usr/bin/systemctl start bigwaves-backup.service
+SUDO
+chmod 0440 "$sudoers.tmp"
+visudo -cf "$sudoers.tmp" && mv -f "$sudoers.tmp" "$sudoers"
+
 log "Caddy"
 if ! command -v caddy &>/dev/null; then
   curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key \

@@ -8,6 +8,9 @@ db="${DB_PATH:?DB_PATH is not set}"
 dir="${BACKUP_DIR:-/var/lib/bigwaves/backups}"
 keep="${BACKUP_KEEP:-14}"
 
+# First deploy: nothing to back up yet (and sqlite3 would create an empty DB file).
+[[ -f "$db" ]] || { echo "backup: $db does not exist yet, skipped"; exit 0; }
+
 mkdir -p "$dir"
 out="$dir/bigwaves-$(TZ=Asia/Ho_Chi_Minh date +%Y%m%d-%H%M%S).db"
 
