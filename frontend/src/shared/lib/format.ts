@@ -22,10 +22,22 @@ function group(d: Decimal, dp: number): string {
   return frac ? `${sign}${grouped}.${frac}` : `${sign}${grouped}`
 }
 
-/** 1234.5 → "1,234.50". Default 2 decimals, for USDT amounts. */
+/** 1234.5 → "1,234.50". Default 2 decimals. */
 export function formatMoney(v: DecimalString | number | null | undefined, dp = 2): string {
   const d = toDecimal(v)
   return d ? group(d, dp) : '—'
+}
+
+/** 1234.5 → "$1,234.50", -12.3 → "-$12.30". `sign` adds "+" to positive values (PnL). */
+export function formatUsd(
+  v: DecimalString | number | null | undefined,
+  { dp = 2, sign = false }: { dp?: number; sign?: boolean } = {},
+): string {
+  const d = toDecimal(v)
+  if (!d) return '—'
+  const s = group(d, dp)
+  if (s.startsWith('-')) return `-$${s.slice(1)}`
+  return sign && d.gt(0) ? `+$${s}` : `$${s}`
 }
 
 /**

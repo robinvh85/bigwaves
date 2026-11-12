@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { ErrorState, SkeletonRows } from '@/shared/components/states'
-import { formatMoney } from '@/shared/lib/format'
+import { formatUsd } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/field'
@@ -128,7 +128,7 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
         <CardHeader>
           <CardTitle className="text-base">Capital & sizing</CardTitle>
           <CardDescription>
-            Size = % × strategy capital (budget + realized PnL, now {formatMoney(equity)} USDT). The actual
+            Size = % × strategy capital (budget + realized PnL, now {formatUsd(equity)}). The actual
             balance is not used.
           </CardDescription>
         </CardHeader>
@@ -192,8 +192,8 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
                     {before} → <span className="font-semibold">{after}</span>
                     {isSize && (
                       <span className="ml-2 text-xs text-muted-foreground">
-                        ≈ {formatMoney(notional(review.budgetUsdt, before))} →{' '}
-                        {formatMoney(notional(review.budgetUsdt, after))} USDT/trade
+                        ≈ {formatUsd(notional(review.budgetUsdt, before))} →{' '}
+                        {formatUsd(notional(review.budgetUsdt, after))}/trade
                       </span>
                     )}
                   </span>

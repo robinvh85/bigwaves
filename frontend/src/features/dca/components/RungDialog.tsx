@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { ApiError, errorMessage } from '@/shared/api/errors'
-import { formatMoney, formatPct } from '@/shared/lib/format'
+import { formatPct, formatUsd } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import {
   Dialog,
@@ -101,8 +101,8 @@ export function RungDialog({
             <FieldLabel htmlFor="amount">Quantity ({setting.pairName.replace(/USDT$/, '')})</FieldLabel>
             <NumberInput id="amount" disabled={held} {...form.register('amount')} />
             <FieldDescription>
-              {notional > 0 ? `≈ ${formatMoney(notional)} USDT` : ''}
-              {setting.minNotional && ` · minimum ${setting.minNotional} USDT`}
+              {notional > 0 ? `≈ ${formatUsd(notional)}` : ''}
+              {setting.minNotional && ` · minimum ${formatUsd(setting.minNotional)}`}
             </FieldDescription>
             <FieldError>{form.formState.errors.amount?.message}</FieldError>
           </Field>

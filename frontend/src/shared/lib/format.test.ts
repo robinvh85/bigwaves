@@ -1,4 +1,20 @@
-import { formatMoney, formatPct, formatPrice, formatQty, percentOf, signOf } from './format'
+import { formatMoney, formatPct, formatPrice, formatQty, formatUsd, percentOf, signOf } from './format'
+
+describe('formatUsd', () => {
+  it('puts the dollar sign after the minus sign', () => {
+    expect(formatUsd('1234.5')).toBe('$1,234.50')
+    expect(formatUsd('-12.3')).toBe('-$12.30')
+    expect(formatUsd(0)).toBe('$0.00')
+  })
+  it('adds + to positive values when signed', () => {
+    expect(formatUsd('5', { sign: true })).toBe('+$5.00')
+    expect(formatUsd('-5', { sign: true })).toBe('-$5.00')
+    expect(formatUsd('0', { sign: true })).toBe('$0.00')
+  })
+  it('shows a dash for missing values', () => {
+    expect(formatUsd(null)).toBe('—')
+  })
+})
 
 describe('formatMoney', () => {
   it('groups thousands and keeps 2 decimals', () => {

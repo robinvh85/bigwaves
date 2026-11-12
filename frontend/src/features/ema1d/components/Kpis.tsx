@@ -2,7 +2,7 @@ import { marginLevelClass } from '@/features/account/margin'
 import { Money, Pnl } from '@/shared/components/numbers'
 import { StatCard } from '@/shared/components/stat-card'
 import { fromNow } from '@/shared/lib/date'
-import { formatMoney, formatPct } from '@/shared/lib/format'
+import { formatMoney, formatPct, formatUsd } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/utils'
 
 import type { Ema1dStatus } from '../api'
@@ -16,8 +16,8 @@ export function Ema1dKpis({ status }: { status: Ema1dStatus }) {
         value={<Money value={capital.equityUsdt} />}
         hint={
           <>
-            budget {formatMoney(capital.budgetUsdt)} + realized{' '}
-            <Pnl value={capital.realizedProfitUsdt} unit={null} />
+            budget {formatUsd(capital.budgetUsdt)} + realized{' '}
+            <Pnl value={capital.realizedProfitUsdt} />
           </>
         }
       />

@@ -6,7 +6,7 @@ import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { Price, Qty } from '@/shared/components/numbers'
 import { ErrorState, SkeletonRows } from '@/shared/components/states'
 import { formatDateTime, fromNow } from '@/shared/lib/date'
-import { formatPct } from '@/shared/lib/format'
+import { formatPct, formatUsd } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import { Separator } from '@/shared/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet'
@@ -98,7 +98,7 @@ function PairDetail({ id, onDeleted }: { id: number; onDeleted: () => void }) {
           <Info label="Step size">
             <Qty value={pair.stepSize} />
           </Info>
-          <Info label="Min notional">{pair.minNotional ? `${pair.minNotional} USDT` : '—'}</Info>
+          <Info label="Min notional">{pair.minNotional ? formatUsd(pair.minNotional) : '—'}</Info>
         </div>
 
         <div className="flex items-center justify-between rounded-lg border p-3">

@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 
 import {
   type DecimalString,
-  formatMoney,
   formatPct,
   formatPrice,
   formatQty,
+  formatUsd,
   signOf,
 } from '@/shared/lib/format'
 import { formatDateTime, fromNow } from '@/shared/lib/date'
@@ -40,20 +40,11 @@ function Num({
   )
 }
 
-/** USDT amount. Hover shows the full precision. */
-export function Money({
-  value,
-  unit = 'USDT',
-  className,
-}: {
-  value: Value
-  unit?: string | null
-  className?: string
-}) {
-  const text = formatMoney(value)
+/** USDT amount, shown as "$1,234.50". Hover shows the full precision. */
+export function Money({ value, className }: { value: Value; className?: string }) {
   return (
     <Num
-      text={unit && text !== '—' ? `${text} ${unit}` : text}
+      text={formatUsd(value)}
       full={value !== null && value !== undefined ? String(value) : undefined}
       className={className}
     />
@@ -103,23 +94,12 @@ export function Qty({ value, stepSize, className }: { value: Value; stepSize?: s
 const PNL_COLOR = { [-1]: 'text-pnl-down', 0: 'text-muted-foreground', 1: 'text-pnl-up' } as const
 
 /** Profit/loss amount colored by sign, with an explicit +/- so color is not the only signal. */
-export function Pnl({
-  value,
-  unit = 'USDT',
-  className,
-}: {
-  value: Value
-  unit?: string | null
-  className?: string
-}) {
-  const s = signOf(value)
-  const text = formatMoney(value)
-  const signed = s > 0 ? `+${text}` : text
+export function Pnl({ value, className }: { value: Value; className?: string }) {
   return (
     <Num
-      text={unit && text !== '—' ? `${signed} ${unit}` : signed}
+      text={formatUsd(value, { sign: true })}
       full={value != null ? String(value) : undefined}
-      className={cn(PNL_COLOR[s], className)}
+      className={cn(PNL_COLOR[signOf(value)], className)}
     />
   )
 }

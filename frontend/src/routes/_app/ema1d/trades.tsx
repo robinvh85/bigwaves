@@ -106,7 +106,7 @@ function TradesPage() {
           loading={isLoading}
           value={
             <span className="text-base">
-              <Pnl value={sum?.avgWinUsdt} unit={null} /> / <Pnl value={sum?.avgLossUsdt} unit={null} />
+              <Pnl value={sum?.avgWinUsdt} /> / <Pnl value={sum?.avgLossUsdt} />
             </span>
           }
         />

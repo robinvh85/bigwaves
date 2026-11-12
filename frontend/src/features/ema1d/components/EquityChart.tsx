@@ -1,6 +1,6 @@
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
-import { formatMoney } from '@/shared/lib/format'
+import { formatUsd } from '@/shared/lib/format'
 import { dayjs } from '@/shared/lib/date'
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/shared/ui/chart'
 
@@ -8,7 +8,7 @@ import type { components } from '@/shared/api/schema'
 
 type Point = components['schemas']['Ema1dEquityPoint']
 
-const config = { equity: { label: 'Equity (USDT)', color: 'var(--chart-2)' } } satisfies ChartConfig
+const config = { equity: { label: 'Equity', color: 'var(--chart-2)' } } satisfies ChartConfig
 
 export function EquityChart({ points }: { points: Point[] }) {
   const data = points.map((p) => ({ date: p.date, equity: Number(p.equityUsdt) }))
@@ -38,13 +38,13 @@ export function EquityChart({ points }: { points: Point[] }) {
           tickLine={false}
           axisLine={false}
           width={64}
-          tickFormatter={(v: number) => formatMoney(v, 0)}
+          tickFormatter={(v: number) => formatUsd(v, { dp: 0 })}
         />
         <ChartTooltip
           content={
             <ChartTooltipContent
               labelFormatter={(v) => dayjs(String(v)).format('YYYY/MM/DD')}
-              formatter={(v) => `${formatMoney(Number(v))} USDT`}
+              formatter={(v) => formatUsd(Number(v))}
             />
           }
         />

@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { Money } from '@/shared/components/numbers'
 import { ErrorState } from '@/shared/components/states'
 import { fromNow } from '@/shared/lib/date'
-import { formatMoney } from '@/shared/lib/format'
+import { formatMoney, formatUsd } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { NumberInput } from '@/shared/components/number-input'
@@ -133,7 +133,7 @@ export function AccountPopover() {
           }}
           title={ACTIONS[action].label}
           description="This is sent straight to Binance and cannot be undone."
-          confirmLabel={`${ACTIONS[action].verb} ${amountValid ? `${formatMoney(amount)} USDT` : ''}`}
+          confirmLabel={`${ACTIONS[action].verb} ${amountValid ? formatUsd(amount) : ''}`}
           confirmDisabled={!amountValid}
           onConfirm={async () => {
             if (!amountValid) throw new Error('invalid amount')

@@ -6,6 +6,7 @@ import { dcaConfigQuery, dcaHistoryQuery, useSaveDcaConfig } from '@/features/dc
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { ErrorState, PageHeader, SkeletonRows } from '@/shared/components/states'
 import { formatDateTime } from '@/shared/lib/date'
+import { formatUsd } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { NumberInput } from '@/shared/components/number-input'
@@ -97,7 +98,7 @@ function DcaConfigPage() {
           open
           onOpenChange={(o) => !o && setPending(null)}
           title="Save DCA settings?"
-          description={`Automatic trading: ${pending.enabled ? 'on' : 'off'} · capital cap: ${pending.maxCapitalUsdt === '0' ? 'none' : `${pending.maxCapitalUsdt} USDT`}`}
+          description={`Automatic trading: ${pending.enabled ? 'on' : 'off'} · capital cap: ${pending.maxCapitalUsdt === '0' ? 'none' : formatUsd(pending.maxCapitalUsdt)}`}
           onConfirm={async () => {
             await save.mutateAsync({ version: data.version, config: pending })
             setCap(null)

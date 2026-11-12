@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import { NumberInput } from '@/shared/components/number-input'
 import { Price } from '@/shared/components/numbers'
+import { formatUsd } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import {
   Dialog,
@@ -155,7 +156,7 @@ export function TradeDialog({
             <NumberInput
               id="es-amount"
               value={form.amount}
-              placeholder={held ? '' : `empty: budget ${setting.budget} USDT at the open price`}
+              placeholder={held ? '' : `empty: budget ${formatUsd(setting.budget)} at the open price`}
               onChange={(e) => set('amount', e.target.value)}
             />
           </div>
