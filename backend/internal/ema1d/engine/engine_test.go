@@ -53,7 +53,8 @@ func before(rows []Candle, ts int64) []Candle {
 }
 
 // The golden test: rows computed by status.py (Python) on the same CSV files, on days with and
-// without actions, ETH with LONG DIV4H + SHORT XO and BTC long only on XO.
+// without actions, ETH with LONG DIV4H + SHORT XO and BTC long only on XO. Generated with
+// engine.FEE = 0.001 to match Fee (the script itself uses 0.0006); see docs/ema1d.md.
 func TestStatusRowsMatchPython(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join("testdata", "expected_status.json"))
 	require.NoError(t, err)

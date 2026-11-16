@@ -13,7 +13,7 @@
 | Thoát | XO: cắt ngược chiều, thoát ở open nến đó. DIV4H (chỉ LONG): xem bên dưới. SHORT luôn thoát XO |
 | Luật thoát LONG | Theo từng coin (`long_exit_rule`): BTC dùng XO, các coin khác dùng DIV4H |
 | Rủi ro | Không stop loss, không take profit. Một lệnh mỗi pair |
-| Phí | Engine trừ 0.06% mỗi chiều (phí + trượt giá, theo script Python gốc), xem bên dưới |
+| Phí | Engine trừ 0.1% mỗi chiều (phí giao dịch Binance), xem bên dưới |
 | Khối lượng | % của vốn chiến lược (ngân sách + lãi/lỗ đã chốt), theo nhóm Lõi/Nhạy × LONG/SHORT |
 | Trần | Tổng vốn LONG ≤ vốn chiến lược; USDT free ≥ khối lượng × 1.01 |
 
@@ -31,16 +31,20 @@ LONG đang mở (từ nến vào e đến trước nến XO)
 Nến vào sớm hơn nến 4H đầu tiên + 10 ngày (thiếu dữ liệu 4H) → dùng XO
 ```
 
-### Phí: engine 0.06% so với Binance 0.1%
+### Phí
 
-Hằng `Fee = 0.0006` trong `engine/strategy.go` chỉ dùng để tính **% lãi của lệnh theo chiến lược** (cột Lãi,
-dòng `ĐÓNG … x%` trong trạng thái và báo cáo): `lãi = chiều × (giá thoát / giá vào − 1) − 2 × 0.06%`. Phí không
-ảnh hưởng tín hiệu vào/ra hay khối lượng lệnh thật.
+Hằng `Fee = 0.001` trong `engine/strategy.go` là phí giao dịch Binance, **0.1% mỗi lượt** (mua hoặc bán). Nó chỉ
+dùng để tính **% lãi của lệnh theo chiến lược** (cột Lãi, dòng `ĐÓNG … x%` trong trạng thái và báo cáo):
+`lãi = chiều × (giá thoát / giá vào − 1) − 2 × 0.1%`. Phí không ảnh hưởng tín hiệu vào/ra hay khối lượng lệnh thật.
+Con số này chưa tính trượt giá và lãi vay (SHORT); lãi/lỗ thật lấy theo giá khớp của vị thế.
 
-Phí giao dịch thật trên Binance hiện là **0.1% mỗi lượt** (mua hoặc bán), tức 0.2% cho một lệnh vào + ra,
-chưa kể trượt giá và lãi vay (SHORT). Vì vậy % lãi engine báo **cao hơn thực tế ít nhất ~0.08%** mỗi lệnh (0.2%
-− 0.12%). Lãi/lỗ thật lấy theo giá khớp của vị thế, không theo con số này. Giữ 0.06% để khớp dữ liệu vàng
-của Python; đổi hằng số này thì phải sinh lại `expected_status.json`.
+Script Python gốc (`tradingview-ema/ema-1d-exit/engine.py`) và các backtest của nó dùng 0.06% mỗi chiều (phí +
+trượt giá), nên % lãi của engine thấp hơn số trong report backtest khoảng 0.08% mỗi lệnh.
+
+Dữ liệu vàng `expected_status.json` được sinh từ `status.py` với `engine.FEE = 0.001` (không sửa repo Python):
+trỏ `engine.D` vào `testdata/`, cấu hình ETH (LONG DIV4H + SHORT XO) và BTC (chỉ LONG, XO), gọi
+`status_rows(cfg, end=ngày+1)` cho từng ngày trong file, ghi JSON `indent=1, ensure_ascii=False`. Chạy cùng
+cách với `FEE = 0.0006` ra đúng từng byte file vàng cũ. Đổi phí lần nữa thì sinh lại file theo cách này.
 
 ## Rổ coin
 

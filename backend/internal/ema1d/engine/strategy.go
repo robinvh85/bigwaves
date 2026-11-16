@@ -16,7 +16,8 @@
 //     RSI14 divergence (4H fractal 2/2 higher than the previous 4H fractal high within 30 candles,
 //     RSI lower), confirmed within the last 18 4H candles: sell at the open of the next 1D candle.
 //     Falls back to XO.
-//   - Fee + slippage 0.06% per side. One trade per pair at a time. No stop loss.
+//   - Fee 0.1% per side (Binance trading fee; the Python script used 0.06%). One trade per pair at a
+//     time. No stop loss.
 package engine
 
 import (
@@ -26,7 +27,7 @@ import (
 )
 
 const (
-	Fee  = 0.0006
+	Fee  = 0.001
 	Day  = 86_400
 	H4   = 4 * 3600
 	Warm = 40
