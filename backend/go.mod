@@ -9,7 +9,6 @@ require (
 	github.com/getsentry/sentry-go v0.50.0
 	github.com/go-chi/chi/v5 v5.5.0
 	github.com/go-co-op/gocron/v2 v2.22.0
-	github.com/jackc/pgx/v5 v5.11.0
 	github.com/oapi-codegen/runtime v1.8.0
 	github.com/pressly/goose/v3 v3.29.0
 	github.com/shopspring/decimal v1.6.0
@@ -28,9 +27,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.23.1 // indirect
 	github.com/go-openapi/swag/jsonname v0.26.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect

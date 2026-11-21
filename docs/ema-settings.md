@@ -58,13 +58,9 @@ Trade OPENING đã gửi lệnh vay (`borrowStep` BORROWING/BORROWED) không xo�
 
 | Rails | bigwaves |
 |---|---|
-| EMA từ `ema_trackings` (seed tay, cộng dồn) | 300 klines mỗi lần; đối chiếu: lệch ≤ 0.0003% trên nến đã chốt (`bwctl emasettings-compare`) |
+| EMA từ `ema_trackings` (seed tay, cộng dồn) | 300 klines mỗi lần; đối chiếu: lệch ≤ 0.0003% trên nến đã chốt |
 | `close_price` vừa là target vừa là giá khớp | `target_price` và `close_price` tách cột (`entry_price` / `open_price` cũng vậy) |
 | Đóng cả setting bọc lệnh sàn trong 1 transaction DB | Đóng từng trade; lỗi giữa chừng giữ setting ACTIVE để thử lại, lệnh đã khớp không bị "quên" |
 | Một bước lỗi bỏ cả `Each5MinutesSchedule` | Lỗi một campaign chỉ dừng campaign đó (báo Alerts, throttle theo trade) |
 | Không có công tắc chung | `enabled` (Settings), mặc định tắt sau import |
 | PnL gộp | PnL ròng |
-
-## Cutover
-
-Xem [cutover.md](cutover.md) mục "EMA Settings". Không bao giờ để campaign ACTIVE ở cả Rails lẫn bigwaves cùng lúc.

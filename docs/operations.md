@@ -1,6 +1,6 @@
 # Vận hành
 
-> Liên quan: [cutover.md](cutover.md) · [ema1d.md](ema1d.md) · [dca.md](dca.md) · [ema-cross.md](ema-cross.md) · [ema-settings.md](ema-settings.md)
+> Liên quan: [ema1d.md](ema1d.md) · [dca.md](dca.md) · [ema-cross.md](ema-cross.md) · [ema-settings.md](ema-settings.md)
 
 ## Thành phần
 
