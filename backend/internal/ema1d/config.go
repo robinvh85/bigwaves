@@ -41,13 +41,17 @@ type Config struct {
 	MarginLevelAlert money.Dec `json:"marginLevelAlert"`
 }
 
-// SuggestedSizes are the sizes the backtest was run with (configuration "4d"). A size set below
-// them is treated as a test run: an order under Binance's minimum is raised to the minimum.
+// SuggestedSizes are the sizes the research ended on: one size for every coin of the basket, the
+// same total as the backtest's configuration "4d" (core 7/3.5, sensitive 2.5/1.25 over 15 + 5
+// coins). The core/sensitive split had no out-of-sample value (tradingview-ema review2611), so
+// both groups get the same size; the group stays on the pair for whoever wants to split again.
+// A size set below them is treated as a test run: an order under Binance's minimum is raised to
+// the minimum.
 var SuggestedSizes = Sizes{
-	CoreLong:       money.MustParse("7"),
-	CoreShort:      money.MustParse("3.5"),
-	SensitiveLong:  money.MustParse("2.5"),
-	SensitiveShort: money.MustParse("1.25"),
+	CoreLong:       money.MustParse("5.875"),
+	CoreShort:      money.MustParse("2.9375"),
+	SensitiveLong:  money.MustParse("5.875"),
+	SensitiveShort: money.MustParse("2.9375"),
 }
 
 func DefaultConfig() Config {

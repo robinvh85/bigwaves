@@ -29,7 +29,12 @@ func newQueueEnv(t *testing.T) *queueEnv {
 	e := newEnv(t, time.Now().UTC(), testkit.WithTrading())
 	q := &queueEnv{env: e}
 	e.s.Sleep = func(d time.Duration) { q.sleeps = append(q.sleeps, d) }
-	e.config(func(c *ema1d.Config) { c.Enabled = true })
+	// The amounts below are worked out for 7% LONG / 3.5% SHORT (the earlier core sizes), set
+	// explicitly so that the default sizes can change without touching the execution tests.
+	e.config(func(c *ema1d.Config) {
+		c.Enabled = true
+		c.Sizes = ema1d.Sizes{CoreLong: dec("7"), CoreShort: dec("3.5"), SensitiveLong: dec("2.5"), SensitiveShort: dec("1.25")}
+	})
 	q.sun = e.pair("SUN", "0.02", "1")
 	q.eth = e.pair("ETH", "2000", "0.0001")
 	e.ex.FundCross("USDT", "10000")

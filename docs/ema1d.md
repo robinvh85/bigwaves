@@ -15,7 +15,7 @@
 | Luật thoát LONG | Theo từng coin (`long_exit_rule`): BTC dùng XO, các coin khác dùng DIV4H |
 | Rủi ro | Không stop loss, không take profit. Một lệnh mỗi pair |
 | Phí | Engine trừ 0.1% mỗi chiều (phí giao dịch Binance), xem bên dưới |
-| Khối lượng | % của vốn chiến lược (ngân sách + lãi/lỗ đã chốt), theo nhóm Lõi/Nhạy × LONG/SHORT |
+| Khối lượng | % của vốn chiến lược (ngân sách + lãi/lỗ đã chốt), cùng một mức cho mọi coin: LONG 5,875%, SHORT 2,9375% |
 | Trần | Tổng vốn LONG ≤ vốn chiến lược; USDT free ≥ khối lượng × 1.01 |
 
 ### Thoát DIV4H
@@ -53,11 +53,17 @@ Seed tháng 10/2026 (`seed.go`, chỉ tạo dòng còn thiếu, sửa trên màn
 
 | Nhóm | Coin | % LONG | % SHORT |
 |---|---|---|---|
-| Lõi (`CORE`) | JASMY, WLD, RAY, GRT, SUN, BONK, THETA, STX, SEI, RENDER, ETH, FLOKI, PEPE, ZEC, ARB | 7 | 3.5 |
-| Nhạy (`SENSITIVE`) | AR, BTC, FET, RUNE, CFX | 2.5 | 1.25 |
+| Lõi (`CORE`) | JASMY, WLD, RAY, GRT, SUN, BONK, THETA, STX, SEI, RENDER, ETH, FLOKI, PEPE, ZEC, ARB | 5.875 | 2.9375 |
+| Nhạy (`SENSITIVE`) | AR, BTC, FET, RUNE, CFX | 5.875 | 2.9375 |
+
+Từ 21/11/2026 hai nhóm dùng chung một mức size (trước đó lõi 7/3.5, nhạy 2.5/1.25; tổng vốn khi đủ 20 lệnh
+giữ nguyên 117.5% LONG, 58.75% SHORT). Nghiên cứu `tradingview-ema/ema-1d-exit/review2611` cho thấy cách chia
+nhóm không dự báo được: nhóm lõi chỉ hơn nhóm nhạy ở đúng giai đoạn dùng để chia nhóm (10/2023–10/2026); từ
+01/2022 chia tầng +1058% và chia đều +1005% là ngang nhau. Cột `pair_group` và 4 ô % trong Settings vẫn giữ
+để chia lại nếu cần.
 
 - Chỉ LONG: BTC, ZEC. LONG thoát XO: BTC (còn lại DIV4H).
-- % là mức gợi ý (cấu hình "4d" của backtest), cũng là mặc định; ngân sách mặc định 6000 USDT, tuổi tín hiệu
+- % là mức gợi ý (cùng tổng vốn với cấu hình "4d" của backtest), cũng là mặc định; ngân sách mặc định 6000 USDT, tuổi tín hiệu
   tối đa 1 ngày, margin level cảnh báo 1.5 / báo động 1.3.
 - Đặt % thấp hơn mức gợi ý được coi là chạy thử: lệnh dưới mức tối thiểu của Binance được nâng lên mức tối
   thiểu × 1.1. Bằng hoặc cao hơn mức gợi ý mà vẫn dưới mức tối thiểu thì lệnh FAILED.
