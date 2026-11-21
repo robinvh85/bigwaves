@@ -12,6 +12,15 @@ import (
 	"bigwaves/internal/platform/money"
 )
 
+const addEmacrossPair = `-- name: AddEmacrossPair :exec
+INSERT INTO emacross_pairs (pair_id) VALUES (?) ON CONFLICT (pair_id) DO NOTHING
+`
+
+func (q *Queries) AddEmacrossPair(ctx context.Context, pairID int64) error {
+	_, err := q.db.ExecContext(ctx, addEmacrossPair, pairID)
+	return err
+}
+
 const deleteEmacrossAlertsBefore = `-- name: DeleteEmacrossAlertsBefore :execrows
 DELETE FROM emacross_alerts WHERE created_at < ?
 `
@@ -58,7 +67,7 @@ func (q *Queries) FinishEmacrossAlert(ctx context.Context, arg FinishEmacrossAle
 }
 
 const getEmacrossPair = `-- name: GetEmacrossPair :one
-SELECT w.pair_id, w.h1, w.h4, w.d1, w.created_at, w.updated_at, p.name AS pair_name, p.status AS pair_status, p.current_price, p.price_updated_at
+SELECT w.pair_id, w.created_at, w.updated_at, p.name AS pair_name, p.status AS pair_status, p.current_price, p.price_updated_at
 FROM emacross_pairs w JOIN pairs p ON p.id = w.pair_id
 WHERE w.pair_id = ?
 `
@@ -76,9 +85,6 @@ func (q *Queries) GetEmacrossPair(ctx context.Context, pairID int64) (GetEmacros
 	var i GetEmacrossPairRow
 	err := row.Scan(
 		&i.EmacrossPair.PairID,
-		&i.EmacrossPair.H1,
-		&i.EmacrossPair.H4,
-		&i.EmacrossPair.D1,
 		&i.EmacrossPair.CreatedAt,
 		&i.EmacrossPair.UpdatedAt,
 		&i.PairName,
@@ -123,7 +129,7 @@ func (q *Queries) InsertEmacrossAlert(ctx context.Context, arg InsertEmacrossAle
 const lastEmacrossAlerts = `-- name: LastEmacrossAlerts :many
 SELECT a.id, a.pair_id, a.timeframe, a.candle_time, a.direction, a.price, a.gap_percent, a.sent_at, a.error, a.created_at, p.name AS pair_name
 FROM emacross_alerts a JOIN pairs p ON p.id = a.pair_id
-WHERE a.id IN (SELECT MAX(id) FROM emacross_alerts GROUP BY pair_id, timeframe)
+WHERE a.id IN (SELECT MAX(id) FROM emacross_alerts GROUP BY pair_id)
 `
 
 type LastEmacrossAlertsRow struct {
@@ -131,7 +137,7 @@ type LastEmacrossAlertsRow struct {
 	PairName      string
 }
 
-// The latest alert of each watched pair and timeframe.
+// The latest alert of each pair.
 func (q *Queries) LastEmacrossAlerts(ctx context.Context) ([]LastEmacrossAlertsRow, error) {
 	rows, err := q.db.QueryContext(ctx, lastEmacrossAlerts)
 	if err != nil {
@@ -171,15 +177,13 @@ const listEmacrossAlerts = `-- name: ListEmacrossAlerts :many
 SELECT a.id, a.pair_id, a.timeframe, a.candle_time, a.direction, a.price, a.gap_percent, a.sent_at, a.error, a.created_at, p.name AS pair_name
 FROM emacross_alerts a JOIN pairs p ON p.id = a.pair_id
 WHERE (?1 IS NULL OR a.pair_id = ?1)
-  AND (?2 IS NULL OR a.timeframe = ?2)
 ORDER BY a.id DESC
-LIMIT ?3
+LIMIT ?2
 `
 
 type ListEmacrossAlertsParams struct {
-	PairID    interface{}
-	Timeframe interface{}
-	Limit     int64
+	PairID interface{}
+	Limit  int64
 }
 
 type ListEmacrossAlertsRow struct {
@@ -188,7 +192,7 @@ type ListEmacrossAlertsRow struct {
 }
 
 func (q *Queries) ListEmacrossAlerts(ctx context.Context, arg ListEmacrossAlertsParams) ([]ListEmacrossAlertsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listEmacrossAlerts, arg.PairID, arg.Timeframe, arg.Limit)
+	rows, err := q.db.QueryContext(ctx, listEmacrossAlerts, arg.PairID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +227,7 @@ func (q *Queries) ListEmacrossAlerts(ctx context.Context, arg ListEmacrossAlerts
 }
 
 const listEmacrossPairs = `-- name: ListEmacrossPairs :many
-SELECT w.pair_id, w.h1, w.h4, w.d1, w.created_at, w.updated_at, p.name AS pair_name, p.status AS pair_status, p.current_price, p.price_updated_at
+SELECT w.pair_id, w.created_at, w.updated_at, p.name AS pair_name, p.status AS pair_status, p.current_price, p.price_updated_at
 FROM emacross_pairs w JOIN pairs p ON p.id = w.pair_id
 WHERE p.deleted_at IS NULL
 ORDER BY p.name
@@ -248,9 +252,6 @@ func (q *Queries) ListEmacrossPairs(ctx context.Context) ([]ListEmacrossPairsRow
 		var i ListEmacrossPairsRow
 		if err := rows.Scan(
 			&i.EmacrossPair.PairID,
-			&i.EmacrossPair.H1,
-			&i.EmacrossPair.H4,
-			&i.EmacrossPair.D1,
 			&i.EmacrossPair.CreatedAt,
 			&i.EmacrossPair.UpdatedAt,
 			&i.PairName,
@@ -304,29 +305,6 @@ func (q *Queries) ListEmacrossStates(ctx context.Context) ([]EmacrossState, erro
 		return nil, err
 	}
 	return items, nil
-}
-
-const upsertEmacrossPair = `-- name: UpsertEmacrossPair :exec
-INSERT INTO emacross_pairs (pair_id, h1, h4, d1) VALUES (?, ?, ?, ?)
-ON CONFLICT (pair_id) DO UPDATE SET h1 = excluded.h1, h4 = excluded.h4, d1 = excluded.d1,
-  updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-`
-
-type UpsertEmacrossPairParams struct {
-	PairID int64
-	H1     bool
-	H4     bool
-	D1     bool
-}
-
-func (q *Queries) UpsertEmacrossPair(ctx context.Context, arg UpsertEmacrossPairParams) error {
-	_, err := q.db.ExecContext(ctx, upsertEmacrossPair,
-		arg.PairID,
-		arg.H1,
-		arg.H4,
-		arg.D1,
-	)
-	return err
 }
 
 const upsertEmacrossState = `-- name: UpsertEmacrossState :exec

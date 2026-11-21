@@ -87,15 +87,15 @@ func (e *env) pair(symbol string) int64 {
 	return p.ID
 }
 
-// candles serves closes as hourly klines ending with the running candle of e.now.
+// candles serves closes as daily klines ending with the running candle of e.now.
 func (e *env) candles(symbol string, closes []float64) {
-	running := e.now.Truncate(time.Hour).Unix()
+	running := e.now.Truncate(24 * time.Hour).Unix()
 	rows := make([]binancefake.Kline, len(closes))
 	for i, c := range closes {
 		v := fmt.Sprint(c)
-		rows[i] = binancefake.Kline{Time: running - int64(len(closes)-1-i)*3600, Open: v, High: v, Low: v, Close: v}
+		rows[i] = binancefake.Kline{Time: running - int64(len(closes)-1-i)*86400, Open: v, High: v, Low: v, Close: v}
 	}
-	e.k.Exchange.SetKlines(symbol, "1h", rows)
+	e.k.Exchange.SetKlines(symbol, "1d", rows)
 }
 
 func (e *env) crossed() []notify.Sent {
@@ -112,24 +112,24 @@ func TestCheckSendsEachCrossOnce(t *testing.T) {
 	e := newEnv(t)
 	sun := e.pair("SUNUSDT")
 	e.pair("ADAUSDT") // not watched
-	_, err := e.s.Watch(e.ctx, sun, true, false, false)
+	_, err := e.s.Watch(e.ctx, sun, true)
 	require.NoError(t, err)
 
 	e.candles("SUNUSDT", rising(60, 160))
-	msg, err := e.s.Check(e.ctx, emacross.H1)
+	msg, err := e.s.Check(e.ctx)
 	require.NoError(t, err)
 	require.Contains(t, msg, "1 pairs checked, 0 crossed")
 	require.Empty(t, e.crossed())
 
 	e.candles("SUNUSDT", rising(60, 50))
-	_, err = e.s.Check(e.ctx, emacross.H1)
+	_, err = e.s.Check(e.ctx)
 	require.NoError(t, err)
 	require.Len(t, e.crossed(), 1)
-	require.Contains(t, e.crossed()[0].Msg, "EMA H1: SUNUSDT is DOWN CROSSED")
+	require.Contains(t, e.crossed()[0].Msg, "EMA D1: SUNUSDT is DOWN CROSSED")
 
 	// Same candle, still crossed: no second message.
 	e.now = e.now.Add(15 * time.Minute)
-	_, err = e.s.Check(e.ctx, emacross.H1)
+	_, err = e.s.Check(e.ctx)
 	require.NoError(t, err)
 	require.Len(t, e.crossed(), 1)
 
@@ -143,14 +143,14 @@ func TestCheckSendsEachCrossOnce(t *testing.T) {
 	list, err := e.s.List(e.ctx)
 	require.NoError(t, err)
 	require.Len(t, list, 1)
-	require.Len(t, list[0].States, 1)
-	require.Equal(t, "DOWN", list[0].States[0].Trend)
-	require.Len(t, list[0].LastAlerts, 1)
+	require.NotNil(t, list[0].State)
+	require.Equal(t, "DOWN", list[0].State.Trend)
+	require.NotNil(t, list[0].LastAlert)
 
 	// The next candle crosses again (back up): a new alert.
-	e.now = e.now.Add(time.Hour)
+	e.now = e.now.Add(24 * time.Hour)
 	e.candles("SUNUSDT", append(rising(60, 50), 300))
-	_, err = e.s.Check(e.ctx, emacross.H1)
+	_, err = e.s.Check(e.ctx)
 	require.NoError(t, err)
 	require.Len(t, e.crossed(), 2)
 	require.Contains(t, e.crossed()[1].Msg, "is UP CROSSED")
@@ -158,21 +158,19 @@ func TestCheckSendsEachCrossOnce(t *testing.T) {
 
 func TestCheckSkips(t *testing.T) {
 	e := newEnv(t)
-	_, err := e.s.Check(e.ctx, emacross.H4)
+	_, err := e.s.Check(e.ctx) // nothing watched
 	require.ErrorIs(t, err, scheduler.ErrSkip)
 
 	sun := e.pair("SUNUSDT")
-	_, err = e.s.Watch(e.ctx, sun, true, false, false)
+	_, err = e.s.Watch(e.ctx, sun, true)
 	require.NoError(t, err)
-	_, err = e.s.Check(e.ctx, emacross.H4) // H1 only
-	require.ErrorIs(t, err, scheduler.ErrSkip)
 
 	c, v, err := e.s.Config(e.ctx)
 	require.NoError(t, err)
 	c.Enabled = false
 	_, err = e.s.SaveConfig(e.ctx, v, c, "test")
 	require.NoError(t, err)
-	_, err = e.s.Check(e.ctx, emacross.H1)
+	_, err = e.s.Check(e.ctx)
 	require.ErrorIs(t, err, scheduler.ErrSkip)
 }
 
@@ -180,38 +178,37 @@ func TestCheckReportsPairErrors(t *testing.T) {
 	e := newEnv(t)
 	sun, ada := e.pair("SUNUSDT"), e.pair("ADAUSDT")
 	for _, id := range []int64{sun, ada} {
-		_, err := e.s.Watch(e.ctx, id, true, false, false)
+		_, err := e.s.Watch(e.ctx, id, true)
 		require.NoError(t, err)
 	}
 	e.candles("SUNUSDT", rising(60, 50))
 	e.candles("ADAUSDT", rising(10)) // newly listed: too few candles
 
-	_, err := e.s.Check(e.ctx, emacross.H1)
+	_, err := e.s.Check(e.ctx)
 	require.ErrorContains(t, err, "ADAUSDT: only")
 	require.Len(t, e.crossed(), 1, "the other pair is still checked")
 }
 
-func TestWatchAllOffRemovesThePair(t *testing.T) {
+func TestUnwatchRemovesThePair(t *testing.T) {
 	e := newEnv(t)
 	sun := e.pair("SUNUSDT")
-	p, err := e.s.Watch(e.ctx, sun, true, true, false)
+	p, err := e.s.Watch(e.ctx, sun, true)
 	require.NoError(t, err)
-	require.True(t, p.H1)
-	require.True(t, p.H4)
+	require.Equal(t, "SUNUSDT", p.PairName)
 
-	_, err = e.s.Watch(e.ctx, sun, false, false, false)
+	_, err = e.s.Watch(e.ctx, sun, false)
 	require.NoError(t, err)
 	list, err := e.s.List(e.ctx)
 	require.NoError(t, err)
 	require.Empty(t, list)
 
-	_, err = e.s.Watch(e.ctx, 999, true, false, false)
+	_, err = e.s.Watch(e.ctx, 999, true)
 	require.ErrorContains(t, err, "pair not found")
 }
 
 func TestConfigValidation(t *testing.T) {
 	c := emacross.DefaultConfig()
 	require.NoError(t, c.Validate())
-	c.ThresholdPercent.H4 = c.ThresholdPercent.H4.Neg()
-	require.ErrorContains(t, c.Validate(), "thresholdPercent.h4")
+	c.ThresholdPercent = c.ThresholdPercent.Neg()
+	require.ErrorContains(t, c.Validate(), "thresholdPercent")
 }

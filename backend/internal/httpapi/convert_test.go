@@ -81,13 +81,13 @@ func TestDomainTypesMatchTheAPI(t *testing.T) {
 	}}})
 
 	alert := emacross.Alert{
-		ID: 1, PairID: 2, PairName: "SUNUSDT", Timeframe: "H4", Direction: "UP", Price: *d("0.02"), GapPercent: 0.35,
+		ID: 1, PairID: 2, PairName: "SUNUSDT", Direction: "UP", Price: *d("0.02"), GapPercent: 0.35,
 		CandleTime: now, SentAt: &now, Error: "", CreatedAt: now,
 	}
 	roundTrip[EmaCrossPair](t, emacross.Pair{
-		PairID: 2, PairName: "SUNUSDT", PairStatus: "ACTIVE", CurrentPrice: d("0.02"), H1: true, H4: true, D1: false,
-		States:     []emacross.State{{Timeframe: "H4", Trend: "UP", GapPercent: 0.35, Price: *d("0.02"), CandleTime: now, CheckedAt: now}},
-		LastAlerts: []emacross.Alert{alert},
+		PairID: 2, PairName: "SUNUSDT", PairStatus: "ACTIVE", CurrentPrice: d("0.02"),
+		State:     &emacross.State{Trend: "UP", GapPercent: 0.35, Price: *d("0.02"), CandleTime: now, CheckedAt: now},
+		LastAlert: &alert,
 	})
 	roundTrip[EmaCrossConfig](t, emacross.DefaultConfig())
 }

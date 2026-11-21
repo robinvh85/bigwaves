@@ -23,7 +23,7 @@ func (s *Server) WatchEmaCrossPair(ctx context.Context, req WatchEmaCrossPairReq
 	if req.Body == nil {
 		return nil, httpx.Validation("missing body", nil)
 	}
-	row, err := s.EMACross.Watch(ctx, req.Id, req.Body.H1, req.Body.H4, req.Body.D1)
+	row, err := s.EMACross.Watch(ctx, req.Id, req.Body.Watched)
 	if err != nil {
 		return nil, err
 	}
@@ -32,9 +32,6 @@ func (s *Server) WatchEmaCrossPair(ctx context.Context, req WatchEmaCrossPairReq
 
 func (s *Server) ListEmaCrossAlerts(ctx context.Context, req ListEmaCrossAlertsRequestObject) (ListEmaCrossAlertsResponseObject, error) {
 	f := emacross.AlertFilter{PairID: deref(req.Params.PairId), Limit: int64(deref(req.Params.Limit))}
-	if req.Params.Timeframe != nil {
-		f.Timeframe = string(*req.Params.Timeframe)
-	}
 	rows, err := s.EMACross.Alerts(ctx, f)
 	if err != nil {
 		return nil, err

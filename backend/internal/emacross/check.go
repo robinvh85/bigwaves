@@ -24,9 +24,10 @@ const (
 	minCandles = 3 * EMAPeriod
 )
 
-// Check reads every watched ACTIVE pair of tf and sends each new cross to Discord. Errors of one
+// Check reads every watched ACTIVE pair on D1 and sends each new cross to Discord. Errors of one
 // pair are reported in the result and do not stop the others.
-func (s *Service) Check(ctx context.Context, tf Timeframe) (string, error) {
+func (s *Service) Check(ctx context.Context) (string, error) {
+	tf := D1
 	cfg, _, err := s.Config(ctx)
 	if err != nil {
 		return "", err
@@ -34,14 +35,14 @@ func (s *Service) Check(ctx context.Context, tf Timeframe) (string, error) {
 	if !cfg.Enabled {
 		return "", scheduler.Skipf("EMA cross alerts are off")
 	}
-	pairs, err := s.watchedPairs(ctx, tf)
+	pairs, err := s.watchedPairs(ctx)
 	if err != nil {
 		return "", err
 	}
 	if len(pairs) == 0 {
-		return "", scheduler.Skipf("no pair watches %s", tf.Name)
+		return "", scheduler.Skipf("no pair watched")
 	}
-	threshold, _ := strconv.ParseFloat(cfg.Threshold(tf).String(), 64)
+	threshold, _ := strconv.ParseFloat(cfg.ThresholdPercent.String(), 64)
 
 	var crosses, sent int
 	var errs []error
@@ -73,29 +74,18 @@ func (s *Service) Check(ctx context.Context, tf Timeframe) (string, error) {
 	return msg, nil
 }
 
-func (s *Service) watchedPairs(ctx context.Context, tf Timeframe) ([]dbq.ListEmacrossPairsRow, error) {
+func (s *Service) watchedPairs(ctx context.Context) ([]dbq.ListEmacrossPairsRow, error) {
 	rows, err := dbq.New(s.DB.Read).ListEmacrossPairs(ctx)
 	if err != nil {
 		return nil, err
 	}
 	var out []dbq.ListEmacrossPairsRow
 	for _, r := range rows {
-		if r.PairStatus == "ACTIVE" && watches(r.EmacrossPair, tf) {
+		if r.PairStatus == "ACTIVE" {
 			out = append(out, r)
 		}
 	}
 	return out, nil
-}
-
-func watches(p dbq.EmacrossPair, tf Timeframe) bool {
-	switch tf {
-	case H1:
-		return p.H1
-	case H4:
-		return p.H4
-	default:
-		return p.D1
-	}
 }
 
 // checkPair stores the reading of one pair and sends its alert when the running candle crossed
@@ -153,7 +143,7 @@ func (s *Service) checkPair(ctx context.Context, p dbq.ListEmacrossPairsRow, tf 
 	return true, true, nil
 }
 
-// Message keeps the Rails wording ("EMA H4: SUNUSDT is UP CROSSED") and adds the price and gap.
+// Message keeps the Rails wording ("EMA D1: SUNUSDT is UP CROSSED") and adds the price and gap.
 func Message(tf Timeframe, pair, direction string, price money.Dec, gapPercent float64) string {
 	icon, side := "📈", "above"
 	if direction == TrendDown {

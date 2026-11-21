@@ -599,7 +599,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Set the timeframes watched on a pair (id = pair id); all off removes it */
+        /** Add a pair to the watchlist (id = pair id) or remove it */
         put: operations["watchEmaCrossPair"];
         post?: never;
         delete?: never;
@@ -1372,11 +1372,8 @@ export interface components {
             trades?: components["schemas"]["DcaTrade"][];
         };
         /** @enum {string} */
-        EmaCrossTimeframe: "H1" | "H4" | "D1";
-        /** @enum {string} */
         EmaCrossDirection: "UP" | "DOWN";
         EmaCrossState: {
-            timeframe: components["schemas"]["EmaCrossTimeframe"];
             trend: components["schemas"]["EmaCrossDirection"];
             /**
              * Format: double
@@ -1398,7 +1395,6 @@ export interface components {
             /** Format: int64 */
             pairId: number;
             pairName: string;
-            timeframe: components["schemas"]["EmaCrossTimeframe"];
             direction: components["schemas"]["EmaCrossDirection"];
             price: components["schemas"]["Decimal"];
             /** Format: double */
@@ -1428,27 +1424,19 @@ export interface components {
              * @description When currentPrice was last refreshed
              */
             priceUpdatedAt?: string;
-            h1: boolean;
-            h4: boolean;
-            d1: boolean;
-            states: components["schemas"]["EmaCrossState"][];
-            lastAlerts: components["schemas"]["EmaCrossAlert"][];
+            /** @description Last D1 reading; missing before the first check */
+            state?: components["schemas"]["EmaCrossState"];
+            lastAlert?: components["schemas"]["EmaCrossAlert"];
         };
         EmaCrossWatchRequest: {
-            h1: boolean;
-            h4: boolean;
-            d1: boolean;
-        };
-        EmaCrossThresholds: {
-            h1: components["schemas"]["Decimal"];
-            h4: components["schemas"]["Decimal"];
-            d1: components["schemas"]["Decimal"];
+            /** @description false removes the pair from the watchlist */
+            watched: boolean;
         };
         EmaCrossConfig: {
             /** @description The checks run and send alerts */
             enabled: boolean;
-            /** @description How far in % EMA14 must pass Smooth10 to count as a cross */
-            thresholdPercent: components["schemas"]["EmaCrossThresholds"];
+            /** @description How far in % EMA14 must pass Smooth10 on D1 to count as a cross */
+            thresholdPercent: components["schemas"]["Decimal"];
         };
         EmaCrossConfigEnvelope: {
             config: components["schemas"]["EmaCrossConfig"];
@@ -2744,7 +2732,6 @@ export interface operations {
         parameters: {
             query?: {
                 pairId?: number;
-                timeframe?: components["schemas"]["EmaCrossTimeframe"];
                 limit?: number;
             };
             header?: never;

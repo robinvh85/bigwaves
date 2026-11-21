@@ -6,9 +6,7 @@ import {
   type EmaCrossConfig,
   emaCrossConfigQuery,
   emaCrossHistoryQuery,
-  TIMEFRAMES,
   useSaveEmaCrossConfig,
-  watchKey,
 } from '@/features/emacross/api'
 import { CampaignConfigCards } from '@/features/emasettings/components/ConfigCards'
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
@@ -25,23 +23,21 @@ export const Route = createFileRoute('/_app/ema-cross/config')({
   component: EmaCrossConfigPage,
 })
 
-type Thresholds = EmaCrossConfig['thresholdPercent']
-
 const isPercent = (v: string) => /^\d+(\.\d+)?$/.test(v) && Number(v) <= 100
 
 function EmaCrossConfigPage() {
   const { data, error, refetch } = useQuery(emaCrossConfigQuery)
   const { data: history } = useQuery(emaCrossHistoryQuery)
   const save = useSaveEmaCrossConfig()
-  const [edit, setEdit] = useState<Thresholds | null>(null)
+  const [edit, setEdit] = useState<string | null>(null)
   const [pending, setPending] = useState<EmaCrossConfig | null>(null)
 
   if (error) return <ErrorState error={error} onRetry={() => void refetch()} />
   if (!data) return <SkeletonRows rows={4} />
   const c = data.config
   const values = edit ?? c.thresholdPercent
-  const valid = TIMEFRAMES.every((tf) => isPercent(values[watchKey(tf)]))
-  const changed = TIMEFRAMES.some((tf) => values[watchKey(tf)] !== c.thresholdPercent[watchKey(tf)])
+  const valid = isPercent(values)
+  const changed = values !== c.thresholdPercent
 
   return (
     <>
@@ -70,17 +66,15 @@ function EmaCrossConfigPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            {TIMEFRAMES.map((tf) => (
-              <div key={tf} className="grid flex-1 gap-2">
-                <Label htmlFor={`emacross-${tf}`}>{tf} (%)</Label>
-                <NumberInput
-                  id={`emacross-${tf}`}
-                  value={values[watchKey(tf)]}
-                  onChange={(e) => setEdit({ ...values, [watchKey(tf)]: e.target.value })}
-                  aria-invalid={!isPercent(values[watchKey(tf)])}
-                />
-              </div>
-            ))}
+            <div className="grid flex-1 gap-2">
+              <Label htmlFor="emacross-threshold">D1 (%)</Label>
+              <NumberInput
+                id="emacross-threshold"
+                value={values}
+                onChange={(e) => setEdit(e.target.value)}
+                aria-invalid={!valid}
+              />
+            </div>
             <Button
               disabled={!valid || !changed}
               onClick={() => setPending({ ...c, thresholdPercent: values })}
@@ -113,7 +107,7 @@ function EmaCrossConfigPage() {
           open
           onOpenChange={(o) => !o && setPending(null)}
           title="Save EMA Cross settings?"
-          description={`Alerts: ${pending.enabled ? 'on' : 'off'} · threshold H1 ${pending.thresholdPercent.h1}% · H4 ${pending.thresholdPercent.h4}% · D1 ${pending.thresholdPercent.d1}%`}
+          description={`Alerts: ${pending.enabled ? 'on' : 'off'} · D1 threshold ${pending.thresholdPercent}%`}
           onConfirm={async () => {
             await save.mutateAsync({ version: data.version, config: pending })
             setEdit(null)

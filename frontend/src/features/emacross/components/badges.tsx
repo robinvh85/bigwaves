@@ -24,8 +24,8 @@ export function Direction({ direction, className }: { direction: 'UP' | 'DOWN'; 
   )
 }
 
-/** One timeframe of a watched pair: the trend, the EMA14 / Smooth10 gap and the last cross. */
-export function TimeframeCell({ state, lastAlert }: { state?: EmaCrossState; lastAlert?: EmaCrossAlert }) {
+/** D1 reading of a watched pair: the trend, the EMA14 / Smooth10 gap and the last cross. */
+export function TrendCell({ state, lastAlert }: { state?: EmaCrossState; lastAlert?: EmaCrossAlert }) {
   if (!state) return <span className="text-xs text-muted-foreground">Not checked yet</span>
   return (
     <div className="flex flex-col gap-0.5">

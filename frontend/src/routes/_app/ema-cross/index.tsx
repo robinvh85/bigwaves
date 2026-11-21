@@ -5,16 +5,8 @@ import { PlayIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { z } from 'zod'
 
-import {
-  checkJob,
-  type EmaCrossPair,
-  emaCrossConfigQuery,
-  emaCrossPairsQuery,
-  TIMEFRAMES,
-  type Timeframe,
-  watchKey,
-} from '@/features/emacross/api'
-import { TimeframeCell } from '@/features/emacross/components/badges'
+import { CHECK_JOB, type EmaCrossPair, emaCrossConfigQuery, emaCrossPairsQuery } from '@/features/emacross/api'
+import { TrendCell } from '@/features/emacross/components/badges'
 import { WatchDialog } from '@/features/emacross/components/WatchDialog'
 import { useRunJob } from '@/features/jobs/api'
 import { PairStatusBadge } from '@/features/pairs/PairStatusBadge'
@@ -23,12 +15,6 @@ import { Price } from '@/shared/components/numbers'
 import { EmptyState, PageHeader } from '@/shared/components/states'
 import { Alert, AlertDescription } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/ui/dropdown-menu'
 
 export const Route = createFileRoute('/_app/ema-cross/')({
   staticData: { title: 'Watchlist' },
@@ -37,23 +23,6 @@ export const Route = createFileRoute('/_app/ema-cross/')({
 })
 
 const col = createColumnHelper<EmaCrossPair>()
-
-function timeframeColumn(tf: Timeframe) {
-  return col.display({
-    id: tf,
-    header: tf,
-    cell: (c) => {
-      const p = c.row.original
-      if (!p[watchKey(tf)]) return <span className="text-muted-foreground">—</span>
-      return (
-        <TimeframeCell
-          state={p.states.find((s) => s.timeframe === tf)}
-          lastAlert={p.lastAlerts.find((a) => a.timeframe === tf)}
-        />
-      )
-    },
-  })
-}
 
 const columns = [
   col.accessor('pairName', {
@@ -66,7 +35,11 @@ const columns = [
     cell: (c) => <PairStatusBadge status={c.getValue()} />,
     meta: { mobile: 'badge' },
   }),
-  ...TIMEFRAMES.map(timeframeColumn),
+  col.display({
+    id: 'd1',
+    header: 'D1 trend',
+    cell: (c) => <TrendCell state={c.row.original.state} lastAlert={c.row.original.lastAlert} />,
+  }),
   col.accessor((p) => (p.currentPrice ? Number(p.currentPrice) : 0), {
     id: 'price',
     header: 'Price',
@@ -88,24 +61,13 @@ function WatchlistPage() {
     <>
       <PageHeader
         title="EMA Cross"
-        description="Discord alert when EMA14 of the close crosses Smooth10 (EMA10 of the EMA). H1 is checked at minutes 01 and 31, H4 and D1 at minute 03 of every hour; each cross is sent once per candle. No orders are placed."
+        description="Discord alert when EMA14 of the close crosses Smooth10 (EMA10 of the EMA) on D1. Checked at minute 03 of every hour; each cross is sent once per candle. No orders are placed."
         actions={
           <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" disabled={run.isPending}>
-                  <PlayIcon />
-                  Check now
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {TIMEFRAMES.map((tf) => (
-                  <DropdownMenuItem key={tf} onSelect={() => run.mutate(checkJob(tf))}>
-                    {tf}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button variant="outline" disabled={run.isPending} onClick={() => run.mutate(CHECK_JOB)}>
+              <PlayIcon />
+              Check now
+            </Button>
             <Button onClick={() => setAdding(true)}>
               <PlusIcon />
               Watch a pair
@@ -130,7 +92,7 @@ function WatchlistPage() {
         empty={
           <EmptyState
             title="No pairs watched"
-            description="Add a pair and pick the timeframes to get cross alerts on Discord."
+            description="Add a pair to get its D1 cross alerts on Discord."
           />
         }
       />

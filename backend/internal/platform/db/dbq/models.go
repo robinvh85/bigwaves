@@ -246,9 +246,6 @@ type EmacrossAlert struct {
 
 type EmacrossPair struct {
 	PairID    int64
-	H1        bool
-	H4        bool
-	D1        bool
 	CreatedAt dbtype.Time
 	UpdatedAt dbtype.Time
 }

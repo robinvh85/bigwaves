@@ -8,16 +8,11 @@ export type EmaCrossPair = components['schemas']['EmaCrossPair']
 export type EmaCrossAlert = components['schemas']['EmaCrossAlert']
 export type EmaCrossState = components['schemas']['EmaCrossState']
 export type EmaCrossConfig = components['schemas']['EmaCrossConfig']
-export type Timeframe = components['schemas']['EmaCrossTimeframe']
-export type Watch = components['schemas']['EmaCrossWatchRequest']
 
-export const TIMEFRAMES: Timeframe[] = ['H1', 'H4', 'D1']
-export const watchKey = (tf: Timeframe) => tf.toLowerCase() as keyof Watch
+/** The D1 check job (see backend emacross.Jobs). */
+export const CHECK_JOB = 'emacross.check_d1'
 
-/** Job that checks one timeframe (see backend emacross.Jobs). */
-export const checkJob = (tf: Timeframe) => `emacross.check_${tf.toLowerCase()}`
-
-export type AlertFilter = { pairId?: number; timeframe?: Timeframe }
+export type AlertFilter = { pairId?: number }
 
 export const emaCrossKeys = {
   all: ['emacross'] as const,
@@ -62,8 +57,8 @@ function useInvalidate() {
 export function useWatchPair() {
   const invalidate = useInvalidate()
   return useMutation({
-    mutationFn: ({ pairId, body }: { pairId: number; body: Watch }) =>
-      unwrap(api.PUT('/ema-cross/pairs/{id}', { params: { path: { id: pairId } }, body })),
+    mutationFn: ({ pairId, watched }: { pairId: number; watched: boolean }) =>
+      unwrap(api.PUT('/ema-cross/pairs/{id}', { params: { path: { id: pairId } }, body: { watched } })),
     onSuccess: invalidate,
     meta: { success: 'Saved' },
   })

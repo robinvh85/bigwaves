@@ -1,14 +1,14 @@
 // Package emacross sends a Discord alert when EMA14 of the close crosses Smooth10 (EMA10 of the
-// EMA) on H1, H4 or D1 for the watched pairs. It never trades. Ported from the Rails
-// CheckCross{H1,H4,D1}EmasForPairsService with three changes: the averages come from Binance
-// klines (no ema_trackings table to seed by hand), a cross is sent once per candle instead of on
-// every run while it holds, and each timeframe runs from one job only (D1 was sent twice).
+// EMA) on D1 for the watched pairs. It never trades. Ported from the Rails
+// CheckCrossD1EmasForPairsService with three changes: the averages come from Binance klines (no
+// ema_trackings table to seed by hand), a cross is sent once per candle instead of on every run
+// while it holds, and it runs from one job only (D1 was sent twice). H1 and H4 were dropped: no
+// pair watched them.
 package emacross
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"bigwaves/internal/exchange/binance"
@@ -23,64 +23,33 @@ import (
 // StrategyKey is the config store key of the alerts.
 const StrategyKey = "emacross"
 
-// Timeframe is one candle size the alert runs on.
+// Timeframe is the candle size the alert runs on.
 type Timeframe struct {
-	Name string // H1, H4, D1
+	Name string // stored in emacross_states / emacross_alerts
 	API  string // Binance kline interval
 	Step time.Duration
 }
 
-var (
-	H1 = Timeframe{"H1", "1h", time.Hour}
-	H4 = Timeframe{"H4", "4h", 4 * time.Hour}
-	D1 = Timeframe{"D1", "1d", 24 * time.Hour}
-
-	Timeframes = []Timeframe{H1, H4, D1}
-)
-
-// Thresholds are, per timeframe, how far in % EMA14 must pass Smooth10 to count as a cross
-// (OVER_CROSS_EMA_PERCENT_FOR_OPEN in Rails).
-type Thresholds struct {
-	H1 money.Dec `json:"h1"`
-	H4 money.Dec `json:"h4"`
-	D1 money.Dec `json:"d1"`
-}
+var D1 = Timeframe{"D1", "1d", 24 * time.Hour}
 
 // Config of the alerts.
 type Config struct {
-	// Enabled is the main switch: off, the jobs skip.
-	Enabled          bool       `json:"enabled"`
-	ThresholdPercent Thresholds `json:"thresholdPercent"`
+	// Enabled is the main switch: off, the job skips.
+	Enabled bool `json:"enabled"`
+	// ThresholdPercent is how far in % EMA14 must pass Smooth10 to count as a cross
+	// (OVER_CROSS_EMA_PERCENT_FOR_OPEN in Rails).
+	ThresholdPercent money.Dec `json:"thresholdPercent"`
 }
 
 func DefaultConfig() Config {
-	p := money.MustParse("0.01")
-	return Config{Enabled: true, ThresholdPercent: Thresholds{H1: p, H4: p, D1: p}}
+	return Config{Enabled: true, ThresholdPercent: money.MustParse("0.01")}
 }
 
 func (c Config) Validate() error {
-	var errs []error
-	for _, t := range []struct {
-		name string
-		v    money.Dec
-	}{{"h1", c.ThresholdPercent.H1}, {"h4", c.ThresholdPercent.H4}, {"d1", c.ThresholdPercent.D1}} {
-		if t.v.IsNegative() || t.v.GreaterThan(money.FromInt(100)) {
-			errs = append(errs, fmt.Errorf("thresholdPercent.%s must be between 0 and 100", t.name))
-		}
+	if c.ThresholdPercent.IsNegative() || c.ThresholdPercent.GreaterThan(money.FromInt(100)) {
+		return errors.New("thresholdPercent must be between 0 and 100")
 	}
-	return errors.Join(errs...)
-}
-
-// Threshold returns the % for a timeframe.
-func (c Config) Threshold(tf Timeframe) money.Dec {
-	switch tf {
-	case H1:
-		return c.ThresholdPercent.H1
-	case H4:
-		return c.ThresholdPercent.H4
-	default:
-		return c.ThresholdPercent.D1
-	}
+	return nil
 }
 
 type Service struct {
