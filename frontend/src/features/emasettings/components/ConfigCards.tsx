@@ -21,7 +21,7 @@ const FIELDS: { key: keyof Params; label: string }[] = [
 const isPercent = (v: string) => /^\d+(\.\d+)?$/.test(v) && Number(v) <= 100
 const key = (p: (typeof PERIODS)[number]) => (p === 'D1' ? 'd1' : 'h4')
 
-/** The Campaigns switch and thresholds, shown on the EMA Cross settings page. */
+/** The Campaigns switch and thresholds, shown on the EMA Settings → Settings tab. */
 export function CampaignConfigCards() {
   const { data, error, refetch } = useQuery(emaSettingsConfigQuery)
   const save = useSaveEmaSettingsConfig()

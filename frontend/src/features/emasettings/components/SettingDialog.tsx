@@ -110,7 +110,7 @@ export function SettingDialog({
       {
         onSuccess: (s) => {
           onOpenChange(false)
-          if (!setting) void navigate({ to: '/ema-cross/campaigns/$id', params: { id: String(s.id) } })
+          if (!setting) void navigate({ to: '/ema-settings/$id', params: { id: String(s.id) } })
         },
       },
     )

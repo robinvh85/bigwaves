@@ -11,6 +11,9 @@ const pages = [
   { path: '/ema1d/config', heading: 'EMA1D settings' },
   { path: '/dca', heading: 'DCA' },
   { path: '/dca/config', heading: 'DCA settings' },
+  { path: '/ema-cross', heading: 'EMA Cross' },
+  { path: '/ema-settings', heading: 'Campaigns' },
+  { path: '/ema-settings/config', heading: 'EMA Settings' },
   { path: '/admin/pairs', heading: 'Pairs' },
   { path: '/admin/jobs', heading: 'Jobs' },
 ]
@@ -55,11 +58,17 @@ test('read-only mode is visible everywhere', async ({ page }) => {
   await expect(page.getByText('Read-only')).toBeVisible()
 })
 
-test('the sidebar navigates', async ({ page, isMobile }) => {
+test('the sidebar and the section tabs navigate', async ({ page, isMobile }) => {
   await page.goto('/')
   if (isMobile) await page.getByRole('button', { name: /Toggle Sidebar/i }).click()
-  await page.getByRole('link', { name: 'Basket' }).click()
+  await page.getByRole('link', { name: 'EMA1D', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Section' }).getByRole('link', { name: 'Basket' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Basket' })).toBeVisible()
+})
+
+test('old campaign URLs redirect to EMA Settings', async ({ page }) => {
+  await page.goto('/ema-cross/campaigns')
+  await expect(page).toHaveURL(/\/ema-settings$/)
 })
 
 test('the EMA1D dashboard has no strategy switches', async ({ page }) => {
@@ -90,7 +99,6 @@ test('the manual order coin picker can be searched', async ({ page }) => {
 
 test('clickable controls show the hand cursor', async ({ page }) => {
   await page.goto('/ema1d/config')
-  await expect(page.getByRole('tab').first()).toHaveCSS('cursor', 'pointer')
   await expect(page.getByRole('switch').first()).toHaveCSS('cursor', 'pointer')
   await expect(page.getByRole('button', { name: 'Account and appearance' })).toHaveCSS('cursor', 'pointer')
   await expect(page.getByRole('button', { name: 'Review & save' })).toHaveCSS('cursor', 'not-allowed')

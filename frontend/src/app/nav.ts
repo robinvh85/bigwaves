@@ -1,54 +1,35 @@
 import {
   ActivityIcon,
-  BellRingIcon,
   BotIcon,
   CandlestickChartIcon,
-  CoinsIcon,
-  HistoryIcon,
   LayoutDashboardIcon,
-  LineChartIcon,
-  ListChecksIcon,
   type LucideIcon,
   RadarIcon,
   SettingsIcon,
-  SlidersHorizontalIcon,
   TargetIcon,
   TrendingUpIcon,
 } from 'lucide-react'
 
+import type { SectionTab } from '@/shared/components/section-tabs'
+
 export type NavItem = { title: string; to: string; icon: LucideIcon; exact?: boolean }
 export type NavGroup = { title?: string; items: NavItem[] }
 
-/** Sidebar structure; mirrors the information architecture in the plan (02-frontend-react §4). */
+/**
+ * Sidebar: one entry per strategy. The screens of a strategy are tabs at the top of its pages
+ * (SECTION_TABS), not sidebar entries.
+ */
 export const NAV: NavGroup[] = [
   {
     items: [{ title: 'Overview', to: '/', icon: LayoutDashboardIcon, exact: true }],
   },
   {
-    title: 'EMA1D',
+    title: 'Strategies',
     items: [
-      { title: 'Dashboard', to: '/ema1d', icon: CandlestickChartIcon, exact: true },
-      { title: 'Basket', to: '/ema1d/pairs', icon: CoinsIcon },
-      { title: 'Queue', to: '/ema1d/todos', icon: ListChecksIcon },
-      { title: 'Trade history', to: '/ema1d/trades', icon: HistoryIcon },
-      { title: 'Equity & reports', to: '/ema1d/equity', icon: LineChartIcon },
-      { title: 'Settings', to: '/ema1d/config', icon: SlidersHorizontalIcon },
-    ],
-  },
-  {
-    title: 'DCA',
-    items: [
-      { title: 'Ladders', to: '/dca', icon: TrendingUpIcon, exact: true },
-      { title: 'Settings', to: '/dca/config', icon: SlidersHorizontalIcon },
-    ],
-  },
-  {
-    title: 'EMA Cross',
-    items: [
-      { title: 'Watchlist', to: '/ema-cross', icon: RadarIcon, exact: true },
-      { title: 'Alerts', to: '/ema-cross/alerts', icon: BellRingIcon },
-      { title: 'Campaigns', to: '/ema-cross/campaigns', icon: TargetIcon },
-      { title: 'Settings', to: '/ema-cross/config', icon: SlidersHorizontalIcon },
+      { title: 'EMA1D', to: '/ema1d', icon: CandlestickChartIcon },
+      { title: 'DCA', to: '/dca', icon: TrendingUpIcon },
+      { title: 'EMA Cross', to: '/ema-cross', icon: RadarIcon },
+      { title: 'EMA Settings', to: '/ema-settings', icon: TargetIcon },
     ],
   },
   {
@@ -59,5 +40,29 @@ export const NAV: NavGroup[] = [
     ],
   },
 ]
+
+export const SECTION_TABS = {
+  ema1d: [
+    { title: 'Dashboard', to: '/ema1d', exact: true },
+    { title: 'Basket', to: '/ema1d/pairs' },
+    { title: 'Queue', to: '/ema1d/todos' },
+    { title: 'Trades', to: '/ema1d/trades' },
+    { title: 'Equity & reports', to: '/ema1d/equity' },
+    { title: 'Settings', to: '/ema1d/config' },
+  ],
+  dca: [
+    { title: 'Ladders', to: '/dca', exact: true },
+    { title: 'Settings', to: '/dca/config' },
+  ],
+  emaCross: [
+    { title: 'Watchlist', to: '/ema-cross', exact: true },
+    { title: 'Alerts', to: '/ema-cross/alerts' },
+    { title: 'Settings', to: '/ema-cross/config' },
+  ],
+  emaSettings: [
+    { title: 'Campaigns', to: '/ema-settings', exact: true },
+    { title: 'Settings', to: '/ema-settings/config' },
+  ],
+} satisfies Record<string, SectionTab[]>
 
 export const SETTINGS_ICON = SettingsIcon

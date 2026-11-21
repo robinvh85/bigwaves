@@ -1,6 +1,6 @@
 # EMA Settings (Campaigns)
 
-> Code: `backend/internal/emasettings`. Giao diện: EMA Cross → **Campaigns**, ngưỡng ở EMA Cross → Settings.
+> Code: `backend/internal/emasettings`. Giao diện: menu **EMA Settings** (tab Campaigns; công tắc scan và tham số D1 / H4 ở tab Settings).
 > Nguồn Rails: `EmaSettings::CheckTradesService` (xem `wavetrade/docs/ema-settings.md`). Plan: `.claude/plans/04-ema-settings.md`.
 
 Một **campaign** (Rails: `EmaSetting`) giao dịch giao cắt **EMA14 của giá close** với **Smooth10 = EMA10 của EMA14**

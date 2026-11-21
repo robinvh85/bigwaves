@@ -67,7 +67,7 @@ Màn **Admin → Jobs** hiện lần chạy cuối/kế tiếp và cho chạy ta
 | `dca.check` | 5 phút | Mua/bán DCA theo giá |
 | `emacross.check_h1` | phút 01 và 31 | Cảnh báo EMA cross H1 |
 | `emacross.check_h4`, `emacross.check_d1` | phút 03 mỗi giờ | Cảnh báo EMA cross H4, D1 |
-| `emasettings.check` | 5 phút (giây 50) | Campaigns: SL / target / cắt ngược, trade mới, TP/SL campaign (bật ở EMA Cross → Settings) |
+| `emasettings.check` | 5 phút (giây 50) | Campaigns: SL / target / cắt ngược, trade mới, TP/SL campaign (bật ở EMA Settings → Settings) |
 | `market.update_prices` | 10 phút | Giá mọi pair (một lệnh ticker) |
 | `market.update_interest` | mỗi giờ | Lãi vay margin |
 | `market.update_filters` | 07:07 VN | Step size, min notional |

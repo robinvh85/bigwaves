@@ -7,7 +7,6 @@ import {
   emaCrossConfigQuery,
   useSaveEmaCrossConfig,
 } from '@/features/emacross/api'
-import { CampaignConfigCards } from '@/features/emasettings/components/ConfigCards'
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { NumberInput } from '@/shared/components/number-input'
 import { ErrorState, PageHeader, SkeletonRows } from '@/shared/components/states'
@@ -80,7 +79,6 @@ function EmaCrossConfigPage() {
             </Button>
           </CardContent>
         </Card>
-        <CampaignConfigCards />
       </div>
       {pending && (
         <ConfirmDialog

@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppAdminRouteRouteImport } from './routes/_app/admin/route'
 import { Route as AppDcaRouteRouteImport } from './routes/_app/dca/route'
 import { Route as AppEmaCrossRouteRouteImport } from './routes/_app/ema-cross/route'
+import { Route as AppEmaSettingsRouteRouteImport } from './routes/_app/ema-settings/route'
 import { Route as AppEma1dRouteRouteImport } from './routes/_app/ema1d/route'
 import { Route as AppAdminJobsRouteImport } from './routes/_app/admin/jobs'
 import { Route as AppAdminPairsRouteImport } from './routes/_app/admin/pairs'
@@ -24,6 +25,9 @@ import { Route as AppDcaConfigRouteImport } from './routes/_app/dca/config'
 import { Route as AppEmaCrossIndexRouteImport } from './routes/_app/ema-cross/index'
 import { Route as AppEmaCrossAlertsRouteImport } from './routes/_app/ema-cross/alerts'
 import { Route as AppEmaCrossConfigRouteImport } from './routes/_app/ema-cross/config'
+import { Route as AppEmaSettingsIndexRouteImport } from './routes/_app/ema-settings/index'
+import { Route as AppEmaSettingsIdRouteImport } from './routes/_app/ema-settings/$id'
+import { Route as AppEmaSettingsConfigRouteImport } from './routes/_app/ema-settings/config'
 import { Route as AppEma1dIndexRouteImport } from './routes/_app/ema1d/index'
 import { Route as AppEma1dConfigRouteImport } from './routes/_app/ema1d/config'
 import { Route as AppEma1dEquityRouteImport } from './routes/_app/ema1d/equity'
@@ -60,6 +64,11 @@ const AppDcaRouteRoute = AppDcaRouteRouteImport.update({
 const AppEmaCrossRouteRoute = AppEmaCrossRouteRouteImport.update({
   id: '/ema-cross',
   path: '/ema-cross',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppEmaSettingsRouteRoute = AppEmaSettingsRouteRouteImport.update({
+  id: '/ema-settings',
+  path: '/ema-settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppEma1dRouteRoute = AppEma1dRouteRouteImport.update({
@@ -106,6 +115,21 @@ const AppEmaCrossConfigRoute = AppEmaCrossConfigRouteImport.update({
   id: '/config',
   path: '/config',
   getParentRoute: () => AppEmaCrossRouteRoute,
+} as any)
+const AppEmaSettingsIndexRoute = AppEmaSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppEmaSettingsRouteRoute,
+} as any)
+const AppEmaSettingsIdRoute = AppEmaSettingsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppEmaSettingsRouteRoute,
+} as any)
+const AppEmaSettingsConfigRoute = AppEmaSettingsConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
+  getParentRoute: () => AppEmaSettingsRouteRoute,
 } as any)
 const AppEma1dIndexRoute = AppEma1dIndexRouteImport.update({
   id: '/',
@@ -155,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AppAdminRouteRouteWithChildren
   '/dca': typeof AppDcaRouteRouteWithChildren
   '/ema-cross': typeof AppEmaCrossRouteRouteWithChildren
+  '/ema-settings': typeof AppEmaSettingsRouteRouteWithChildren
   '/ema1d': typeof AppEma1dRouteRouteWithChildren
   '/admin/jobs': typeof AppAdminJobsRoute
   '/admin/pairs': typeof AppAdminPairsRoute
@@ -162,6 +187,8 @@ export interface FileRoutesByFullPath {
   '/dca/config': typeof AppDcaConfigRoute
   '/ema-cross/alerts': typeof AppEmaCrossAlertsRoute
   '/ema-cross/config': typeof AppEmaCrossConfigRoute
+  '/ema-settings/$id': typeof AppEmaSettingsIdRoute
+  '/ema-settings/config': typeof AppEmaSettingsConfigRoute
   '/ema1d/config': typeof AppEma1dConfigRoute
   '/ema1d/equity': typeof AppEma1dEquityRoute
   '/ema1d/pairs': typeof AppEma1dPairsRoute
@@ -169,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/ema1d/trades': typeof AppEma1dTradesRoute
   '/dca/': typeof AppDcaIndexRoute
   '/ema-cross/': typeof AppEmaCrossIndexRoute
+  '/ema-settings/': typeof AppEmaSettingsIndexRoute
   '/ema1d/': typeof AppEma1dIndexRoute
   '/ema-cross/campaigns/$id': typeof AppEmaCrossCampaignsIdRoute
   '/ema-cross/campaigns/': typeof AppEmaCrossCampaignsIndexRoute
@@ -183,6 +211,8 @@ export interface FileRoutesByTo {
   '/dca/config': typeof AppDcaConfigRoute
   '/ema-cross/alerts': typeof AppEmaCrossAlertsRoute
   '/ema-cross/config': typeof AppEmaCrossConfigRoute
+  '/ema-settings/$id': typeof AppEmaSettingsIdRoute
+  '/ema-settings/config': typeof AppEmaSettingsConfigRoute
   '/ema1d/config': typeof AppEma1dConfigRoute
   '/ema1d/equity': typeof AppEma1dEquityRoute
   '/ema1d/pairs': typeof AppEma1dPairsRoute
@@ -190,6 +220,7 @@ export interface FileRoutesByTo {
   '/ema1d/trades': typeof AppEma1dTradesRoute
   '/dca': typeof AppDcaIndexRoute
   '/ema-cross': typeof AppEmaCrossIndexRoute
+  '/ema-settings': typeof AppEmaSettingsIndexRoute
   '/ema1d': typeof AppEma1dIndexRoute
   '/ema-cross/campaigns/$id': typeof AppEmaCrossCampaignsIdRoute
   '/ema-cross/campaigns': typeof AppEmaCrossCampaignsIndexRoute
@@ -201,6 +232,7 @@ export interface FileRoutesById {
   '/_app/admin': typeof AppAdminRouteRouteWithChildren
   '/_app/dca': typeof AppDcaRouteRouteWithChildren
   '/_app/ema-cross': typeof AppEmaCrossRouteRouteWithChildren
+  '/_app/ema-settings': typeof AppEmaSettingsRouteRouteWithChildren
   '/_app/ema1d': typeof AppEma1dRouteRouteWithChildren
   '/_app/': typeof AppIndexRoute
   '/_app/admin/jobs': typeof AppAdminJobsRoute
@@ -209,6 +241,8 @@ export interface FileRoutesById {
   '/_app/dca/config': typeof AppDcaConfigRoute
   '/_app/ema-cross/alerts': typeof AppEmaCrossAlertsRoute
   '/_app/ema-cross/config': typeof AppEmaCrossConfigRoute
+  '/_app/ema-settings/$id': typeof AppEmaSettingsIdRoute
+  '/_app/ema-settings/config': typeof AppEmaSettingsConfigRoute
   '/_app/ema1d/config': typeof AppEma1dConfigRoute
   '/_app/ema1d/equity': typeof AppEma1dEquityRoute
   '/_app/ema1d/pairs': typeof AppEma1dPairsRoute
@@ -216,6 +250,7 @@ export interface FileRoutesById {
   '/_app/ema1d/trades': typeof AppEma1dTradesRoute
   '/_app/dca/': typeof AppDcaIndexRoute
   '/_app/ema-cross/': typeof AppEmaCrossIndexRoute
+  '/_app/ema-settings/': typeof AppEmaSettingsIndexRoute
   '/_app/ema1d/': typeof AppEma1dIndexRoute
   '/_app/ema-cross/campaigns/$id': typeof AppEmaCrossCampaignsIdRoute
   '/_app/ema-cross/campaigns/': typeof AppEmaCrossCampaignsIndexRoute
@@ -228,6 +263,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dca'
     | '/ema-cross'
+    | '/ema-settings'
     | '/ema1d'
     | '/admin/jobs'
     | '/admin/pairs'
@@ -235,6 +271,8 @@ export interface FileRouteTypes {
     | '/dca/config'
     | '/ema-cross/alerts'
     | '/ema-cross/config'
+    | '/ema-settings/$id'
+    | '/ema-settings/config'
     | '/ema1d/config'
     | '/ema1d/equity'
     | '/ema1d/pairs'
@@ -242,6 +280,7 @@ export interface FileRouteTypes {
     | '/ema1d/trades'
     | '/dca/'
     | '/ema-cross/'
+    | '/ema-settings/'
     | '/ema1d/'
     | '/ema-cross/campaigns/$id'
     | '/ema-cross/campaigns/'
@@ -256,6 +295,8 @@ export interface FileRouteTypes {
     | '/dca/config'
     | '/ema-cross/alerts'
     | '/ema-cross/config'
+    | '/ema-settings/$id'
+    | '/ema-settings/config'
     | '/ema1d/config'
     | '/ema1d/equity'
     | '/ema1d/pairs'
@@ -263,6 +304,7 @@ export interface FileRouteTypes {
     | '/ema1d/trades'
     | '/dca'
     | '/ema-cross'
+    | '/ema-settings'
     | '/ema1d'
     | '/ema-cross/campaigns/$id'
     | '/ema-cross/campaigns'
@@ -273,6 +315,7 @@ export interface FileRouteTypes {
     | '/_app/admin'
     | '/_app/dca'
     | '/_app/ema-cross'
+    | '/_app/ema-settings'
     | '/_app/ema1d'
     | '/_app/'
     | '/_app/admin/jobs'
@@ -281,6 +324,8 @@ export interface FileRouteTypes {
     | '/_app/dca/config'
     | '/_app/ema-cross/alerts'
     | '/_app/ema-cross/config'
+    | '/_app/ema-settings/$id'
+    | '/_app/ema-settings/config'
     | '/_app/ema1d/config'
     | '/_app/ema1d/equity'
     | '/_app/ema1d/pairs'
@@ -288,6 +333,7 @@ export interface FileRouteTypes {
     | '/_app/ema1d/trades'
     | '/_app/dca/'
     | '/_app/ema-cross/'
+    | '/_app/ema-settings/'
     | '/_app/ema1d/'
     | '/_app/ema-cross/campaigns/$id'
     | '/_app/ema-cross/campaigns/'
@@ -340,6 +386,13 @@ declare module '@tanstack/react-router' {
       path: '/ema-cross'
       fullPath: '/ema-cross'
       preLoaderRoute: typeof AppEmaCrossRouteRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/ema-settings': {
+      id: '/_app/ema-settings'
+      path: '/ema-settings'
+      fullPath: '/ema-settings'
+      preLoaderRoute: typeof AppEmaSettingsRouteRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/ema1d': {
@@ -404,6 +457,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/ema-cross/config'
       preLoaderRoute: typeof AppEmaCrossConfigRouteImport
       parentRoute: typeof AppEmaCrossRouteRoute
+    }
+    '/_app/ema-settings/': {
+      id: '/_app/ema-settings/'
+      path: '/'
+      fullPath: '/ema-settings/'
+      preLoaderRoute: typeof AppEmaSettingsIndexRouteImport
+      parentRoute: typeof AppEmaSettingsRouteRoute
+    }
+    '/_app/ema-settings/$id': {
+      id: '/_app/ema-settings/$id'
+      path: '/$id'
+      fullPath: '/ema-settings/$id'
+      preLoaderRoute: typeof AppEmaSettingsIdRouteImport
+      parentRoute: typeof AppEmaSettingsRouteRoute
+    }
+    '/_app/ema-settings/config': {
+      id: '/_app/ema-settings/config'
+      path: '/config'
+      fullPath: '/ema-settings/config'
+      preLoaderRoute: typeof AppEmaSettingsConfigRouteImport
+      parentRoute: typeof AppEmaSettingsRouteRoute
     }
     '/_app/ema1d/': {
       id: '/_app/ema1d/'
@@ -513,6 +587,21 @@ const AppEmaCrossRouteRouteChildren: AppEmaCrossRouteRouteChildren = {
 const AppEmaCrossRouteRouteWithChildren =
   AppEmaCrossRouteRoute._addFileChildren(AppEmaCrossRouteRouteChildren)
 
+interface AppEmaSettingsRouteRouteChildren {
+  AppEmaSettingsIdRoute: typeof AppEmaSettingsIdRoute
+  AppEmaSettingsConfigRoute: typeof AppEmaSettingsConfigRoute
+  AppEmaSettingsIndexRoute: typeof AppEmaSettingsIndexRoute
+}
+
+const AppEmaSettingsRouteRouteChildren: AppEmaSettingsRouteRouteChildren = {
+  AppEmaSettingsIdRoute: AppEmaSettingsIdRoute,
+  AppEmaSettingsConfigRoute: AppEmaSettingsConfigRoute,
+  AppEmaSettingsIndexRoute: AppEmaSettingsIndexRoute,
+}
+
+const AppEmaSettingsRouteRouteWithChildren =
+  AppEmaSettingsRouteRoute._addFileChildren(AppEmaSettingsRouteRouteChildren)
+
 interface AppEma1dRouteRouteChildren {
   AppEma1dConfigRoute: typeof AppEma1dConfigRoute
   AppEma1dEquityRoute: typeof AppEma1dEquityRoute
@@ -539,6 +628,7 @@ interface AppRouteChildren {
   AppAdminRouteRoute: typeof AppAdminRouteRouteWithChildren
   AppDcaRouteRoute: typeof AppDcaRouteRouteWithChildren
   AppEmaCrossRouteRoute: typeof AppEmaCrossRouteRouteWithChildren
+  AppEmaSettingsRouteRoute: typeof AppEmaSettingsRouteRouteWithChildren
   AppEma1dRouteRoute: typeof AppEma1dRouteRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -547,6 +637,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminRouteRoute: AppAdminRouteRouteWithChildren,
   AppDcaRouteRoute: AppDcaRouteRouteWithChildren,
   AppEmaCrossRouteRoute: AppEmaCrossRouteRouteWithChildren,
+  AppEmaSettingsRouteRoute: AppEmaSettingsRouteRouteWithChildren,
   AppEma1dRouteRoute: AppEma1dRouteRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
 }
