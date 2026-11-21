@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"bigwaves/internal/ema1d/engine"
 	"bigwaves/internal/platform/db/dbq"
 	"bigwaves/internal/platform/dbtype"
 	"bigwaves/internal/platform/money"
@@ -319,7 +320,11 @@ func (r *reconciler) reconcile(pv pairView, item SyncItem) error {
 	}
 
 	// 2. Open the wanted side when the entry is still valid.
-	if reason := r.openSkipReason(pv, item); reason != "" {
+	reason, err := r.openSkipReason(pv, item)
+	if err != nil {
+		return err
+	}
+	if reason != "" {
 		r.skipped = append(r.skipped, SkippedEntry{Coin: pv.CoinName, Action: ActionOpen, Side: item.Side(), Reason: reason})
 		return nil
 	}
@@ -387,25 +392,68 @@ func (r *reconciler) ensureClose(pv pairView, eff *effective, item SyncItem) (*d
 	return r.createTodo(pv, ActionClose, eff.side, eff.signalDate, ref, rule, posID, eff.todo)
 }
 
-func (r *reconciler) openSkipReason(pv pairView, item SyncItem) string {
+func (r *reconciler) openSkipReason(pv pairView, item SyncItem) (string, error) {
 	side := item.Side()
 	entry := *item.EntryDate
 	switch {
 	case pv.Status != PairActive:
-		return "pair_" + strings.ToLower(pv.Status)
+		return "pair_" + strings.ToLower(pv.Status), nil
 	case !pv.sideAllowed(side):
 		if side == SideShort && pv.AllowShort {
-			return "short_not_supported"
+			return "short_not_supported", nil
 		}
-		return "side_not_allowed"
+		return "side_not_allowed", nil
 	case entry < pv.AddedOn:
-		return fmt.Sprintf("entry_before_added_on (%s)", pv.AddedOn)
+		return fmt.Sprintf("entry_before_added_on (%s)", pv.AddedOn), nil
 	case entry < r.cutoff:
-		return fmt.Sprintf("entry_too_old (before %s)", r.cutoff)
+		return fmt.Sprintf("entry_too_old (before %s)", r.cutoff), nil
 	case r.cfg.PauseOpen:
-		return "pause_open"
+		return "pause_open", nil
 	}
-	return ""
+	if side == SideLong && r.cfg.MaxLongVolPct.IsPositive() {
+		vol, ok, err := r.longVolatility(pv, entry)
+		if err != nil {
+			return "", err
+		}
+		if !ok {
+			r.warnings = append(r.warnings, fmt.Sprintf("long_vol_unknown: %s %s (1D candles before the entry are missing, filter not applied)", pv.CoinName, entry))
+		} else if limit := f64(r.cfg.MaxLongVolPct); vol*100 >= limit {
+			return fmt.Sprintf("long_vol_too_high (%dd %.1f%% >= %s%%)", longVolDays, vol*100, r.cfg.MaxLongVolPct.String()), nil
+		}
+	}
+	return "", nil
+}
+
+// longVolDays is the window of the LONG volatility filter (Config.MaxLongVolPct). Shorter windows
+// were worse in the research: they measure the breakout itself, which is a good sign for a LONG.
+const longVolDays = 30
+
+// longVolatility is the volatility of the coin over the longVolDays closed 1D candles before the
+// entry candle, from the stored candles. ok is false when those candles are not all there, e.g.
+// the candles were not updated before the sync.
+func (r *reconciler) longVolatility(pv pairView, entry string) (vol float64, ok bool, err error) {
+	t, err := parseDate(entry)
+	if err != nil {
+		return 0, false, nil
+	}
+	rows, err := r.q.ListCandlesBefore(r.ctx, dbq.ListCandlesBeforeParams{PairID: pv.PairID, Interval: "1D", OpenTime: t.Unix()})
+	if err != nil {
+		return 0, false, err
+	}
+	need := longVolDays + 1
+	if len(rows) < need {
+		return 0, false, nil
+	}
+	rows = rows[len(rows)-need:]
+	closes := make([]float64, need)
+	for i, c := range rows {
+		if c.OpenTime != t.Unix()-int64(need-i)*engine.Day {
+			return 0, false, nil
+		}
+		closes[i] = c.Close
+	}
+	vol, ok = engine.LogReturnStdev(closes, longVolDays)
+	return vol, ok, nil
 }
 
 // createTodo returns the todo later steps should wait for, or nil when nothing is left to wait for.

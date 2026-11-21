@@ -1304,13 +1304,16 @@ components:
 
     Ema1dConfig:
       type: object
-      required: [enabled, pauseOpen, dailyCheckEnabled, budgetUsdt, maxEntryAgeDays, sizes, marginLevelWarn, marginLevelAlert]
+      required: [enabled, pauseOpen, dailyCheckEnabled, budgetUsdt, maxEntryAgeDays, maxLongVolPct, sizes, marginLevelWarn, marginLevelAlert]
       properties:
         enabled: { type: boolean, description: Executes the todo queue }
         pauseOpen: { type: boolean, description: Blocks new entries; closes still run }
         dailyCheckEnabled: { type: boolean, description: "Runs the 07:03 VN daily check" }
         budgetUsdt: { $ref: "#/components/schemas/Decimal" }
         maxEntryAgeDays: { type: integer, minimum: 0, maximum: 30 }
+        maxLongVolPct:
+          allOf: [{ $ref: "#/components/schemas/Decimal" }]
+          description: "LONG entries are skipped when the coin's 30-day volatility (stdev of daily log returns, %) is at or above this; 0 turns the filter off"
         sizes: { $ref: "#/components/schemas/Ema1dSizes" }
         marginLevelWarn: { $ref: "#/components/schemas/Decimal" }
         marginLevelAlert: { $ref: "#/components/schemas/Decimal" }

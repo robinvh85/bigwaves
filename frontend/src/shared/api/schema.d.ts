@@ -1005,6 +1005,8 @@ export interface components {
             dailyCheckEnabled: boolean;
             budgetUsdt: components["schemas"]["Decimal"];
             maxEntryAgeDays: number;
+            /** @description LONG entries are skipped when the coin's 30-day volatility (stdev of daily log returns, %) is at or above this; 0 turns the filter off */
+            maxLongVolPct: components["schemas"]["Decimal"];
             sizes: components["schemas"]["Ema1dSizes"];
             marginLevelWarn: components["schemas"]["Decimal"];
             marginLevelAlert: components["schemas"]["Decimal"];

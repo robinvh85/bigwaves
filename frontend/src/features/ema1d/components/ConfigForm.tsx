@@ -21,6 +21,7 @@ const schema = z
   .object({
     budgetUsdt: dec,
     maxEntryAgeDays: z.coerce.number().int().min(0).max(30),
+    maxLongVolPct: pct,
     coreLong: pct,
     coreShort: pct,
     sensitiveLong: pct,
@@ -39,6 +40,7 @@ function toForm(c: Ema1dConfig): FormIn {
   return {
     budgetUsdt: c.budgetUsdt,
     maxEntryAgeDays: c.maxEntryAgeDays,
+    maxLongVolPct: c.maxLongVolPct,
     coreLong: c.sizes.coreLong,
     coreShort: c.sizes.coreShort,
     sensitiveLong: c.sizes.sensitiveLong,
@@ -53,6 +55,7 @@ function toConfig(base: Ema1dConfig, f: Form): Ema1dConfig {
     ...base,
     budgetUsdt: f.budgetUsdt,
     maxEntryAgeDays: f.maxEntryAgeDays,
+    maxLongVolPct: f.maxLongVolPct,
     sizes: {
       coreLong: f.coreLong,
       coreShort: f.coreShort,
@@ -67,6 +70,7 @@ function toConfig(base: Ema1dConfig, f: Form): Ema1dConfig {
 const LABELS: Record<keyof Form, string> = {
   budgetUsdt: 'Budget',
   maxEntryAgeDays: 'Max signal age',
+  maxLongVolPct: 'Max 30-day volatility for LONG',
   coreLong: 'Core · LONG',
   coreShort: 'Core · SHORT',
   sensitiveLong: 'Sensitive · LONG',
@@ -150,7 +154,10 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
             unit: 'days',
             hint: 'Entry signals older than this are not opened (exit signals always run).',
           })}
-          <div />
+          {field('maxLongVolPct', {
+            unit: '%',
+            hint: 'A LONG is not opened when the coin moved this much a day over the 30 days before the signal (stdev of daily returns). 0 = off. Shorts and manual todos are not filtered.',
+          })}
           {field('marginLevelWarn', {
             hint: 'The monitor warns on Discord at most once an hour while margin level is below this.',
           })}

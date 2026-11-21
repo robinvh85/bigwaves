@@ -30,7 +30,11 @@ type Config struct {
 	// positions, never the account balance (other strategies share the cross account).
 	BudgetUSDT money.Dec `json:"budgetUsdt"`
 	// MaxEntryAgeDays: entries older than this many days are not opened.
-	MaxEntryAgeDays int       `json:"maxEntryAgeDays"`
+	MaxEntryAgeDays int `json:"maxEntryAgeDays"`
+	// MaxLongVolPct: the sync does not open a LONG when the coin's 30-day volatility at the entry
+	// candle (engine.LogReturnStdev, in %) is at or above this. 0 turns the filter off. Shorts and
+	// manual todos are not filtered. Research: tradingview-ema/ema-1d-exit/review2611.
+	MaxLongVolPct   money.Dec `json:"maxLongVolPct"`
 	Sizes           Sizes     `json:"sizes"`
 	MarginLevelWarn money.Dec `json:"marginLevelWarn"`
 	// MarginLevelAlert is the stronger alert threshold.
@@ -50,6 +54,7 @@ func DefaultConfig() Config {
 	return Config{
 		BudgetUSDT:       money.FromInt(6000),
 		MaxEntryAgeDays:  1,
+		MaxLongVolPct:    money.FromInt(6),
 		Sizes:            SuggestedSizes,
 		MarginLevelWarn:  money.MustParse("1.5"),
 		MarginLevelAlert: money.MustParse("1.3"),
@@ -63,6 +68,9 @@ func (c Config) Validate() error {
 	}
 	if c.MaxEntryAgeDays < 0 || c.MaxEntryAgeDays > 30 {
 		errs = append(errs, errors.New("maxEntryAgeDays must be between 0 and 30"))
+	}
+	if c.MaxLongVolPct.IsNegative() || c.MaxLongVolPct.GreaterThan(money.FromInt(100)) {
+		errs = append(errs, errors.New("maxLongVolPct must be between 0 and 100"))
 	}
 	for name, v := range map[string]money.Dec{
 		"coreLong": c.Sizes.CoreLong, "coreShort": c.Sizes.CoreShort,

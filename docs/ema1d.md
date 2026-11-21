@@ -9,6 +9,7 @@
 | Nến | 1D Binance, mở lúc 00:00 UTC (07:00 VN) |
 | Chỉ báo | EMA14 của giá **open**; Smooth10 = EMA10 của EMA14 (kiểu pandas `ewm(adjust=False)`) |
 | Vào | LONG khi EMA14 cắt lên Smooth10, SHORT khi cắt xuống; giá vào = open của nến đó |
+| Lọc LONG | Không mở LONG khi biến động 30 ngày của coin ≥ `maxLongVolPct` (mặc định 6%), xem bên dưới |
 | Khởi động | Cần > 40 nến 1D (EMA không cắt warm-up, tín hiệu chỉ xét từ nến thứ 41) |
 | Thoát | XO: cắt ngược chiều, thoát ở open nến đó. DIV4H (chỉ LONG): xem bên dưới. SHORT luôn thoát XO |
 | Luật thoát LONG | Theo từng coin (`long_exit_rule`): BTC dùng XO, các coin khác dùng DIV4H |
@@ -97,7 +98,29 @@ sequenceDiagram
 | OPEN chưa từng gửi lên sàn | thay đổi | Huỷ OPEN đó thay vì đóng |
 
 Không mở mới khi: pair không ACTIVE, chiều không cho phép/Binance không cho vay, ngày vào trước
-`added_on`, tín hiệu cũ hơn `maxEntryAgeDays`, hoặc đang tạm dừng mở mới. Lệnh đóng luôn chạy.
+`added_on`, tín hiệu cũ hơn `maxEntryAgeDays`, đang tạm dừng mở mới, hoặc LONG bị bộ lọc biến động chặn.
+Lệnh đóng luôn chạy.
+
+### Bộ lọc biến động cho LONG
+
+Sync không tạo OPEN LONG khi coin đang biến động quá mạnh (lý do bỏ qua `long_vol_too_high (30d 7.2% >= 6%)`):
+
+- **Biến động** = độ lệch chuẩn (tổng thể) của 30 lợi suất log theo giá close, lấy từ 31 nến 1D đã đóng ngay
+  trước nến vào lệnh (`engine.LogReturnStdev`). 6% nghĩa là 30 ngày qua coin dao động cỡ ±6% mỗi ngày.
+- Tính tại **nến vào lệnh của chiến lược**, nên một tín hiệu đã bị chặn thì các lần sync sau vẫn bị chặn; coin
+  đứng ngoài tới tín hiệu kế tiếp. Không vào bù khi biến động hạ xuống.
+- Chỉ áp cho OPEN LONG do sync tạo. SHORT, CLOSE (kể cả CLOSE của một lần đảo chiều) và todo tạo tay không bị
+  lọc. Engine và báo cáo trạng thái chiến lược không đổi: dòng trạng thái vẫn ghi LONG, phần "bỏ qua" của sync
+  cho biết lệnh không được mở.
+- Thiếu nến (31 nến trước ngày vào không liền nhau tới hôm trước) thì không lọc và sync cảnh báo
+  `long_vol_unknown`.
+- `maxLongVolPct = 0` tắt bộ lọc.
+
+Cơ sở (`tradingview-ema/ema-1d-exit/review2611/REPORT_REVIEW_2611.md`, dữ liệu Binance 01/2022 → 11/2026):
+LONG vào lúc biến động ≥ 6% thắng 28% (lệnh còn lại 41%), lãi TB −1,0% so với +8,9%. Rổ 20: Sharpe 1,92 so
+với 1,69, MaxDD −21% so với −23%. Cửa sổ ngắn hơn 30 ngày kém hơn (5–10 ngày còn có hại) vì nó đo chính cú
+bứt giá tạo tín hiệu. Hạn chế đã biết: trên rổ 20 phần lợi về lãi dồn nhiều vào năm 2024, và ở thị trường
+tăng mạnh kiểu 2020–2021 bộ lọc bỏ mất một số lệnh thắng lớn.
 
 ## Hàng đợi
 
@@ -109,4 +132,4 @@ lịch sử vay, không vay lần hai.
 ## Cấu hình
 
 Màn EMA1D → Settings (mọi thay đổi có lịch sử). Thực thi lệnh, tạm dừng mở mới, daily check, ngân sách,
-% khối lượng, tuổi tín hiệu, ngưỡng margin level.
+% khối lượng, tuổi tín hiệu, ngưỡng biến động cho LONG, ngưỡng margin level.
