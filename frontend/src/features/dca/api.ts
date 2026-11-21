@@ -14,7 +14,6 @@ export const dcaKeys = {
   list: () => [...dcaKeys.all, 'list'] as const,
   detail: (id: number) => [...dcaKeys.all, 'detail', id] as const,
   config: () => [...dcaKeys.all, 'config'] as const,
-  history: () => [...dcaKeys.all, 'config', 'history'] as const,
 }
 
 registerEventInvalidation('dca.updated', [dcaKeys.all])
@@ -36,12 +35,6 @@ export const dcaConfigQuery = queryOptions({
   queryKey: dcaKeys.config(),
   queryFn: () => unwrap(api.GET('/dca/config')),
   staleTime: 0,
-})
-
-export const dcaHistoryQuery = queryOptions({
-  queryKey: dcaKeys.history(),
-  queryFn: () => unwrap(api.GET('/dca/config/history')),
-  select: (d) => d.items,
 })
 
 function useInvalidate() {

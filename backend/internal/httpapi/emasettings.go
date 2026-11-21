@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	"bigwaves/internal/auth"
@@ -186,19 +185,4 @@ func (s *Server) UpdateEmaSettingsConfig(ctx context.Context, req UpdateEmaSetti
 	}
 	env, err := s.emaSettingsEnvelope(ctx)
 	return UpdateEmaSettingsConfig200JSONResponse(env), err
-}
-
-func (s *Server) GetEmaSettingsConfigHistory(ctx context.Context, _ GetEmaSettingsConfigHistoryRequestObject) (GetEmaSettingsConfigHistoryResponseObject, error) {
-	rows, err := s.Configs.History(ctx, emasettings.StrategyKey, 50)
-	if err != nil {
-		return nil, err
-	}
-	items := make([]ConfigChange, len(rows))
-	for i, r := range rows {
-		var before, after map[string]any
-		_ = json.Unmarshal(r.Before, &before)
-		_ = json.Unmarshal(r.After, &after)
-		items[i] = ConfigChange{Id: r.ID, Before: before, After: after, UserEmail: r.UserEmail, CreatedAt: r.CreatedAt.Time}
-	}
-	return GetEmaSettingsConfigHistory200JSONResponse{Items: items}, nil
 }

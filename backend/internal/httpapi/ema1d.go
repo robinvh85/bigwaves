@@ -206,21 +206,6 @@ func (s *Server) UpdateEma1dConfig(ctx context.Context, req UpdateEma1dConfigReq
 	return UpdateEma1dConfig200JSONResponse(env), err
 }
 
-func (s *Server) GetEma1dConfigHistory(ctx context.Context, _ GetEma1dConfigHistoryRequestObject) (GetEma1dConfigHistoryResponseObject, error) {
-	rows, err := s.Configs.History(ctx, ema1d.StrategyKey, 50)
-	if err != nil {
-		return nil, err
-	}
-	items := make([]ConfigChange, len(rows))
-	for i, r := range rows {
-		var before, after map[string]any
-		_ = json.Unmarshal(r.Before, &before)
-		_ = json.Unmarshal(r.After, &after)
-		items[i] = ConfigChange{Id: r.ID, Before: before, After: after, UserEmail: r.UserEmail, CreatedAt: r.CreatedAt.Time}
-	}
-	return GetEma1dConfigHistory200JSONResponse{Items: items}, nil
-}
-
 func nonNilSlice[T any](xs []T) []T {
 	if xs == nil {
 		return []T{}

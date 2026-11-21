@@ -10,6 +10,3 @@ WHERE strategy = ? AND version = ?;
 
 -- name: InsertConfigChange :exec
 INSERT INTO config_changes (strategy, before, after, user_email) VALUES (?, ?, ?, ?);
-
--- name: ListConfigChanges :many
-SELECT * FROM config_changes WHERE strategy = ? ORDER BY id DESC LIMIT ?;

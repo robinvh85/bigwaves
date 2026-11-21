@@ -32,7 +32,6 @@ export const ema1dKeys = {
   signals: () => [...ema1dKeys.all, 'signals'] as const,
   dailyChecks: () => [...ema1dKeys.all, 'daily-checks'] as const,
   config: () => [...ema1dKeys.all, 'config'] as const,
-  configHistory: () => [...ema1dKeys.all, 'config', 'history'] as const,
 }
 
 // The queue, the monitor and the daily check publish "ema1d.updated": refresh everything EMA1D.
@@ -86,12 +85,6 @@ export const configQuery = queryOptions({
   queryKey: ema1dKeys.config(),
   queryFn: () => unwrap(api.GET('/ema1d/config')),
   staleTime: 0,
-})
-
-export const configHistoryQuery = queryOptions({
-  queryKey: ema1dKeys.configHistory(),
-  queryFn: () => unwrap(api.GET('/ema1d/config/history')),
-  select: (d) => d.items,
 })
 
 function useInvalidateAll() {

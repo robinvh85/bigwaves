@@ -226,8 +226,12 @@ func TestConfigStoreVersioning(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "7000", got.Budget)
 
-	hist, err := s.History(ctx, "test", 10)
+	// Every save keeps an audit row (config_changes) with who made it.
+	var n int
+	var email string
+	err = k.App.DB.Read.QueryRowContext(ctx,
+		`SELECT COUNT(*), MAX(user_email) FROM config_changes WHERE strategy = 'test'`).Scan(&n, &email)
 	require.NoError(t, err)
-	require.Len(t, hist, 1)
-	require.Equal(t, "dev@example.com", hist[0].UserEmail)
+	require.Equal(t, 1, n)
+	require.Equal(t, "dev@example.com", email)
 }

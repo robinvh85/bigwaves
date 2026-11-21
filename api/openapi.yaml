@@ -530,22 +530,6 @@ paths:
               schema: { $ref: "#/components/schemas/Ema1dConfigEnvelope" }
         default: { $ref: "#/components/responses/Error" }
 
-  /ema1d/config/history:
-    get:
-      tags: [ema1d]
-      operationId: getEma1dConfigHistory
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [items]
-                properties:
-                  items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
-        default: { $ref: "#/components/responses/Error" }
-
   /dca/settings:
     get:
       tags: [dca]
@@ -731,22 +715,6 @@ paths:
               schema: { $ref: "#/components/schemas/DcaConfigEnvelope" }
         default: { $ref: "#/components/responses/Error" }
 
-  /dca/config/history:
-    get:
-      tags: [dca]
-      operationId: getDcaConfigHistory
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [items]
-                properties:
-                  items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
-        default: { $ref: "#/components/responses/Error" }
-
   /ema-cross/pairs:
     get:
       tags: [emacross]
@@ -837,22 +805,6 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/EmaCrossConfigEnvelope" }
-        default: { $ref: "#/components/responses/Error" }
-
-  /ema-cross/config/history:
-    get:
-      tags: [emacross]
-      operationId: getEmaCrossConfigHistory
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [items]
-                properties:
-                  items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
         default: { $ref: "#/components/responses/Error" }
 
   /ema-settings/settings:
@@ -1095,22 +1047,6 @@ paths:
               schema: { $ref: "#/components/schemas/EmaSettingsConfigEnvelope" }
         default: { $ref: "#/components/responses/Error" }
 
-  /ema-settings/config/history:
-    get:
-      tags: [emasettings]
-      operationId: getEmaSettingsConfigHistory
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [items]
-                properties:
-                  items: { type: array, items: { $ref: "#/components/schemas/ConfigChange" } }
-        default: { $ref: "#/components/responses/Error" }
-
 components:
   parameters:
     Id:
@@ -1279,16 +1215,6 @@ components:
     Side:
       type: string
       enum: [LONG, SHORT]
-
-    ConfigChange:
-      type: object
-      required: [id, before, after, userEmail, createdAt]
-      properties:
-        id: { type: integer, format: int64 }
-        before: { type: object, additionalProperties: true }
-        after: { type: object, additionalProperties: true }
-        userEmail: { type: string }
-        createdAt: { type: string, format: date-time }
 
     Ema1dSizes:
       type: object

@@ -118,11 +118,6 @@ func (s *Store) Save(ctx context.Context, strategy string, version int64, next a
 	return newVersion, nil
 }
 
-// History returns the latest changes, newest first.
-func (s *Store) History(ctx context.Context, strategy string, limit int64) ([]dbq.ConfigChange, error) {
-	return dbq.New(s.db.Read).ListConfigChanges(ctx, dbq.ListConfigChangesParams{Strategy: strategy, Limit: limit})
-}
-
 // Invalidate drops the cache (after an import that wrote the table directly).
 func (s *Store) Invalidate() {
 	s.mu.Lock()

@@ -416,22 +416,6 @@ export interface paths {
         patch: operations["updateEma1dConfig"];
         trace?: never;
     };
-    "/ema1d/config/history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getEma1dConfigHistory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/dca/settings": {
         parameters: {
             query?: never;
@@ -556,22 +540,6 @@ export interface paths {
         patch: operations["updateDcaConfig"];
         trace?: never;
     };
-    "/dca/config/history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getDcaConfigHistory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ema-cross/pairs": {
         parameters: {
             query?: never;
@@ -638,22 +606,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["updateEmaCrossConfig"];
-        trace?: never;
-    };
-    "/ema-cross/config/history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getEmaCrossConfigHistory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/ema-settings/settings": {
@@ -840,22 +792,6 @@ export interface paths {
         patch: operations["updateEmaSettingsConfig"];
         trace?: never;
     };
-    "/ema-settings/config/history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getEmaSettingsConfigHistory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -977,19 +913,6 @@ export interface components {
         };
         /** @enum {string} */
         Side: "LONG" | "SHORT";
-        ConfigChange: {
-            /** Format: int64 */
-            id: number;
-            before: {
-                [key: string]: unknown;
-            };
-            after: {
-                [key: string]: unknown;
-            };
-            userEmail: string;
-            /** Format: date-time */
-            createdAt: string;
-        };
         /** @description % of the strategy capital per trade, the same for every coin */
         Ema1dSizes: {
             long: components["schemas"]["Decimal"];
@@ -2332,29 +2255,6 @@ export interface operations {
             default: components["responses"]["Error"];
         };
     };
-    getEma1dConfigHistory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        items: components["schemas"]["ConfigChange"][];
-                    };
-                };
-            };
-            default: components["responses"]["Error"];
-        };
-    };
     listDcaSettings: {
         parameters: {
             query?: {
@@ -2655,29 +2555,6 @@ export interface operations {
             default: components["responses"]["Error"];
         };
     };
-    getDcaConfigHistory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        items: components["schemas"]["ConfigChange"][];
-                    };
-                };
-            };
-            default: components["responses"]["Error"];
-        };
-    };
     listEmaCrossPairs: {
         parameters: {
             query?: never;
@@ -2799,29 +2676,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmaCrossConfigEnvelope"];
-                };
-            };
-            default: components["responses"]["Error"];
-        };
-    };
-    getEmaCrossConfigHistory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        items: components["schemas"]["ConfigChange"][];
-                    };
                 };
             };
             default: components["responses"]["Error"];
@@ -3194,29 +3048,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmaSettingsConfigEnvelope"];
-                };
-            };
-            default: components["responses"]["Error"];
-        };
-    };
-    getEmaSettingsConfigHistory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        items: components["schemas"]["ConfigChange"][];
-                    };
                 };
             };
             default: components["responses"]["Error"];

@@ -5,14 +5,12 @@ import { useState } from 'react'
 import {
   type EmaCrossConfig,
   emaCrossConfigQuery,
-  emaCrossHistoryQuery,
   useSaveEmaCrossConfig,
 } from '@/features/emacross/api'
 import { CampaignConfigCards } from '@/features/emasettings/components/ConfigCards'
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { NumberInput } from '@/shared/components/number-input'
 import { ErrorState, PageHeader, SkeletonRows } from '@/shared/components/states'
-import { formatDateTime } from '@/shared/lib/date'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Label } from '@/shared/ui/label'
@@ -27,7 +25,6 @@ const isPercent = (v: string) => /^\d+(\.\d+)?$/.test(v) && Number(v) <= 100
 
 function EmaCrossConfigPage() {
   const { data, error, refetch } = useQuery(emaCrossConfigQuery)
-  const { data: history } = useQuery(emaCrossHistoryQuery)
   const save = useSaveEmaCrossConfig()
   const [edit, setEdit] = useState<string | null>(null)
   const [pending, setPending] = useState<EmaCrossConfig | null>(null)
@@ -84,23 +81,6 @@ function EmaCrossConfigPage() {
           </CardContent>
         </Card>
         <CampaignConfigCards />
-        {history && history.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Change history</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              {history.map((h) => (
-                <p key={h.id}>
-                  <span className="text-muted-foreground">
-                    {formatDateTime(h.createdAt)} · {h.userEmail}:
-                  </span>{' '}
-                  {JSON.stringify(h.before)} → {JSON.stringify(h.after)}
-                </p>
-              ))}
-            </CardContent>
-          </Card>
-        )}
       </div>
       {pending && (
         <ConfirmDialog

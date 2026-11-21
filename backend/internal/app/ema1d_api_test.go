@@ -58,11 +58,6 @@ func TestEma1dStatusAndConfigEndpoints(t *testing.T) {
 	cfg["maxEntryAgeDays"] = 99
 	code, body = call(t, k, http.MethodPatch, "/api/v1/ema1d/config", map[string]any{"version": 2, "config": cfg})
 	require.Equal(t, http.StatusBadRequest, code, body)
-
-	code, body = call(t, k, http.MethodGet, "/api/v1/ema1d/config/history", nil)
-	require.Equal(t, http.StatusOK, code)
-	require.Len(t, body["items"], 1)
-	require.Equal(t, "dev@example.com", body["items"].([]any)[0].(map[string]any)["userEmail"])
 }
 
 func TestEma1dManualTodoEndpoints(t *testing.T) {

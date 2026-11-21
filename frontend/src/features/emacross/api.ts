@@ -19,7 +19,6 @@ export const emaCrossKeys = {
   pairs: () => [...emaCrossKeys.all, 'pairs'] as const,
   alerts: (f: AlertFilter) => [...emaCrossKeys.all, 'alerts', f] as const,
   config: () => [...emaCrossKeys.all, 'config'] as const,
-  history: () => [...emaCrossKeys.all, 'config', 'history'] as const,
 }
 
 registerEventInvalidation('emacross.updated', [emaCrossKeys.all])
@@ -41,12 +40,6 @@ export const emaCrossConfigQuery = queryOptions({
   queryKey: emaCrossKeys.config(),
   queryFn: () => unwrap(api.GET('/ema-cross/config')),
   staleTime: 0,
-})
-
-export const emaCrossHistoryQuery = queryOptions({
-  queryKey: emaCrossKeys.history(),
-  queryFn: () => unwrap(api.GET('/ema-cross/config/history')),
-  select: (d) => d.items,
 })
 
 function useInvalidate() {

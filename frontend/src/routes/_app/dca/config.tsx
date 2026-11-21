@@ -2,10 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 
-import { dcaConfigQuery, dcaHistoryQuery, useSaveDcaConfig } from '@/features/dca/api'
+import { dcaConfigQuery, useSaveDcaConfig } from '@/features/dca/api'
 import { ConfirmDialog } from '@/shared/components/confirm-dialog'
 import { ErrorState, PageHeader, SkeletonRows } from '@/shared/components/states'
-import { formatDateTime } from '@/shared/lib/date'
 import { formatUsd } from '@/shared/lib/format'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -20,7 +19,6 @@ export const Route = createFileRoute('/_app/dca/config')({
 
 function DcaConfigPage() {
   const { data, error, refetch } = useQuery(dcaConfigQuery)
-  const { data: history } = useQuery(dcaHistoryQuery)
   const save = useSaveDcaConfig()
   const [cap, setCap] = useState<string | null>(null)
   const [pending, setPending] = useState<{ enabled: boolean; maxCapitalUsdt: string } | null>(null)
@@ -75,23 +73,6 @@ function DcaConfigPage() {
             </Button>
           </CardContent>
         </Card>
-        {history && history.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Change history</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              {history.map((h) => (
-                <p key={h.id}>
-                  <span className="text-muted-foreground">
-                    {formatDateTime(h.createdAt)} · {h.userEmail}:
-                  </span>{' '}
-                  {JSON.stringify(h.before)} → {JSON.stringify(h.after)}
-                </p>
-              ))}
-            </CardContent>
-          </Card>
-        )}
       </div>
       {pending && (
         <ConfirmDialog

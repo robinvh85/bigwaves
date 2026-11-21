@@ -43,7 +43,6 @@ export const emaSettingsKeys = {
   list: (status?: EmaSettingStatus) => [...emaSettingsKeys.all, 'list', status ?? 'all'] as const,
   detail: (id: number) => [...emaSettingsKeys.all, 'detail', id] as const,
   config: () => [...emaSettingsKeys.all, 'config'] as const,
-  history: () => [...emaSettingsKeys.all, 'config', 'history'] as const,
 }
 
 registerEventInvalidation('emasettings.updated', [emaSettingsKeys.all])
@@ -66,12 +65,6 @@ export const emaSettingsConfigQuery = queryOptions({
   queryKey: emaSettingsKeys.config(),
   queryFn: () => unwrap(api.GET('/ema-settings/config')),
   staleTime: 0,
-})
-
-export const emaSettingsHistoryQuery = queryOptions({
-  queryKey: emaSettingsKeys.history(),
-  queryFn: () => unwrap(api.GET('/ema-settings/config/history')),
-  select: (d) => d.items,
 })
 
 function useInvalidate() {

@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	"bigwaves/internal/auth"
@@ -144,19 +143,4 @@ func (s *Server) UpdateDcaConfig(ctx context.Context, req UpdateDcaConfigRequest
 	}
 	env, err := s.dcaEnvelope(ctx)
 	return UpdateDcaConfig200JSONResponse(env), err
-}
-
-func (s *Server) GetDcaConfigHistory(ctx context.Context, _ GetDcaConfigHistoryRequestObject) (GetDcaConfigHistoryResponseObject, error) {
-	rows, err := s.Configs.History(ctx, dca.StrategyKey, 50)
-	if err != nil {
-		return nil, err
-	}
-	items := make([]ConfigChange, len(rows))
-	for i, r := range rows {
-		var before, after map[string]any
-		_ = json.Unmarshal(r.Before, &before)
-		_ = json.Unmarshal(r.After, &after)
-		items[i] = ConfigChange{Id: r.ID, Before: before, After: after, UserEmail: r.UserEmail, CreatedAt: r.CreatedAt.Time}
-	}
-	return GetDcaConfigHistory200JSONResponse{Items: items}, nil
 }

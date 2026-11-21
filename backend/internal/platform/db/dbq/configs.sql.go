@@ -62,45 +62,6 @@ func (q *Queries) InsertStrategyConfig(ctx context.Context, arg InsertStrategyCo
 	return err
 }
 
-const listConfigChanges = `-- name: ListConfigChanges :many
-SELECT id, strategy, "before", "after", user_email, created_at FROM config_changes WHERE strategy = ? ORDER BY id DESC LIMIT ?
-`
-
-type ListConfigChangesParams struct {
-	Strategy string
-	Limit    int64
-}
-
-func (q *Queries) ListConfigChanges(ctx context.Context, arg ListConfigChangesParams) ([]ConfigChange, error) {
-	rows, err := q.db.QueryContext(ctx, listConfigChanges, arg.Strategy, arg.Limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ConfigChange{}
-	for rows.Next() {
-		var i ConfigChange
-		if err := rows.Scan(
-			&i.ID,
-			&i.Strategy,
-			&i.Before,
-			&i.After,
-			&i.UserEmail,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateStrategyConfig = `-- name: UpdateStrategyConfig :execrows
 UPDATE strategy_configs SET config = ?, version = version + 1, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 WHERE strategy = ? AND version = ?

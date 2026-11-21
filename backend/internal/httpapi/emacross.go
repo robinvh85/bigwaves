@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	"bigwaves/internal/auth"
@@ -69,19 +68,4 @@ func (s *Server) UpdateEmaCrossConfig(ctx context.Context, req UpdateEmaCrossCon
 	}
 	env, err := s.emaCrossEnvelope(ctx)
 	return UpdateEmaCrossConfig200JSONResponse(env), err
-}
-
-func (s *Server) GetEmaCrossConfigHistory(ctx context.Context, _ GetEmaCrossConfigHistoryRequestObject) (GetEmaCrossConfigHistoryResponseObject, error) {
-	rows, err := s.Configs.History(ctx, emacross.StrategyKey, 50)
-	if err != nil {
-		return nil, err
-	}
-	items := make([]ConfigChange, len(rows))
-	for i, r := range rows {
-		var before, after map[string]any
-		_ = json.Unmarshal(r.Before, &before)
-		_ = json.Unmarshal(r.After, &after)
-		items[i] = ConfigChange{Id: r.ID, Before: before, After: after, UserEmail: r.UserEmail, CreatedAt: r.CreatedAt.Time}
-	}
-	return GetEmaCrossConfigHistory200JSONResponse{Items: items}, nil
 }

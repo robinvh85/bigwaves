@@ -42,8 +42,4 @@ func TestEmaCrossEndpoints(t *testing.T) {
 	cfg["thresholdPercent"] = "-1"
 	code, body = call(t, k, http.MethodPatch, "/api/v1/ema-cross/config", map[string]any{"version": body["version"], "config": cfg})
 	require.Equal(t, http.StatusBadRequest, code, body)
-
-	code, body = call(t, k, http.MethodGet, "/api/v1/ema-cross/config/history", nil)
-	require.Equal(t, http.StatusOK, code, body)
-	require.Len(t, body["items"], 1)
 }
