@@ -189,10 +189,8 @@ func (s *Service) Status(ctx context.Context) (Status, error) {
 	m := s.lastMarginLevel(ctx)
 	st.MarginLevel = MarginStatus{Value: m.Value, At: m.At, Warn: cfg.MarginLevelWarn, Alert: cfg.MarginLevelAlert}
 	st.Sizes = []SizeRow{
-		{"coreLong", cfg.Sizes.CoreLong, SuggestedSizes.CoreLong},
-		{"coreShort", cfg.Sizes.CoreShort, SuggestedSizes.CoreShort},
-		{"sensitiveLong", cfg.Sizes.SensitiveLong, SuggestedSizes.SensitiveLong},
-		{"sensitiveShort", cfg.Sizes.SensitiveShort, SuggestedSizes.SensitiveShort},
+		{"long", cfg.Sizes.Long, SuggestedSizes.Long},
+		{"short", cfg.Sizes.Short, SuggestedSizes.Short},
 	}
 	if st.Todos, err = s.Todos(ctx, false); err != nil {
 		return Status{}, err
@@ -301,7 +299,6 @@ type PairRow struct {
 	PairID         int64         `json:"pairId"`
 	Coin           string        `json:"coin"`
 	PairName       string        `json:"pairName"`
-	PairGroup      string        `json:"pairGroup"`
 	Status         string        `json:"status"`
 	AllowLong      bool          `json:"allowLong"`
 	AllowShort     bool          `json:"allowShort"`
@@ -340,7 +337,7 @@ func (s *Service) PairRows(ctx context.Context) ([]PairRow, error) {
 	out := make([]PairRow, 0, len(pairs))
 	for _, pv := range pairs {
 		row := PairRow{
-			ID: pv.ID, PairID: pv.PairID, Coin: pv.CoinName, PairName: pv.PairName, PairGroup: pv.PairGroup, Status: pv.Status,
+			ID: pv.ID, PairID: pv.PairID, Coin: pv.CoinName, PairName: pv.PairName, Status: pv.Status,
 			AllowLong: pv.AllowLong, AllowShort: pv.AllowShort, ShortSupported: pv.ShortSupported, LongExitRule: pv.LongExitRule,
 			AddedOn: pv.AddedOn, RemovedOn: pv.RemovedOn, SignalFrom: pv.SignalFrom, CheckNote: pv.CheckNote,
 			CheckedAt: timePtr(pv.CheckedAt), CurrentPrice: pv.CurrentPrice, PriceUpdatedAt: dbtype.TimePtr(pv.PriceUpdatedAt), PendingTodos: []string{},

@@ -39,16 +39,6 @@ export function BasketStatusBadge({ status }: { status: Ema1dPairRow['status'] }
   )
 }
 
-export function GroupBadge({ group }: { group: Ema1dPairRow['pairGroup'] }) {
-  return (
-    <span
-      className={cn('text-xs font-medium', group === 'CORE' ? 'text-foreground' : 'text-muted-foreground')}
-    >
-      {group === 'CORE' ? 'Core' : 'Sensitive'}
-    </span>
-  )
-}
-
 /** L / S / F as wanted by the strategy. */
 export function WantedLabel({ state }: { state: 'L' | 'S' | 'F' }) {
   if (state === 'F') return <span className="text-muted-foreground">Flat</span>

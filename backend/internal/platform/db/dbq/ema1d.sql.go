@@ -187,15 +187,14 @@ func (q *Queries) CountRealSyncsForDate(ctx context.Context, signalDate string) 
 }
 
 const createEma1dPair = `-- name: CreateEma1dPair :one
-INSERT INTO ema1d_pairs (pair_id, pair_group, allow_long, allow_short, short_supported, status, added_on,
+INSERT INTO ema1d_pairs (pair_id, allow_long, allow_short, short_supported, status, added_on,
                          long_exit_rule, signal_from, check_note)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, pair_id, pair_group, allow_long, allow_short, short_supported, status, added_on, removed_on, long_exit_rule, signal_from, checked_at, check_note, created_at, updated_at
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, pair_id, allow_long, allow_short, short_supported, status, added_on, removed_on, long_exit_rule, signal_from, checked_at, check_note, created_at, updated_at
 `
 
 type CreateEma1dPairParams struct {
 	PairID         int64
-	PairGroup      string
 	AllowLong      bool
 	AllowShort     bool
 	ShortSupported bool
@@ -209,7 +208,6 @@ type CreateEma1dPairParams struct {
 func (q *Queries) CreateEma1dPair(ctx context.Context, arg CreateEma1dPairParams) (Ema1dPair, error) {
 	row := q.db.QueryRowContext(ctx, createEma1dPair,
 		arg.PairID,
-		arg.PairGroup,
 		arg.AllowLong,
 		arg.AllowShort,
 		arg.ShortSupported,
@@ -223,7 +221,6 @@ func (q *Queries) CreateEma1dPair(ctx context.Context, arg CreateEma1dPairParams
 	err := row.Scan(
 		&i.ID,
 		&i.PairID,
-		&i.PairGroup,
 		&i.AllowLong,
 		&i.AllowShort,
 		&i.ShortSupported,
@@ -515,7 +512,7 @@ func (q *Queries) GetDailyCheck(ctx context.Context, signalDate string) (Ema1dDa
 }
 
 const getEma1dPair = `-- name: GetEma1dPair :one
-SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
+SELECT e.id, e.pair_id, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE e.id = ?
@@ -539,7 +536,6 @@ func (q *Queries) GetEma1dPair(ctx context.Context, id int64) (GetEma1dPairRow, 
 	err := row.Scan(
 		&i.Ema1dPair.ID,
 		&i.Ema1dPair.PairID,
-		&i.Ema1dPair.PairGroup,
 		&i.Ema1dPair.AllowLong,
 		&i.Ema1dPair.AllowShort,
 		&i.Ema1dPair.ShortSupported,
@@ -565,7 +561,7 @@ func (q *Queries) GetEma1dPair(ctx context.Context, id int64) (GetEma1dPairRow, 
 }
 
 const getEma1dPairByCoin = `-- name: GetEma1dPairByCoin :one
-SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
+SELECT e.id, e.pair_id, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 WHERE c.name = ?
@@ -589,7 +585,6 @@ func (q *Queries) GetEma1dPairByCoin(ctx context.Context, name string) (GetEma1d
 	err := row.Scan(
 		&i.Ema1dPair.ID,
 		&i.Ema1dPair.PairID,
-		&i.Ema1dPair.PairGroup,
 		&i.Ema1dPair.AllowLong,
 		&i.Ema1dPair.AllowShort,
 		&i.Ema1dPair.ShortSupported,
@@ -615,7 +610,7 @@ func (q *Queries) GetEma1dPairByCoin(ctx context.Context, name string) (GetEma1d
 }
 
 const getEma1dPairByPairID = `-- name: GetEma1dPairByPairID :one
-SELECT id, pair_id, pair_group, allow_long, allow_short, short_supported, status, added_on, removed_on, long_exit_rule, signal_from, checked_at, check_note, created_at, updated_at FROM ema1d_pairs WHERE pair_id = ?
+SELECT id, pair_id, allow_long, allow_short, short_supported, status, added_on, removed_on, long_exit_rule, signal_from, checked_at, check_note, created_at, updated_at FROM ema1d_pairs WHERE pair_id = ?
 `
 
 func (q *Queries) GetEma1dPairByPairID(ctx context.Context, pairID int64) (Ema1dPair, error) {
@@ -624,7 +619,6 @@ func (q *Queries) GetEma1dPairByPairID(ctx context.Context, pairID int64) (Ema1d
 	err := row.Scan(
 		&i.ID,
 		&i.PairID,
-		&i.PairGroup,
 		&i.AllowLong,
 		&i.AllowShort,
 		&i.ShortSupported,
@@ -1025,7 +1019,7 @@ func (q *Queries) ListDailyChecks(ctx context.Context, limit int64) ([]Ema1dDail
 
 const listEma1dPairs = `-- name: ListEma1dPairs :many
 
-SELECT e.id, e.pair_id, e.pair_group, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
+SELECT e.id, e.pair_id, e.allow_long, e.allow_short, e.short_supported, e.status, e.added_on, e.removed_on, e.long_exit_rule, e.signal_from, e.checked_at, e.check_note, e.created_at, e.updated_at, p.name AS pair_name, c.name AS coin_name, p.current_price, p.price_updated_at, p.step_size, p.min_notional,
        p.is_spot, p.is_isolated
 FROM ema1d_pairs e JOIN pairs p ON p.id = e.pair_id JOIN coins c ON c.id = p.coin_id
 ORDER BY CASE e.status WHEN 'ACTIVE' THEN 0 WHEN 'EXIT_ONLY' THEN 1 ELSE 2 END, e.id
@@ -1056,7 +1050,6 @@ func (q *Queries) ListEma1dPairs(ctx context.Context) ([]ListEma1dPairsRow, erro
 		if err := rows.Scan(
 			&i.Ema1dPair.ID,
 			&i.Ema1dPair.PairID,
-			&i.Ema1dPair.PairGroup,
 			&i.Ema1dPair.AllowLong,
 			&i.Ema1dPair.AllowShort,
 			&i.Ema1dPair.ShortSupported,
@@ -1640,13 +1633,12 @@ func (q *Queries) StaleOpenTodos(ctx context.Context, createdAt dbtype.Time) ([]
 }
 
 const updateEma1dPair = `-- name: UpdateEma1dPair :exec
-UPDATE ema1d_pairs SET pair_group = ?, status = ?, allow_long = ?, allow_short = ?, added_on = ?, removed_on = ?,
+UPDATE ema1d_pairs SET status = ?, allow_long = ?, allow_short = ?, added_on = ?, removed_on = ?,
   long_exit_rule = ?, signal_from = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 WHERE id = ?
 `
 
 type UpdateEma1dPairParams struct {
-	PairGroup    string
 	Status       string
 	AllowLong    bool
 	AllowShort   bool
@@ -1659,7 +1651,6 @@ type UpdateEma1dPairParams struct {
 
 func (q *Queries) UpdateEma1dPair(ctx context.Context, arg UpdateEma1dPairParams) error {
 	_, err := q.db.ExecContext(ctx, updateEma1dPair,
-		arg.PairGroup,
 		arg.Status,
 		arg.AllowLong,
 		arg.AllowShort,

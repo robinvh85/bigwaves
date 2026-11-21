@@ -106,7 +106,6 @@ type Ema1dEquitySnapshot struct {
 type Ema1dPair struct {
 	ID             int64
 	PairID         int64
-	PairGroup      string
 	AllowLong      bool
 	AllowShort     bool
 	ShortSupported bool

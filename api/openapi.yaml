@@ -1295,12 +1295,11 @@ components:
 
     Ema1dSizes:
       type: object
-      required: [coreLong, coreShort, sensitiveLong, sensitiveShort]
+      description: "% of the strategy capital per trade, the same for every coin"
+      required: [long, short]
       properties:
-        coreLong: { $ref: "#/components/schemas/Decimal" }
-        coreShort: { $ref: "#/components/schemas/Decimal" }
-        sensitiveLong: { $ref: "#/components/schemas/Decimal" }
-        sensitiveShort: { $ref: "#/components/schemas/Decimal" }
+        long: { $ref: "#/components/schemas/Decimal" }
+        short: { $ref: "#/components/schemas/Decimal" }
 
     Ema1dConfig:
       type: object
@@ -1463,13 +1462,12 @@ components:
 
     Ema1dPairRow:
       type: object
-      required: [id, pairId, coin, pairName, pairGroup, status, allowLong, allowShort, shortSupported, addedOn, checkNote, pendingTodos, mismatch]
+      required: [id, pairId, coin, pairName, status, allowLong, allowShort, shortSupported, addedOn, checkNote, pendingTodos, mismatch]
       properties:
         id: { type: integer, format: int64 }
         pairId: { type: integer, format: int64 }
         coin: { type: string }
         pairName: { type: string }
-        pairGroup: { type: string, enum: [CORE, SENSITIVE] }
         status: { type: string, enum: [ACTIVE, EXIT_ONLY, DISABLED] }
         allowLong: { type: boolean }
         allowShort: { type: boolean }
@@ -1507,7 +1505,6 @@ components:
     Ema1dPairUpdate:
       type: object
       properties:
-        pairGroup: { type: string, enum: [CORE, SENSITIVE] }
         status: { type: string, enum: [ACTIVE, EXIT_ONLY, DISABLED] }
         allowLong: { type: boolean }
         allowShort: { type: boolean }

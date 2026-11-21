@@ -11,13 +11,15 @@ import (
 	"bigwaves/internal/platform/db/dbq"
 )
 
-// The basket chosen in October 2026: core and sensitive coins, long-only coins, and coins whose
-// LONG exits on XO (the others exit on DIV4H).
+// The basket chosen in October 2026, long-only coins, and coins whose LONG exits on XO (the others
+// exit on DIV4H).
 var (
-	CoreCoins      = []string{"JASMY", "WLD", "RAY", "GRT", "SUN", "BONK", "THETA", "STX", "SEI", "RENDER", "ETH", "FLOKI", "PEPE", "ZEC", "ARB"}
-	SensitiveCoins = []string{"AR", "BTC", "FET", "RUNE", "CFX"}
-	LongOnlyCoins  = []string{"BTC", "ZEC"}
-	LongExitXO     = []string{"BTC"}
+	BasketCoins = []string{
+		"JASMY", "WLD", "RAY", "GRT", "SUN", "BONK", "THETA", "STX", "SEI", "RENDER", "ETH", "FLOKI", "PEPE", "ZEC", "ARB",
+		"AR", "BTC", "FET", "RUNE", "CFX",
+	}
+	LongOnlyCoins = []string{"BTC", "ZEC"}
+	LongExitXO    = []string{"BTC"}
 )
 
 type SeedReport struct {
@@ -33,7 +35,7 @@ type SeedReport struct {
 func (s *Service) Seed(ctx context.Context, addedOn time.Time) (SeedReport, error) {
 	rep := SeedReport{CreatedPairs: []string{}, CreatedBasket: []string{}, KeptBasket: []string{}, Warnings: []string{}}
 	added := dateOnly(addedOn)
-	for _, coin := range append(slices.Clone(CoreCoins), SensitiveCoins...) {
+	for _, coin := range BasketCoins {
 		name := coin + "USDT"
 		pairRow, err := dbq.New(s.DB.Read).GetPairByName(ctx, name)
 		if isNoRows(err) {
@@ -57,10 +59,6 @@ func (s *Service) Seed(ctx context.Context, addedOn time.Time) (SeedReport, erro
 			return rep, err
 		}
 		longOnly := slices.Contains(LongOnlyCoins, coin)
-		group := GroupCore
-		if slices.Contains(SensitiveCoins, coin) {
-			group = GroupSensitive
-		}
 		rule := "DIV4H"
 		if slices.Contains(LongExitXO, coin) {
 			rule = "XO"
@@ -70,7 +68,7 @@ func (s *Service) Seed(ctx context.Context, addedOn time.Time) (SeedReport, erro
 			note = "long only"
 		}
 		if _, err := dbq.New(s.DB.Write).CreateEma1dPair(ctx, dbq.CreateEma1dPairParams{
-			PairID: pairRow.ID, PairGroup: group, AllowLong: true, AllowShort: !longOnly, ShortSupported: !longOnly,
+			PairID: pairRow.ID, AllowLong: true, AllowShort: !longOnly, ShortSupported: !longOnly,
 			Status: PairActive, AddedOn: added, LongExitRule: &rule, CheckNote: note,
 		}); err != nil {
 			return rep, err

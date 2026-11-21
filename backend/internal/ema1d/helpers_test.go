@@ -51,7 +51,6 @@ func (e *env) config(mut func(*ema1d.Config)) {
 
 type pairOpt func(*dbq.CreateEma1dPairParams)
 
-func sensitive(p *dbq.CreateEma1dPairParams) { p.PairGroup = ema1d.GroupSensitive }
 func longOnly(p *dbq.CreateEma1dPairParams) {
 	p.AllowShort, p.ShortSupported = false, false
 }
@@ -64,7 +63,7 @@ func (e *env) pair(coin, price, step string, opts ...pairOpt) dbq.Ema1dPair {
 	require.NoError(e.t, err)
 	rule := "XO"
 	params := dbq.CreateEma1dPairParams{
-		PairID: p.ID, PairGroup: ema1d.GroupCore, AllowLong: true, AllowShort: true, ShortSupported: true,
+		PairID: p.ID, AllowLong: true, AllowShort: true, ShortSupported: true,
 		Status: ema1d.PairActive, AddedOn: "2026-10-01", LongExitRule: &rule,
 	}
 	for _, o := range opts {
@@ -82,7 +81,7 @@ func (e *env) setPair(id int64, mut func(*dbq.Ema1dPair)) {
 	p := r.Ema1dPair
 	mut(&p)
 	require.NoError(e.t, e.q().UpdateEma1dPair(e.ctx, dbq.UpdateEma1dPairParams{
-		PairGroup: p.PairGroup, Status: p.Status, AllowLong: p.AllowLong, AllowShort: p.AllowShort, AddedOn: p.AddedOn,
+		Status: p.Status, AllowLong: p.AllowLong, AllowShort: p.AllowShort, AddedOn: p.AddedOn,
 		RemovedOn: p.RemovedOn, LongExitRule: p.LongExitRule, SignalFrom: p.SignalFrom, ID: p.ID,
 	}))
 	require.NoError(e.t, e.q().SetEma1dPairCheck(e.ctx, dbq.SetEma1dPairCheckParams{ShortSupported: p.ShortSupported, CheckNote: p.CheckNote, ID: p.ID}))

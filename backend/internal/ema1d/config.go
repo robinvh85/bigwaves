@@ -1,6 +1,7 @@
 package ema1d
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -10,12 +11,46 @@ import (
 // StrategyKey is the config store key of this strategy.
 const StrategyKey = "ema1d"
 
-// Sizes are % of the strategy equity per pair group and side.
+// Sizes are % of the strategy equity per side, the same for every coin.
 type Sizes struct {
-	CoreLong       money.Dec `json:"coreLong"`
-	CoreShort      money.Dec `json:"coreShort"`
-	SensitiveLong  money.Dec `json:"sensitiveLong"`
-	SensitiveShort money.Dec `json:"sensitiveShort"`
+	Long  money.Dec `json:"long"`
+	Short money.Dec `json:"short"`
+}
+
+// Coins per group in the basket when sizes were set per core / sensitive group (until 11/2026).
+const legacyCoreCoins, legacySensitiveCoins = 15, 5
+
+// UnmarshalJSON also reads the sizes saved per core / sensitive group: each side becomes the
+// average over the basket of that time, (15 × core + 5 × sensitive) / 20, so the capital in use
+// with every coin in a trade stays the same (7 / 2.5 → 5.875). Fields that are missing keep their
+// value (the defaults when loading a stored config).
+func (s *Sizes) UnmarshalJSON(b []byte) error {
+	var raw struct {
+		Long           *money.Dec `json:"long"`
+		Short          *money.Dec `json:"short"`
+		CoreLong       *money.Dec `json:"coreLong"`
+		CoreShort      *money.Dec `json:"coreShort"`
+		SensitiveLong  *money.Dec `json:"sensitiveLong"`
+		SensitiveShort *money.Dec `json:"sensitiveShort"`
+	}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	pick := func(cur money.Dec, v, core, sensitive *money.Dec) money.Dec {
+		switch {
+		case v != nil:
+			return *v
+		case core != nil && sensitive != nil:
+			total := core.Mul(money.FromInt(legacyCoreCoins)).Add(sensitive.Mul(money.FromInt(legacySensitiveCoins)))
+			return total.Div(money.FromInt(legacyCoreCoins + legacySensitiveCoins))
+		case core != nil:
+			return *core
+		}
+		return cur
+	}
+	s.Long = pick(s.Long, raw.Long, raw.CoreLong, raw.SensitiveLong)
+	s.Short = pick(s.Short, raw.Short, raw.CoreShort, raw.SensitiveShort)
+	return nil
 }
 
 // Config replaces the EMA1D_* AppSettings of the Rails app.
@@ -41,17 +76,13 @@ type Config struct {
 	MarginLevelAlert money.Dec `json:"marginLevelAlert"`
 }
 
-// SuggestedSizes are the sizes the research ended on: one size for every coin of the basket, the
-// same total as the backtest's configuration "4d" (core 7/3.5, sensitive 2.5/1.25 over 15 + 5
-// coins). The core/sensitive split had no out-of-sample value (tradingview-ema review2611), so
-// both groups get the same size; the group stays on the pair for whoever wants to split again.
-// A size set below them is treated as a test run: an order under Binance's minimum is raised to
-// the minimum.
+// SuggestedSizes are the sizes the research ended on: one size for every coin, the same total as
+// the backtest's configuration "4d" (core 7 / 3.5 and sensitive 2.5 / 1.25 over 15 + 5 coins).
+// The core / sensitive split had no out-of-sample value (tradingview-ema review2611). A size set
+// below them is treated as a test run: an order under Binance's minimum is raised to the minimum.
 var SuggestedSizes = Sizes{
-	CoreLong:       money.MustParse("5.875"),
-	CoreShort:      money.MustParse("2.9375"),
-	SensitiveLong:  money.MustParse("5.875"),
-	SensitiveShort: money.MustParse("2.9375"),
+	Long:  money.MustParse("5.875"),
+	Short: money.MustParse("2.9375"),
 }
 
 func DefaultConfig() Config {
@@ -76,10 +107,7 @@ func (c Config) Validate() error {
 	if c.MaxLongVolPct.IsNegative() || c.MaxLongVolPct.GreaterThan(money.FromInt(100)) {
 		errs = append(errs, errors.New("maxLongVolPct must be between 0 and 100"))
 	}
-	for name, v := range map[string]money.Dec{
-		"coreLong": c.Sizes.CoreLong, "coreShort": c.Sizes.CoreShort,
-		"sensitiveLong": c.Sizes.SensitiveLong, "sensitiveShort": c.Sizes.SensitiveShort,
-	} {
+	for name, v := range map[string]money.Dec{"long": c.Sizes.Long, "short": c.Sizes.Short} {
 		if v.IsNegative() || v.GreaterThan(money.FromInt(100)) {
 			errs = append(errs, fmt.Errorf("sizes.%s must be between 0 and 100", name))
 		}
@@ -90,16 +118,10 @@ func (c Config) Validate() error {
 	return errors.Join(errs...)
 }
 
-// SizeFor returns the configured and the suggested % for a group and side.
-func (c Config) SizeFor(group, side string) (configured, suggested money.Dec) {
-	switch {
-	case group == GroupSensitive && side == SideLong:
-		return c.Sizes.SensitiveLong, SuggestedSizes.SensitiveLong
-	case group == GroupSensitive:
-		return c.Sizes.SensitiveShort, SuggestedSizes.SensitiveShort
-	case side == SideLong:
-		return c.Sizes.CoreLong, SuggestedSizes.CoreLong
-	default:
-		return c.Sizes.CoreShort, SuggestedSizes.CoreShort
+// SizeFor returns the configured and the suggested % for a side.
+func (c Config) SizeFor(side string) (configured, suggested money.Dec) {
+	if side == SideLong {
+		return c.Sizes.Long, SuggestedSizes.Long
 	}
+	return c.Sizes.Short, SuggestedSizes.Short
 }

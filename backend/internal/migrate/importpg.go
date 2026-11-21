@@ -362,9 +362,18 @@ func (im *importer) config(ctx context.Context) error {
 			m[k] = v
 		}
 	}
-	for k, v := range map[string]string{"coreLong": coreL, "coreShort": coreS, "sensitiveLong": sensL, "sensitiveShort": sensS} {
-		if v != "" {
-			sizes[k] = v
+	// Rails sized per core / sensitive group: hand those over as the old keys and let
+	// ema1d.Sizes turn them into one LONG and one SHORT size.
+	for side, keys := range map[string][2]string{"long": {coreL, sensL}, "short": {coreS, sensS}} {
+		legacy := map[string]string{"long": "Long", "short": "Short"}[side]
+		if keys[0] != "" || keys[1] != "" {
+			delete(sizes, side)
+		}
+		if keys[0] != "" {
+			sizes["core"+legacy] = keys[0]
+		}
+		if keys[1] != "" {
+			sizes["sensitive"+legacy] = keys[1]
 		}
 	}
 	raw, _ = json.Marshal(m)
@@ -375,6 +384,7 @@ func (im *importer) config(ctx context.Context) error {
 	if err := check.Validate(); err != nil {
 		return fmt.Errorf("EMA1D settings: %w", err)
 	}
+	raw, _ = json.Marshal(check)
 	if _, err := im.lite.Write.ExecContext(ctx, `INSERT INTO strategy_configs (strategy, config) VALUES (?, ?)`, ema1d.StrategyKey, string(raw)); err != nil {
 		return err
 	}
@@ -403,16 +413,16 @@ func (im *importer) config(ctx context.Context) error {
 
 func (im *importer) ema1dPairs(ctx context.Context) error {
 	return im.copyRows(ctx, "ema1d_pairs",
-		`SELECT id::text, pair_id::text, upper(pair_group), allow_long::text, allow_short::text, short_supported::text,
+		`SELECT id::text, pair_id::text, allow_long::text, allow_short::text, short_supported::text,
 		        upper(status), added_on::text, removed_on::text, long_exit_rule, signal_from::text, `+ts("checked_at")+`,
 		        coalesce(check_note, ''), `+ts("created_at")+`, `+ts("updated_at")+`
 		 FROM ema1d_pairs ORDER BY id`,
-		`INSERT INTO ema1d_pairs (id, pair_id, pair_group, allow_long, allow_short, short_supported, status, added_on,
+		`INSERT INTO ema1d_pairs (id, pair_id, allow_long, allow_short, short_supported, status, added_on,
 		   removed_on, long_exit_rule, signal_from, checked_at, check_note, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		func(v []*string) []any {
-			return []any{*v[0], *v[1], *v[2], pgBool(v[3]), pgBool(v[4]), pgBool(v[5]), *v[6], *v[7], nullable(v[8]),
-				nullable(v[9]), nullable(v[10]), nullable(v[11]), *v[12], *v[13], *v[14]}
+			return []any{*v[0], *v[1], pgBool(v[2]), pgBool(v[3]), pgBool(v[4]), *v[5], *v[6], nullable(v[7]),
+				nullable(v[8]), nullable(v[9]), nullable(v[10]), *v[11], *v[12], *v[13]}
 		})
 }
 

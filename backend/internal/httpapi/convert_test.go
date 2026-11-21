@@ -50,7 +50,7 @@ func TestDomainTypesMatchTheAPI(t *testing.T) {
 		Capital:       ema1d.Capital{BudgetUsdt: *d("6000"), RealizedProfitUsdt: *d("1"), EquityUsdt: *d("6001"), UnrealizedProfitUsdt: *d("2"), InterestPaidUsdt: *d("3"), FeePaidUsdt: *d("4"), ClosedPositions: 5},
 		Exposure:      ema1d.Exposure{LongUsdt: *d("1"), ShortUsdt: *d("2"), LongPercent: d("3"), ShortPercent: d("4"), LongCount: 1, ShortCount: 2},
 		MarginLevel:   ema1d.MarginStatus{Value: d("3.2"), At: &now, Warn: *d("1.5"), Alert: *d("1.3")},
-		Sizes:         []ema1d.SizeRow{{Key: "coreLong", Percent: *d("7"), SuggestedPercent: *d("7")}},
+		Sizes:         []ema1d.SizeRow{{Key: "long", Percent: *d("7"), SuggestedPercent: *d("7")}},
 		OpenPositions: []ema1d.PositionRow{pos}, Todos: []ema1d.TodoRow{todo},
 		LastSync:         &ema1d.LastSync{RunID: "r", Date: "2026-10-10", At: now, CreatedTodos: 1, Skipped: []ema1d.SkippedEntry{{Coin: "SUN", Action: "OPEN", Side: "LONG", Reason: "x"}}, Warnings: []string{"w"}},
 		SyncMissingToday: true,
@@ -58,7 +58,7 @@ func TestDomainTypesMatchTheAPI(t *testing.T) {
 	roundTrip[Ema1dStatus](t, st)
 
 	pair := ema1d.PairRow{
-		ID: 1, PairID: 2, Coin: "SUN", PairName: "SUNUSDT", PairGroup: "CORE", Status: "ACTIVE", AllowLong: true, AllowShort: true,
+		ID: 1, PairID: 2, Coin: "SUN", PairName: "SUNUSDT", Status: "ACTIVE", AllowLong: true, AllowShort: true,
 		ShortSupported: true, LongExitRule: sp("DIV4H"), AddedOn: "2026-10-01", RemovedOn: sp("2026-10-20"), SignalFrom: sp("2026-10-02"),
 		CheckNote: "ok", CheckedAt: &now, CurrentPrice: d("0.02"),
 		Position:     &ema1d.PairPosition{PositionID: 1, Side: "SHORT", Status: "OPEN", SignalDate: "2026-10-05", Amount: *d("100"), UnrealizedProfitUsdt: *d("1"), UnrealizedPercent: d("2")},

@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 import { type Ema1dPairRow, pairsQuery, useCheckPairs } from '@/features/ema1d/api'
 import { BasketPairSheet } from '@/features/ema1d/components/BasketPairSheet'
-import { BasketStatusBadge, GroupBadge, WantedLabel } from '@/features/ema1d/components/badges'
+import { BasketStatusBadge, WantedLabel } from '@/features/ema1d/components/badges'
 import { DataTable } from '@/shared/components/data-table'
 import { Pct, Price, Qty, Side } from '@/shared/components/numbers'
 import { PageHeader } from '@/shared/components/states'
@@ -48,7 +48,6 @@ const columns = [
     cell: (c) => <BasketStatusBadge status={c.getValue()} />,
     meta: { mobile: 'badge' },
   }),
-  col.accessor('pairGroup', { header: 'Group', cell: (c) => <GroupBadge group={c.getValue()} /> }),
   col.display({
     id: 'sides',
     header: 'Allowed sides',

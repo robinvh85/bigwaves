@@ -154,7 +154,7 @@ func TestImportPG(t *testing.T) {
 	require.Equal(t, []any{"date=2026-10-09&run_id=auto"}, row(`SELECT raw_query FROM ema1d_syncs WHERE id = 5`))
 
 	// Config from the EMA1D settings.
-	cfg := row(`SELECT json_extract(config, '$.enabled'), json_extract(config, '$.budgetUsdt'), json_extract(config, '$.sizes.coreLong') FROM strategy_configs WHERE strategy = 'ema1d'`)
+	cfg := row(`SELECT json_extract(config, '$.enabled'), json_extract(config, '$.budgetUsdt'), json_extract(config, '$.sizes.long') FROM strategy_configs WHERE strategy = 'ema1d'`)
 	require.Equal(t, []any{int64(1), "7000", "5"}, cfg)
 
 	// EMA cross: the watchlist from the Rails flags (not the OKX pair) and the H4 threshold.

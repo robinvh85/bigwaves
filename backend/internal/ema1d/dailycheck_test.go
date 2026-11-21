@@ -57,7 +57,7 @@ func setupCheck(t *testing.T) *env {
 	e.config(func(cfg *ema1d.Config) { cfg.DailyCheckEnabled = true; cfg.MaxEntryAgeDays = 1 })
 	divRule, xo := "DIV4H", "XO"
 	eth := e.pair("ETH", "2500", "0.0001")
-	btc := e.pair("BTC", "110000", "0.00001", sensitive, longOnly)
+	btc := e.pair("BTC", "110000", "0.00001", longOnly)
 	e.setPair(eth.ID, func(p *dbq.Ema1dPair) { p.AddedOn = "2026-10-10"; p.LongExitRule = &divRule })
 	e.setPair(btc.ID, func(p *dbq.Ema1dPair) { p.AddedOn = "2026-10-10"; p.LongExitRule = &xo })
 	for _, coin := range []string{"eth", "btc"} {

@@ -27,9 +27,6 @@ import (
 
 // Enumerations stored as text.
 const (
-	GroupCore      = "CORE"
-	GroupSensitive = "SENSITIVE"
-
 	PairActive   = "ACTIVE"
 	PairExitOnly = "EXIT_ONLY"
 	PairDisabled = "DISABLED"

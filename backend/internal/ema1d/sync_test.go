@@ -27,7 +27,7 @@ func newSyncEnv(t *testing.T) *syncEnv {
 	s := &syncEnv{env: e}
 	s.sun = e.pair("SUN", "0.02", "1")
 	s.eth = e.pair("ETH", "2400", "0.0001")
-	s.btc = e.pair("BTC", "120000", "0.00001", sensitive, longOnly)
+	s.btc = e.pair("BTC", "120000", "0.00001", longOnly)
 	return s
 }
 

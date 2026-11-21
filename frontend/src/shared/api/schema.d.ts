@@ -990,11 +990,10 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        /** @description % of the strategy capital per trade, the same for every coin */
         Ema1dSizes: {
-            coreLong: components["schemas"]["Decimal"];
-            coreShort: components["schemas"]["Decimal"];
-            sensitiveLong: components["schemas"]["Decimal"];
-            sensitiveShort: components["schemas"]["Decimal"];
+            long: components["schemas"]["Decimal"];
+            short: components["schemas"]["Decimal"];
         };
         Ema1dConfig: {
             /** @description Executes the todo queue */
@@ -1159,8 +1158,6 @@ export interface components {
             coin: string;
             pairName: string;
             /** @enum {string} */
-            pairGroup: "CORE" | "SENSITIVE";
-            /** @enum {string} */
             status: "ACTIVE" | "EXIT_ONLY" | "DISABLED";
             allowLong: boolean;
             allowShort: boolean;
@@ -1207,8 +1204,6 @@ export interface components {
             mismatch: boolean;
         };
         Ema1dPairUpdate: {
-            /** @enum {string} */
-            pairGroup?: "CORE" | "SENSITIVE";
             /** @enum {string} */
             status?: "ACTIVE" | "EXIT_ONLY" | "DISABLED";
             allowLong?: boolean;

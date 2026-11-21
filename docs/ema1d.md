@@ -49,18 +49,21 @@ cách với `FEE = 0.0006` ra đúng từng byte file vàng cũ. Đổi phí l�
 
 ## Rổ coin
 
-Seed tháng 10/2026 (`seed.go`, chỉ tạo dòng còn thiếu, sửa trên màn hình được giữ nguyên):
+Seed tháng 10/2026 (`seed.go`, chỉ tạo dòng còn thiếu, sửa trên màn hình được giữ nguyên): JASMY, WLD, RAY,
+GRT, SUN, BONK, THETA, STX, SEI, RENDER, ETH, FLOKI, PEPE, ZEC, ARB, AR, BTC, FET, RUNE, CFX.
 
-| Nhóm | Coin | % LONG | % SHORT |
-|---|---|---|---|
-| Lõi (`CORE`) | JASMY, WLD, RAY, GRT, SUN, BONK, THETA, STX, SEI, RENDER, ETH, FLOKI, PEPE, ZEC, ARB | 5.875 | 2.9375 |
-| Nhạy (`SENSITIVE`) | AR, BTC, FET, RUNE, CFX | 5.875 | 2.9375 |
+Mọi coin dùng chung một mức size: LONG 5.875%, SHORT 2.9375% vốn chiến lược mỗi lệnh (Settings → "LONG size",
+"SHORT size").
 
-Từ 21/11/2026 hai nhóm dùng chung một mức size (trước đó lõi 7/3.5, nhạy 2.5/1.25; tổng vốn khi đủ 20 lệnh
-giữ nguyên 117.5% LONG, 58.75% SHORT). Nghiên cứu `tradingview-ema/ema-1d-exit/review2611` cho thấy cách chia
-nhóm không dự báo được: nhóm lõi chỉ hơn nhóm nhạy ở đúng giai đoạn dùng để chia nhóm (10/2023–10/2026); từ
-01/2022 chia tầng +1058% và chia đều +1005% là ngang nhau. Cột `pair_group` và 4 ô % trong Settings vẫn giữ
-để chia lại nếu cần.
+Trước 21/11/2026 rổ chia nhóm lõi (15 coin đầu, 7% / 3.5%) và nhạy (5 coin cuối, 2.5% / 1.25%). Nhóm này đã bỏ
+hẳn (migration `00007` xoá cột `pair_group`) vì không dự báo được gì: theo
+`tradingview-ema/ema-1d-exit/review2611`, nhóm lõi chỉ hơn nhóm nhạy ở đúng giai đoạn dùng để chia nhóm
+(10/2023–10/2026), và từ 01/2022 chia tầng (+1058%) với chia đều (+1005%) là ngang nhau. Mức chung giữ nguyên
+tổng vốn khi đủ 20 lệnh (15 × 7 + 5 × 2.5 = 20 × 5.875).
+
+Cấu hình đã lưu theo kiểu cũ (`coreLong`, `sensitiveLong`…) được đọc thành mức chung theo trung bình của rổ cũ:
+`(15 × lõi + 5 × nhạy) / 20`, nên 7 / 2.5 thành 5.875 và một size chạy thử nhỏ vẫn nhỏ. Lưu lại trên màn
+Settings thì chỉ còn `long`, `short`.
 
 - Chỉ LONG: BTC, ZEC. LONG thoát XO: BTC (còn lại DIV4H).
 - % là mức gợi ý (cùng tổng vốn với cấu hình "4d" của backtest), cũng là mặc định; ngân sách mặc định 6000 USDT, tuổi tín hiệu

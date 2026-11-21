@@ -25,7 +25,7 @@ func ema1dKit(t *testing.T) *testkit.Kit {
 	require.NoError(t, err)
 	rule := "XO"
 	_, err = dbq.New(k.App.DB.Write).CreateEma1dPair(context.Background(), dbq.CreateEma1dPairParams{
-		PairID: p.ID, PairGroup: "CORE", AllowLong: true, AllowShort: true, ShortSupported: true, Status: "ACTIVE",
+		PairID: p.ID, AllowLong: true, AllowShort: true, ShortSupported: true, Status: "ACTIVE",
 		AddedOn: "2020-01-01", LongExitRule: &rule,
 	})
 	require.NoError(t, err)

@@ -22,13 +22,13 @@ WHERE c.name = ?;
 SELECT * FROM ema1d_pairs WHERE pair_id = ?;
 
 -- name: CreateEma1dPair :one
-INSERT INTO ema1d_pairs (pair_id, pair_group, allow_long, allow_short, short_supported, status, added_on,
+INSERT INTO ema1d_pairs (pair_id, allow_long, allow_short, short_supported, status, added_on,
                          long_exit_rule, signal_from, check_note)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: UpdateEma1dPair :exec
-UPDATE ema1d_pairs SET pair_group = ?, status = ?, allow_long = ?, allow_short = ?, added_on = ?, removed_on = ?,
+UPDATE ema1d_pairs SET status = ?, allow_long = ?, allow_short = ?, added_on = ?, removed_on = ?,
   long_exit_rule = ?, signal_from = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 WHERE id = ?;
 

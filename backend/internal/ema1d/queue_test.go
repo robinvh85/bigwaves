@@ -29,11 +29,11 @@ func newQueueEnv(t *testing.T) *queueEnv {
 	e := newEnv(t, time.Now().UTC(), testkit.WithTrading())
 	q := &queueEnv{env: e}
 	e.s.Sleep = func(d time.Duration) { q.sleeps = append(q.sleeps, d) }
-	// The amounts below are worked out for 7% LONG / 3.5% SHORT (the earlier core sizes), set
-	// explicitly so that the default sizes can change without touching the execution tests.
+	// The amounts below are worked out for 7% LONG / 3.5% SHORT, set explicitly so that the default
+	// sizes can change without touching the execution tests.
 	e.config(func(c *ema1d.Config) {
 		c.Enabled = true
-		c.Sizes = ema1d.Sizes{CoreLong: dec("7"), CoreShort: dec("3.5"), SensitiveLong: dec("2.5"), SensitiveShort: dec("1.25")}
+		c.Sizes = ema1d.Sizes{Long: dec("7"), Short: dec("3.5")}
 	})
 	q.sun = e.pair("SUN", "0.02", "1")
 	q.eth = e.pair("ETH", "2000", "0.0001")
@@ -359,7 +359,7 @@ func TestShortOnACoinAnEMASettingsTradeShortsFailsAsConflict(t *testing.T) {
 
 func TestSizeBelowSuggestedIsRaisedToMinNotional(t *testing.T) {
 	q := newQueueEnv(t)
-	q.config(func(c *ema1d.Config) { c.Sizes.CoreLong = dec("0.007") }) // 0.42 USDT, a test size
+	q.config(func(c *ema1d.Config) { c.Sizes.Long = dec("0.007") }) // 0.42 USDT, a test size
 	small := q.create(q.sun, "OPEN", "LONG")
 	q.process()
 	got := q.todo(small.ID)
@@ -368,7 +368,7 @@ func TestSizeBelowSuggestedIsRaisedToMinNotional(t *testing.T) {
 	require.Equal(t, "5.5", pos.NotionalUsdt.String())
 	require.Equal(t, "0.0917", pos.SizePercent.String())
 
-	q.config(func(c *ema1d.Config) { c.Sizes.CoreLong = dec("7") })
+	q.config(func(c *ema1d.Config) { c.Sizes.Long = dec("7") })
 	q.exec("UPDATE pairs SET min_notional = '1000' WHERE id = ?", q.eth.PairID)
 	full := q.create(q.eth, "OPEN", "LONG")
 	q.process()
@@ -378,7 +378,7 @@ func TestSizeBelowSuggestedIsRaisedToMinNotional(t *testing.T) {
 
 func TestSizesFollowTheConfig(t *testing.T) {
 	q := newQueueEnv(t)
-	q.config(func(c *ema1d.Config) { c.Sizes.CoreShort = dec("0.35") })
+	q.config(func(c *ema1d.Config) { c.Sizes.Short = dec("0.35") })
 	todo := q.create(q.sun, "OPEN", "SHORT")
 	q.process()
 	pos := q.pos(*q.todo(todo.ID).PositionID)

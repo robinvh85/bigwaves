@@ -144,7 +144,7 @@ func TestStatusSumsCapitalExposurePositionsAndTodos(t *testing.T) {
 	require.False(t, st.SyncMissingToday)
 	require.Equal(t, []string{"missing: ETH"}, st.LastSync.Warnings)
 	require.Equal(t, 1, st.LastSync.CreatedTodos)
-	require.Equal(t, "coreLong", st.Sizes[0].Key)
+	require.Equal(t, "long", st.Sizes[0].Key)
 }
 
 func TestManualCloseTargetsTheOpenPositionAndIsIdempotent(t *testing.T) {
@@ -169,7 +169,7 @@ func TestManualCloseTargetsTheOpenPositionAndIsIdempotent(t *testing.T) {
 func TestManualOpenRunsTheSyncChecks(t *testing.T) {
 	e := newEnv(t, time.Date(2026, 10, 10, 6, 0, 0, 0, time.UTC))
 	e.pair("SUN", "0.018", "1")
-	e.pair("BTC", "100000", "0.00001", sensitive, longOnly)
+	e.pair("BTC", "100000", "0.00001", longOnly)
 	open := func(req ema1d.ManualTodoRequest) (ema1d.ManualTodoResult, error) {
 		req.Action = "OPEN"
 		if req.Coin == "" {

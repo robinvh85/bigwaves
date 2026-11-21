@@ -51,10 +51,6 @@ func (s *Server) UpdateEma1dPair(ctx context.Context, req UpdateEma1dPairRequest
 		AllowLong: b.AllowLong, AllowShort: b.AllowShort, RemovedOn: b.RemovedOn, LongExitRule: b.LongExitRule,
 		SignalFrom: b.SignalFrom,
 	}
-	if b.PairGroup != nil {
-		v := string(*b.PairGroup)
-		in.PairGroup = &v
-	}
 	if b.Status != nil {
 		v := string(*b.Status)
 		in.Status = &v

@@ -186,9 +186,9 @@ func joinIDs(ids []int64) string {
 
 // size returns the effective % of equity and the notional in USDT.
 func (s *Service) size(ctx context.Context, pv pairView, side string, equity money.Dec, cfg Config) (money.Dec, money.Dec, error) {
-	pct, suggested := cfg.SizeFor(pv.PairGroup, side)
+	pct, suggested := cfg.SizeFor(side)
 	if !pct.IsPositive() {
-		return money.Zero, money.Zero, permanent("size %s %s is %s", pv.PairGroup, side, pct)
+		return money.Zero, money.Zero, permanent("size %s is %s", side, pct)
 	}
 	notional := equity.Mul(pct).Div(money.FromInt(100))
 	minNotional, err := s.minNotional(ctx, pv)

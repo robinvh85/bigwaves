@@ -22,10 +22,8 @@ const schema = z
     budgetUsdt: dec,
     maxEntryAgeDays: z.coerce.number().int().min(0).max(30),
     maxLongVolPct: pct,
-    coreLong: pct,
-    coreShort: pct,
-    sensitiveLong: pct,
-    sensitiveShort: pct,
+    sizeLong: pct,
+    sizeShort: pct,
     marginLevelWarn: dec,
     marginLevelAlert: dec,
   })
@@ -41,10 +39,8 @@ function toForm(c: Ema1dConfig): FormIn {
     budgetUsdt: c.budgetUsdt,
     maxEntryAgeDays: c.maxEntryAgeDays,
     maxLongVolPct: c.maxLongVolPct,
-    coreLong: c.sizes.coreLong,
-    coreShort: c.sizes.coreShort,
-    sensitiveLong: c.sizes.sensitiveLong,
-    sensitiveShort: c.sizes.sensitiveShort,
+    sizeLong: c.sizes.long,
+    sizeShort: c.sizes.short,
     marginLevelWarn: c.marginLevelWarn,
     marginLevelAlert: c.marginLevelAlert,
   }
@@ -56,12 +52,7 @@ function toConfig(base: Ema1dConfig, f: Form): Ema1dConfig {
     budgetUsdt: f.budgetUsdt,
     maxEntryAgeDays: f.maxEntryAgeDays,
     maxLongVolPct: f.maxLongVolPct,
-    sizes: {
-      coreLong: f.coreLong,
-      coreShort: f.coreShort,
-      sensitiveLong: f.sensitiveLong,
-      sensitiveShort: f.sensitiveShort,
-    },
+    sizes: { long: f.sizeLong, short: f.sizeShort },
     marginLevelWarn: f.marginLevelWarn,
     marginLevelAlert: f.marginLevelAlert,
   }
@@ -71,10 +62,8 @@ const LABELS: Record<keyof Form, string> = {
   budgetUsdt: 'Budget',
   maxEntryAgeDays: 'Max signal age',
   maxLongVolPct: 'Max 30-day volatility for LONG',
-  coreLong: 'Core · LONG',
-  coreShort: 'Core · SHORT',
-  sensitiveLong: 'Sensitive · LONG',
-  sensitiveShort: 'Sensitive · SHORT',
+  sizeLong: 'LONG size',
+  sizeShort: 'SHORT size',
   marginLevelWarn: 'Margin level warning',
   marginLevelAlert: 'Margin level alert',
 }
@@ -132,17 +121,15 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
         <CardHeader>
           <CardTitle className="text-base">Capital & sizing</CardTitle>
           <CardDescription>
-            Size = % × strategy capital (budget + realized PnL, now {formatUsd(equity)}). The actual
-            balance is not used.
+            Size = % × strategy capital (budget + realized PnL, now {formatUsd(equity)}), the same for
+            every coin. The actual balance is not used.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           {field('budgetUsdt', { unit: 'USDT' })}
           <div />
-          {field('coreLong', { unit: '%', suggested: env.suggestedSizes.coreLong })}
-          {field('coreShort', { unit: '%', suggested: env.suggestedSizes.coreShort })}
-          {field('sensitiveLong', { unit: '%', suggested: env.suggestedSizes.sensitiveLong })}
-          {field('sensitiveShort', { unit: '%', suggested: env.suggestedSizes.sensitiveShort })}
+          {field('sizeLong', { unit: '%', suggested: env.suggestedSizes.long })}
+          {field('sizeShort', { unit: '%', suggested: env.suggestedSizes.short })}
         </CardContent>
       </Card>
       <Card>
@@ -191,7 +178,7 @@ function Editor({ env }: { env: Ema1dConfigEnvelope }) {
             {changes.map((k) => {
               const before = String(toForm(env.config)[k])
               const after = String(review[k])
-              const isSize = k.endsWith('Long') || k.endsWith('Short')
+              const isSize = k === 'sizeLong' || k === 'sizeShort'
               return (
                 <li key={k} className="flex flex-wrap justify-between gap-2">
                   <span className="text-muted-foreground">{LABELS[k]}</span>

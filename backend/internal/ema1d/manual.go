@@ -245,7 +245,6 @@ func (s *Service) CancelTodo(ctx context.Context, id int64) (TodoRow, error) {
 
 // PairUpdate edits a basket pair. Nil fields are kept.
 type PairUpdate struct {
-	PairGroup    *string
 	Status       *string
 	AllowLong    *bool
 	AllowShort   *bool
@@ -269,12 +268,6 @@ func (s *Service) UpdatePair(ctx context.Context, id int64, in PairUpdate) (Pair
 			return err
 		}
 		p := cur.Ema1dPair
-		if in.PairGroup != nil {
-			if *in.PairGroup != GroupCore && *in.PairGroup != GroupSensitive {
-				return httpx.Validation("pairGroup must be CORE or SENSITIVE", nil)
-			}
-			p.PairGroup = *in.PairGroup
-		}
 		if in.Status != nil {
 			st := *in.Status
 			if st != PairActive && st != PairExitOnly && st != PairDisabled {
@@ -329,7 +322,7 @@ func (s *Service) UpdatePair(ctx context.Context, id int64, in PairUpdate) (Pair
 			}
 		}
 		return q.UpdateEma1dPair(ctx, dbq.UpdateEma1dPairParams{
-			PairGroup: p.PairGroup, Status: p.Status, AllowLong: p.AllowLong, AllowShort: p.AllowShort,
+			Status: p.Status, AllowLong: p.AllowLong, AllowShort: p.AllowShort,
 			AddedOn: p.AddedOn, RemovedOn: p.RemovedOn, LongExitRule: p.LongExitRule, SignalFrom: p.SignalFrom, ID: p.ID,
 		})
 	})

@@ -88,7 +88,7 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
           <span className="font-mono">{pair.coin}</span> <BasketStatusBadge status={pair.status} />
         </SheetTitle>
         <SheetDescription>
-          {pair.pairName} · {pair.pairGroup === 'CORE' ? 'core' : 'sensitive'} group · added{' '}
+          {pair.pairName} · added{' '}
           {formatDate(pair.addedOn)}
         </SheetDescription>
       </SheetHeader>
@@ -173,22 +173,7 @@ function Detail({ pair }: { pair: Ema1dPairRow }) {
             </Select>
             <p className="text-xs text-muted-foreground">{STATUS_HELP[pair.status]}</p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
-              <Label>Group (sizing)</Label>
-              <Select
-                value={pair.pairGroup}
-                onValueChange={(v) => update.mutate({ pairGroup: v as 'CORE' | 'SENSITIVE' })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CORE">Core</SelectItem>
-                  <SelectItem value="SENSITIVE">Sensitive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid gap-3">
             <div className="grid gap-2">
               <Label>Exit LONG on</Label>
               <Select
